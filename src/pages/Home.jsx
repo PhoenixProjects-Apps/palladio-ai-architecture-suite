@@ -1,77 +1,55 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { FileSearch, Layers, Building2, MapPin, ClipboardList, ChevronRight, Code, Ruler, Mail } from 'lucide-react';
+import { FileImage, Layers, Building2, MapPin, ClipboardList } from 'lucide-react';
+import { motion } from 'framer-motion';
 
-const services = [
-  {
-    id: 'assess', title: 'Assess Architectural Plans',
-    description: 'Upload floorplans, site plans or construction drawings for AI-powered assessment and detailed analysis.',
-    icon: FileSearch, iconBg: '#0d6e6e', page: null
-  },
-  {
-    id: 'generate', title: 'Generate Floorplans',
-    description: 'Describe your requirements and let AI generate detailed, scaled floorplans for any space.',
-    icon: Layers, iconBg: '#5b21b6', page: null
-  },
-  {
-    id: 'render', title: '3D Renders from Sketches',
-    description: 'Upload a black & white 3D view and receive photorealistic AI-rendered architectural visuals.',
-    icon: Building2, iconBg: '#b45309', page: 'Render3D'
-  },
-  {
-    id: 'property', title: 'Property Intelligence',
-    description: 'Enter any address to retrieve zoning info, land details, overlays, planning history and more.',
-    icon: MapPin, iconBg: '#15803d', page: null
-  },
-  {
-    id: 'town', title: 'Town Planner AI',
-    description: 'Assess proposed developments against local planning schemes, zoning codes and regulations.',
-    icon: ClipboardList, iconBg: '#9d174d', page: null
-  },
+const tools = [
+  { id: 'assess', title: 'Assess Plans', desc: 'AI-powered assessment and detailed analysis of floorplans.', icon: FileImage, color: 'from-cyan-500 to-cyan-700', page: 'PalladioAssess' },
+  { id: 'floorplan', title: 'Generate Floorplans', desc: 'AI generated detailed, scaled floorplans for any space.', icon: Layers, color: 'from-violet-500 to-violet-700', page: 'PalladioFloorplan' },
+  { id: 'render', title: '3D Renders', desc: 'Photorealistic AI-rendered architectural visuals from sketches.', icon: Building2, color: 'from-amber-500 to-amber-700', page: 'PalladioRender' },
+  { id: 'property', title: 'Property Intelligence', desc: 'Retrieve zoning info, land details, planning history and more.', icon: MapPin, color: 'from-emerald-500 to-emerald-700', page: 'PalladioProperty' },
+  { id: 'planner', title: 'Town Planner AI', desc: 'Assess developments against local planning schemes and codes.', icon: ClipboardList, color: 'from-rose-500 to-rose-700', page: 'PalladioPlanner' },
 ];
 
-function PalladioLogo() {
+export default function Home() {
   return (
-    <div className="relative mx-auto my-6" style={{ width: '210px', height: '210px' }}>
-      <div style={{
-        position: 'absolute', inset: 0, borderRadius: '50%',
-        border: '3px solid #14b8a6',
-        boxShadow: '0 0 50px rgba(20,184,166,0.45), 0 0 100px rgba(20,184,166,0.15)'
-      }} />
-      <div style={{ position: 'absolute', inset: '7px', borderRadius: '50%', backgroundColor: '#0f172a' }} />
-      {/* Cross dividers */}
-      <div style={{ position: 'absolute', inset: '7px', borderRadius: '50%', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: '1px', backgroundColor: '#1e293b' }} />
-        <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: '1px', backgroundColor: '#1e293b' }} />
-      </div>
-      {/* Q1: Code top-left */}
-      <div style={{ position: 'absolute', top: '36px', left: '36px', color: '#14b8a6' }}>
-        <Code size={16} />
-        <div style={{ width: '18px', height: '1.5px', backgroundColor: '#14b8a6', marginTop: '3px', marginBottom: '2px' }} />
-        <div style={{ width: '12px', height: '1.5px', backgroundColor: '#14b8a6' }} />
-      </div>
-      {/* Q2: Ruler top-right */}
-      <div style={{ position: 'absolute', top: '36px', right: '36px', color: '#94a3b8' }}>
-        <Ruler size={16} />
-      </div>
-      {/* Q3: Mail bottom-left */}
-      <div style={{ position: 'absolute', bottom: '36px', left: '36px', color: '#94a3b8' }}>
-        <Mail size={16} />
-      </div>
-      {/* Q4: Building bottom-right */}
-      <div style={{ position: 'absolute', bottom: '36px', right: '36px', color: '#94a3b8' }}>
-        <Building2 size={16} />
-      </div>
-      {/* Center text */}
-      <div style={{
-        position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center', zIndex: 10
-      }}>
-        <span style={{ color: 'white', fontWeight: 700, fontSize: '15px', letterSpacing: '0.5px' }}>Palladio AI</span>
-        <span style={{ color: '#64748b', fontSize: '8px', textAlign: 'center', marginTop: '5px', paddingLeft: '16px', paddingRight: '16px', lineHeight: '1.4' }}>
-          Automate. Design. Connect. Build.
-        </span>
+    <div className="min-h-screen bg-[#0f1117] text-white p-6 pb-12">
+      <div className="max-w-2xl mx-auto">
+        <header className="flex justify-between items-center mb-12">
+          <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69997bf8be3f3bf35cbd8147/e93fde36f_Lumii_20260222_021318181.png" alt="Palladio AI" className="w-[60px] h-[60px] object-cover rounded-xl" />
+          <Link to={createPageUrl('PalladioPricing')} className="text-sm font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full transition">
+            Pricing
+          </Link>
+        </header>
+
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
+          <h1 className="text-4xl font-bold mb-4 tracking-tight">Your AI-Powered Architecture Suite</h1>
+          <p className="text-slate-400 text-lg uppercase tracking-widest text-sm font-medium">Automate. Design. Connect. Build.</p>
+        </motion.div>
+
+        <div className="grid gap-4">
+          {tools.map((tool, i) => (
+            <motion.div 
+              key={tool.id}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.1 }}
+            >
+              <Link to={createPageUrl(tool.page)} className="block group">
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex items-center gap-5 hover:bg-white/10 transition-all duration-300">
+                  <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${tool.color} flex items-center justify-center shrink-0 shadow-lg`}>
+                    <tool.icon size={26} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-white mb-1">{tool.title}</h3>
+                    <p className="text-slate-400 text-sm leading-relaxed">{tool.desc}</p>
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </div>
   );

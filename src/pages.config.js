@@ -49,12 +49,20 @@
  */
 import Home from './pages/Home';
 import Render3D from './pages/Render3D';
+import PalladioAssess from './pages/PalladioAssess';
+import PalladioProperty from './pages/PalladioProperty';
+import PalladioPlanner from './pages/PalladioPlanner';
+import PalladioPricing from './pages/PalladioPricing';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Home": Home,
     "Render3D": Render3D,
+    "PalladioAssess": PalladioAssess,
+    "PalladioProperty": PalladioProperty,
+    "PalladioPlanner": PalladioPlanner,
+    "PalladioPricing": PalladioPricing,
 }
 
 export const pagesConfig = {
