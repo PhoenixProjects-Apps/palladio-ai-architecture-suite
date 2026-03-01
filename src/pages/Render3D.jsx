@@ -1,11 +1,13 @@
 import React, { useState, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Upload, Wand2, Loader2, FileText, Download, RefreshCcw, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Upload, Wand2, Loader2, FileText, Download, RefreshCcw, CheckCircle, ChevronDown, ChevronUp, Save, Bookmark } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { Input } from '@/components/ui/input';
 
 const PRESETS = [
   {
@@ -40,6 +42,21 @@ const PRESETS = [
   },
 ];
 
+const ADVANCED_PRESETS = [
+  {
+    key: 'cameraAngle', label: 'Camera Angle',
+    options: ['Eye Level', "Low Angle (Worm's Eye)", 'High Angle', "Bird's Eye", 'Aerial View', 'Drone Shot']
+  },
+  {
+    key: 'lightingStyle', label: 'Lighting Style',
+    options: ['Natural Light', 'Studio Lighting', 'Dramatic Shadows', 'Soft Ambient', 'Cinematic Lighting', 'High Contrast', 'Neon / Cyberpunk']
+  },
+  {
+    key: 'mood', label: 'Mood / Atmosphere',
+    options: ['Serene & Calm', 'Vibrant & Lively', 'Futuristic & Sci-Fi', 'Dark & Moody', 'Ethereal & Dreamy', 'Warm & Inviting']
+  }
+];
+
 export default function Render3D() {
   const [file, setFile] = useState(null);
   const [fileUrl, setFileUrl] = useState(null);
@@ -49,7 +66,47 @@ export default function Render3D() {
   const [isUploading, setIsUploading] = useState(false);
   const [isRendering, setIsRendering] = useState(false);
   const [renderedImage, setRenderedImage] = useState(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [savedPresetsList, setSavedPresetsList] = useState([]);
+  const [presetName, setPresetName] = useState('');
+  const [isSavingPreset, setIsSavingPreset] = useState(false);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    fetchSavedPresets();
+  }, []);
+
+  const fetchSavedPresets = async () => {
+    try {
+      const data = await base44.entities.RenderPreset.list();
+      setSavedPresetsList(data);
+    } catch (err) {
+      console.error('Failed to fetch presets:', err);
+    }
+  };
+
+  const handleSavePreset = async () => {
+    if (!presetName.trim()) return;
+    setIsSavingPreset(true);
+    try {
+      await base44.entities.RenderPreset.create({
+        name: presetName,
+        presets: presets,
+        prompt: prompt
+      });
+      setPresetName('');
+      fetchSavedPresets();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSavingPreset(false);
+    }
+  };
+
+  const applyPreset = (savedPreset) => {
+    if (savedPreset.presets) setPresets(savedPreset.presets);
+    if (savedPreset.prompt) setPrompt(savedPreset.prompt);
+  };
 
   const handleFileSelect = async (e) => {
     const selectedFile = e.target.files[0];
@@ -83,6 +140,9 @@ export default function Render3D() {
       presets.roofMaterial ? `Roof material: ${presets.roofMaterial}.` : '',
       presets.timeOfDay ? `Lighting / time of day: ${presets.timeOfDay}.` : '',
       presets.background ? `Environment and background: ${presets.background}.` : '',
+      presets.cameraAngle ? `Camera angle: ${presets.cameraAngle}.` : '',
+      presets.lightingStyle ? `Lighting style: ${presets.lightingStyle}.` : '',
+      presets.mood ? `Mood/Atmosphere: ${presets.mood}.` : '',
       'Maintain the exact architectural form, proportions, massing and structure from the reference black and white 3D view.',
       'Add photorealistic textures, materials, atmospheric lighting, shadows, reflections and environmental details.',
       'Professional architectural visualisation quality. High detail, photorealistic.',
@@ -182,8 +242,26 @@ export default function Render3D() {
 
         {/* Presets */}
         <div>
-          <h2 className="text-white text-sm font-semibold mb-3">Rendering Presets</h2>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-white text-sm font-semibold">Rendering Presets</h2>
+            {savedPresetsList.length > 0 && (
+              <Select onValueChange={(id) => applyPreset(savedPresetsList.find(p => p.id === id))}>
+                <SelectTrigger className="bg-slate-900 border-slate-700 text-white text-xs h-8 w-[160px]">
+                  <Bookmark size={14} className="mr-2 text-teal-400" />
+                  <SelectValue placeholder="Load preset..." />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900 border-slate-700">
+                  {savedPresetsList.map(p => (
+                    <SelectItem key={p.id} value={p.id} className="text-white text-xs cursor-pointer">
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 mb-4">
             {PRESETS.map(({ key, label, options }) => (
               <div key={key}>
                 <label className="block text-xs mb-1.5" style={{ color: '#94a3b8' }}>{label}</label>
@@ -202,6 +280,39 @@ export default function Render3D() {
               </div>
             ))}
           </div>
+
+          <div className="mb-4">
+            <Button
+              variant="ghost"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="w-full text-xs text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl justify-between h-9"
+            >
+              <span>Advanced Options</span>
+              {showAdvanced ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            </Button>
+            
+            {showAdvanced && (
+              <div className="grid grid-cols-2 gap-3 mt-3 p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+                {ADVANCED_PRESETS.map(({ key, label, options }) => (
+                  <div key={key}>
+                    <label className="block text-xs mb-1.5" style={{ color: '#94a3b8' }}>{label}</label>
+                    <Select value={presets[key] || ''} onValueChange={(val) => setPresets(p => ({ ...p, [key]: val }))}>
+                      <SelectTrigger className="bg-slate-900 border-slate-700 text-white text-xs h-9 rounded-xl">
+                        <SelectValue placeholder="Select..." />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-slate-700">
+                        {options.map(opt => (
+                          <SelectItem key={opt} value={opt} className="text-white text-xs focus:bg-slate-800 focus:text-white cursor-pointer">
+                            {opt}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* AI Instructions */}
@@ -211,8 +322,26 @@ export default function Render3D() {
             value={prompt}
             onChange={e => setPrompt(e.target.value)}
             placeholder="E.g. 'Add lush landscaping and people walking, a water feature at the entrance. Use warm Mediterranean tones with olive trees lining the path...'"
-            className="bg-slate-900 border-slate-700 text-white placeholder:text-slate-600 text-sm rounded-xl min-h-[110px] resize-none"
+            className="bg-slate-900 border-slate-700 text-white placeholder:text-slate-600 text-sm rounded-xl min-h-[110px] resize-none mb-3"
           />
+          
+          <div className="flex gap-2">
+            <Input 
+              placeholder="Preset name (e.g. My Custom Villa)" 
+              value={presetName}
+              onChange={e => setPresetName(e.target.value)}
+              className="bg-slate-900 border-slate-700 text-white text-xs h-9 rounded-xl"
+            />
+            <Button 
+              onClick={handleSavePreset} 
+              disabled={isSavingPreset || !presetName.trim()}
+              variant="outline"
+              className="h-9 text-xs rounded-xl border-slate-700 text-slate-300 hover:text-white shrink-0"
+            >
+              {isSavingPreset ? <Loader2 size={14} className="animate-spin mr-2" /> : <Save size={14} className="mr-2" />}
+              Save Preset
+            </Button>
+          </div>
         </div>
 
         {/* Render Button */}
