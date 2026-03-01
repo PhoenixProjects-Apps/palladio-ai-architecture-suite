@@ -37,7 +37,12 @@ export default function PalladioAssess() {
             setFileUrl(res.file_url || res.url);
         } catch (err) {
             console.error(err);
-            toast.error("Failed to upload file. Please try again.");
+            let errMsg = "Failed to upload file. Please try again.";
+            if (err?.message?.includes("Network Error")) {
+                errMsg = "Network Error: The file might be too large or your connection was interrupted.";
+            }
+            setUploadError(errMsg);
+            toast.error(errMsg);
         } finally {
             setIsUploading(false);
         }
