@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import Sidebar from '@/components/Sidebar';
 
 export default function Layout({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -19,12 +20,12 @@ export default function Layout({ children }) {
   if (!isAuthenticated) return <div style={{ backgroundColor: '#0f1117', minHeight: '100vh' }} />;
 
   return (
-    <div className="text-white font-sans" style={{ backgroundColor: '#0f1117', minHeight: '100vh' }}>
+    <div className="text-white font-sans flex h-screen overflow-hidden" style={{ backgroundColor: '#0f1117' }}>
       <style>{`
         body { background-color: #0f1117 !important; margin: 0; }
         * { border-color: rgba(255,255,255,0.1); }
         ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: #0f1117; }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
         .prose-invert h1, .prose-invert h2, .prose-invert h3 { color: #f9fafb; margin-top: 1.5em; margin-bottom: 0.5em; font-weight: 600; }
         .prose-invert h1 { font-size: 1.5rem; }
@@ -39,7 +40,8 @@ export default function Layout({ children }) {
         .prose-invert pre code { background: transparent; padding: 0; color: inherit; }
         .prose-invert blockquote { border-left: 4px solid #374151; padding-left: 1rem; color: #9ca3af; font-style: italic; margin: 1rem 0; }
       `}</style>
-      <main className="fixed inset-0 overflow-y-auto overflow-x-hidden">
+      <Sidebar />
+      <main className="flex-1 overflow-y-auto overflow-x-hidden h-full relative">
         {children}
       </main>
     </div>
