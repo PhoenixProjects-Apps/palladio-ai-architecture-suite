@@ -39,7 +39,8 @@ export default function Home() {
           </div>
         </header>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12 flex flex-col items-center">
+          <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69997bf8be3f3bf35cbd8147/e93fde36f_Lumii_20260222_021318181.png" alt="Palladio AI" className="w-32 h-32 md:w-40 md:h-40 object-cover rounded-3xl mb-8 shadow-2xl shadow-white/5" />
           <h1 className="text-4xl font-bold mb-4 tracking-tight">Your AI-Powered Architecture Suite</h1>
           <p className="text-slate-400 text-lg uppercase tracking-widest text-sm font-medium">Automate. Design. Connect. Build.</p>
         </motion.div>
