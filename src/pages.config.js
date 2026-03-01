@@ -53,6 +53,7 @@ import PalladioAssess from './pages/PalladioAssess';
 import PalladioProperty from './pages/PalladioProperty';
 import PalladioPlanner from './pages/PalladioPlanner';
 import PalladioPricing from './pages/PalladioPricing';
+import PalladioRender from './pages/PalladioRender';
 import __Layout from './Layout.jsx';
 
 
@@ -63,6 +64,7 @@ export const PAGES = {
     "PalladioProperty": PalladioProperty,
     "PalladioPlanner": PalladioPlanner,
     "PalladioPricing": PalladioPricing,
+    "PalladioRender": PalladioRender,
 }
 
 export const pagesConfig = {
