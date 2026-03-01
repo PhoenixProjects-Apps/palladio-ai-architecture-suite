@@ -68,7 +68,7 @@ export const PAGES = {
 }
 
 export const pagesConfig = {
-    mainPage: "Render3D",
+    mainPage: "Home",
     Pages: PAGES,
     Layout: __Layout,
 };
