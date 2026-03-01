@@ -216,61 +216,109 @@ export default function Render3D() {
 
       <div className="px-4 py-5 space-y-6" style={{ maxWidth: '520px', margin: '0 auto' }}>
 
-        {/* Upload */}
-        <div>
-          <h2 className="text-white text-sm font-semibold mb-3">Upload Your 3D Building View</h2>
-          <div
-            onClick={() => fileInputRef.current?.click()}
-            className="rounded-2xl p-8 text-center cursor-pointer transition-all"
-            style={{
-              border: `2px dashed ${fileUrl ? '#14b8a6' : '#334155'}`,
-              backgroundColor: '#0f172a'
-            }}
-          >
-            {isUploading ? (
-              <div className="flex flex-col items-center gap-3">
-                <Loader2 size={36} className="animate-spin" style={{ color: '#14b8a6' }} />
-                <p className="text-gray-400 text-sm">Uploading...</p>
-              </div>
-            ) : previewUrl ? (
-              <img
-                src={previewUrl}
-                alt="3D view preview"
-                className="mx-auto rounded-xl object-contain"
-                style={{ maxHeight: '220px', maxWidth: '100%' }}
-              />
-            ) : file && !previewUrl ? (
-              <div className="flex flex-col items-center gap-3">
-                <FileText size={36} style={{ color: '#14b8a6' }} />
-                <p className="text-white text-sm font-medium">{file.name}</p>
-                <p className="text-gray-500 text-xs">PDF uploaded</p>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center gap-3">
-                <Upload size={36} style={{ color: '#475569' }} />
-                <div>
-                  <p className="text-white font-medium">Upload your 3D building view</p>
-                  <p className="text-gray-500 text-sm mt-1">PNG, JPG, JPEG or PDF</p>
-                  <p className="text-xs mt-1" style={{ color: '#475569' }}>
-                    Black & white 3D views and sketches work best
-                  </p>
+        {/* Upload Section */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <h2 className="text-white text-sm font-semibold mb-3">1. 3D Building View</h2>
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col justify-center items-center h-[200px]"
+              style={{
+                border: `2px dashed ${fileUrl ? '#14b8a6' : '#334155'}`,
+                backgroundColor: '#0f172a'
+              }}
+            >
+              {isUploading ? (
+                <div className="flex flex-col items-center gap-2">
+                  <Loader2 size={24} className="animate-spin" style={{ color: '#14b8a6' }} />
+                  <p className="text-gray-400 text-xs">Uploading...</p>
                 </div>
+              ) : previewUrl ? (
+                <img
+                  src={previewUrl}
+                  alt="3D view preview"
+                  className="mx-auto rounded-xl object-contain h-full w-full"
+                />
+              ) : file && !previewUrl ? (
+                <div className="flex flex-col items-center gap-2">
+                  <FileText size={24} style={{ color: '#14b8a6' }} />
+                  <p className="text-white text-xs font-medium truncate w-full px-2">{file.name}</p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-2">
+                  <Upload size={24} style={{ color: '#475569' }} />
+                  <div>
+                    <p className="text-white text-sm font-medium">Upload view</p>
+                    <p className="text-gray-500 text-[10px] mt-1">Image or PDF</p>
+                  </div>
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,.pdf"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+            </div>
+            {fileUrl && !isUploading && (
+              <div className="flex items-center gap-1 mt-2">
+                <CheckCircle size={12} style={{ color: '#14b8a6' }} />
+                <span className="text-[10px]" style={{ color: '#14b8a6' }}>Main view ready</span>
               </div>
             )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*,.pdf"
-              onChange={handleFileSelect}
-              className="hidden"
-            />
           </div>
-          {fileUrl && !isUploading && (
-            <div className="flex items-center gap-2 mt-2">
-              <CheckCircle size={13} style={{ color: '#14b8a6' }} />
-              <span className="text-xs" style={{ color: '#14b8a6' }}>File ready — presets selected below</span>
+
+          <div>
+            <h2 className="text-white text-sm font-semibold mb-3">2. Style Reference (Opt)</h2>
+            <div
+              onClick={() => styleInputRef.current?.click()}
+              className="rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col justify-center items-center h-[200px]"
+              style={{
+                border: `2px dashed ${styleFileUrl ? '#14b8a6' : '#334155'}`,
+                backgroundColor: '#0f172a'
+              }}
+            >
+              {isUploadingStyle ? (
+                <div className="flex flex-col items-center gap-2">
+                  <Loader2 size={24} className="animate-spin" style={{ color: '#14b8a6' }} />
+                  <p className="text-gray-400 text-xs">Uploading...</p>
+                </div>
+              ) : stylePreviewUrl ? (
+                <img
+                  src={stylePreviewUrl}
+                  alt="Style preview"
+                  className="mx-auto rounded-xl object-contain h-full w-full"
+                />
+              ) : styleFile && !stylePreviewUrl ? (
+                <div className="flex flex-col items-center gap-2">
+                  <FileText size={24} style={{ color: '#14b8a6' }} />
+                  <p className="text-white text-xs font-medium truncate w-full px-2">{styleFile.name}</p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-2">
+                  <Upload size={24} style={{ color: '#475569' }} />
+                  <div>
+                    <p className="text-white text-sm font-medium">Style inspiration</p>
+                    <p className="text-gray-500 text-[10px] mt-1">Image (e.g. materials)</p>
+                  </div>
+                </div>
+              )}
+              <input
+                ref={styleInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleStyleSelect}
+                className="hidden"
+              />
             </div>
-          )}
+            {styleFileUrl && !isUploadingStyle && (
+              <div className="flex items-center gap-1 mt-2">
+                <CheckCircle size={12} style={{ color: '#14b8a6' }} />
+                <span className="text-[10px]" style={{ color: '#14b8a6' }}>Style applied</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Presets */}
