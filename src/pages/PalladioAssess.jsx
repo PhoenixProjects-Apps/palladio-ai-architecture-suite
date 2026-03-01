@@ -118,7 +118,9 @@ If the document is clearly not an architectural plan, note that in the overview 
                                     <div className="flex flex-col items-center">
                                         <FileImage size={48} className="text-cyan-500 mb-4" />
                                         <p className="text-white font-medium">{file.name}</p>
-                                        <p className="text-slate-400 text-sm mt-1">PDF Document</p>
+                                        <p className="text-slate-400 text-sm mt-1">
+                                            PDF Document ({(file.size / (1024 * 1024)).toFixed(2)} MB)
+                                        </p>
                                     </div>
                                 ) : (
                                     <div className="flex flex-col items-center">
