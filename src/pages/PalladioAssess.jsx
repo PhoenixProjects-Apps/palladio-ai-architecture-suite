@@ -31,17 +31,22 @@ export default function PalladioAssess() {
 
         setIsUploading(true);
         try {
-            const { file_url } = await base44.integrations.Core.UploadFile({ file: selectedFile });
-            setFileUrl(file_url);
+            const res = await base44.integrations.Core.UploadFile({ file: selectedFile });
+            setFileUrl(res.file_url || res.url);
         } catch (err) {
             console.error(err);
+            toast.error("Failed to upload file. Please try again.");
         } finally {
             setIsUploading(false);
         }
     };
 
     const handleAnalyze = async () => {
-        if (!fileUrl) return;
+        if (!file) return;
+        if (!fileUrl) {
+            toast.error("Please wait for the file to finish uploading or try uploading again.");
+            return;
+        }
         setIsAnalyzing(true);
         try {
             const prompt = `You are an expert architect. Analyze this uploaded architectural plan or drawing.
