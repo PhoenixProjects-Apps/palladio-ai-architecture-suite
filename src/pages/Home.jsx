@@ -25,8 +25,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#0f1117] text-white p-6 pb-12">
       <div className="max-w-2xl mx-auto">
-        <header className="flex justify-between items-center mb-12">
-          <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69997bf8be3f3bf35cbd8147/e93fde36f_Lumii_20260222_021318181.png" alt="Palladio AI" className="w-[60px] h-[60px] object-cover rounded-xl" />
+        <header className="flex justify-end items-center mb-12">
           <div className="flex items-center gap-3">
             <Link to={createPageUrl('PalladioPricing')} className="text-sm font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full transition">
               Pricing
