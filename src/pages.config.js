@@ -54,10 +54,10 @@ import PalladioFloorplan from './pages/PalladioFloorplan';
 import PalladioPlanner from './pages/PalladioPlanner';
 import PalladioPricing from './pages/PalladioPricing';
 import PalladioProperty from './pages/PalladioProperty';
+import Projects from './pages/Projects';
 import Render3D from './pages/Render3D';
 import SavedChats from './pages/SavedChats';
 import UserProfile from './pages/UserProfile';
-import Projects from './pages/Projects';
 import __Layout from './Layout.jsx';
 
 
@@ -69,10 +69,10 @@ export const PAGES = {
     "PalladioPlanner": PalladioPlanner,
     "PalladioPricing": PalladioPricing,
     "PalladioProperty": PalladioProperty,
+    "Projects": Projects,
     "Render3D": Render3D,
     "SavedChats": SavedChats,
     "UserProfile": UserProfile,
-    "Projects": Projects,
 }
 
 export const pagesConfig = {

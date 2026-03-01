@@ -89,11 +89,15 @@ export default function SavedChats() {
     
     try {
       const conv = await base44.agents.getConversation(activeConvId);
-      if (messages.length <= 1) {
-        await base44.agents.updateConversation(activeConvId, {
-          metadata: { name: text.substring(0, 30) + (text.length > 30 ? '...' : '') }
-        });
-        loadConversations();
+      if (messages.length <= 1 && typeof base44.agents.updateConversation === 'function') {
+        try {
+          await base44.agents.updateConversation(activeConvId, {
+            metadata: { ...conv.metadata, name: text.substring(0, 30) + (text.length > 30 ? '...' : '') }
+          });
+          loadConversations();
+        } catch (err) {
+          console.warn('Could not update conversation name', err);
+        }
       }
       await base44.agents.addMessage(conv, { role: "user", content: text });
     } catch (e) {
