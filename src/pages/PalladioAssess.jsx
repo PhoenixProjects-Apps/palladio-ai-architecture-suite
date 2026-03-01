@@ -57,18 +57,25 @@ export default function PalladioAssess() {
         setIsAnalyzing(true);
         try {
             const prompt = `You are an expert architect. Analyze this uploaded architectural plan or drawing.
-Please provide a detailed assessment covering:
-1. Plan Type & Overview
-2. Spatial Analysis
-3. Design Observations
-4. Compliance & Building Code Flags (General)
-5. Recommendations
-
-Format the response in Markdown. Use clear headings.`;
+Please provide a detailed assessment. Evaluate the overall quality to provide a score out of 10.
+If the document is clearly not an architectural plan, note that in the overview and score it a 0.`;
             
             const response = await base44.integrations.Core.InvokeLLM({
                 prompt,
-                file_urls: [fileUrl]
+                file_urls: [fileUrl],
+                response_json_schema: {
+                    type: "object",
+                    properties: {
+                        plan_type: { type: "string", description: "E.g., Floorplan, Elevation, Site Plan" },
+                        overall_score: { type: "number", description: "Score out of 10 based on clarity, design quality, and practicality" },
+                        overview: { type: "string", description: "A high-level summary of the document" },
+                        spatial_analysis: { type: "string", description: "Analysis of layout, flow, and space utilization" },
+                        design_observations: { type: "array", items: { type: "string" }, description: "Key architectural observations" },
+                        compliance_flags: { type: "array", items: { type: "string" }, description: "Potential building code or compliance issues" },
+                        recommendations: { type: "array", items: { type: "string" }, description: "Suggestions for improvement" }
+                    },
+                    required: ["plan_type", "overall_score", "overview", "spatial_analysis", "design_observations", "compliance_flags", "recommendations"]
+                }
             });
             setResult(response);
         } catch (err) {
