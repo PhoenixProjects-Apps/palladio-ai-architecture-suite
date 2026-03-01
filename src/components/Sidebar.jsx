@@ -31,7 +31,7 @@ export default function Sidebar() {
       title: "Overview",
       items: [
         { name: 'Dashboard', icon: Home, path: 'Home' },
-        { name: 'Saved Chats', icon: MessageSquare, path: 'SavedChats' },
+        { name: 'AI Assistant', icon: MessageSquare, path: 'SavedChats' },
       ]
     },
     {
