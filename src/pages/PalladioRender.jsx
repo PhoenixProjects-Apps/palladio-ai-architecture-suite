@@ -45,7 +45,7 @@ export default function PalladioRender() {
         if (!prompt && !fileUrl) return;
         setIsGenerating(true);
         try {
-            const fullPrompt = `Create a ${style} architectural render. ${prompt} ${style === 'Night Scene' ? 'Night time, evening, illuminated.' : ''} ${style === 'Aerial View' ? 'Bird\\'s eye view, aerial perspective.' : ''} ${style === 'Interior' ? 'Interior design, architectural interior, high quality materials.' : ''} ${style === 'Photorealistic' ? 'Highly detailed, photorealistic, architectural photography, 8k resolution.' : ''} Maintain exact structural forms if an image is provided.`;
+            const fullPrompt = `Create a ${style} architectural render. ${prompt} ${style === 'Night Scene' ? 'Night time, evening, illuminated.' : ''} ${style === 'Aerial View' ? "Bird's eye view, aerial perspective." : ''} ${style === 'Interior' ? 'Interior design, architectural interior, high quality materials.' : ''} ${style === 'Photorealistic' ? 'Highly detailed, photorealistic, architectural photography, 8k resolution.' : ''} Maintain exact structural forms if an image is provided.`;
 
             const params = { prompt: fullPrompt };
             if (fileUrl) {
