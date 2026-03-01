@@ -5,7 +5,7 @@ import { ArrowLeft, Upload, Loader2, FileImage, AlertCircle } from 'lucide-react
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
-import PalladioGate from '../components/PalladioGate';
+import PalladioGate from '@/components/PalladioGate';
 
 export default function PalladioAssess() {
     const [file, setFile] = useState(null);
