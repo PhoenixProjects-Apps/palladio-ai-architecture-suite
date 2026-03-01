@@ -49,6 +49,7 @@
  */
 import Admin from './pages/Admin';
 import Home from './pages/Home';
+import Notifications from './pages/Notifications';
 import PalladioAssess from './pages/PalladioAssess';
 import PalladioFloorplan from './pages/PalladioFloorplan';
 import PalladioPlanner from './pages/PalladioPlanner';
@@ -58,13 +59,13 @@ import Projects from './pages/Projects';
 import Render3D from './pages/Render3D';
 import SavedChats from './pages/SavedChats';
 import UserProfile from './pages/UserProfile';
-import Notifications from './pages/Notifications';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Admin": Admin,
     "Home": Home,
+    "Notifications": Notifications,
     "PalladioAssess": PalladioAssess,
     "PalladioFloorplan": PalladioFloorplan,
     "PalladioPlanner": PalladioPlanner,
@@ -74,7 +75,6 @@ export const PAGES = {
     "Render3D": Render3D,
     "SavedChats": SavedChats,
     "UserProfile": UserProfile,
-    "Notifications": Notifications,
 }
 
 export const pagesConfig = {

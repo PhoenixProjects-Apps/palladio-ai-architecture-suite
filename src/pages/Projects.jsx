@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Folder, Plus, File, MessageSquare, Trash2, ArrowLeft, Upload, Loader2 } from 'lucide-react';
+import { Folder, Plus, File, MessageSquare, Trash2, ArrowLeft, Upload, Loader2, Cloud } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,7 @@ export default function Projects() {
     const [assets, setAssets] = useState([]);
     const [chats, setChats] = useState([]);
     const [isUploading, setIsUploading] = useState(false);
+    const [savingToDrive, setSavingToDrive] = useState(null);
     
     const navigate = useNavigate();
 
@@ -117,6 +118,22 @@ export default function Projects() {
         }
     };
 
+    const handleSaveToDrive = async (asset) => {
+        setSavingToDrive(asset.id);
+        try {
+            await base44.functions.invoke('saveToDrive', {
+                fileUrl: asset.file_url,
+                fileName: asset.file_name
+            });
+            toast.success("Saved to Google Drive!");
+        } catch (e) {
+            toast.error("Failed to save to Google Drive");
+            console.error(e);
+        } finally {
+            setSavingToDrive(null);
+        }
+    };
+
     const handleNewChat = async () => {
         try {
             const conv = await base44.agents.createConversation({
@@ -179,9 +196,23 @@ export default function Projects() {
                                                     <File size={16} className="text-slate-400 flex-shrink-0" />
                                                     <span className="truncate text-sm">{asset.file_name}</span>
                                                 </a>
-                                                <button onClick={() => handleDeleteAsset(asset.id)} className="text-slate-500 hover:text-red-400 p-1">
-                                                    <Trash2 size={16} />
-                                                </button>
+                                                <div className="flex items-center gap-1">
+                                                    <button 
+                                                        onClick={() => handleSaveToDrive(asset)} 
+                                                        disabled={savingToDrive === asset.id}
+                                                        className="text-slate-500 hover:text-cyan-400 p-1.5 transition-colors rounded-lg hover:bg-slate-700/50 disabled:opacity-50"
+                                                        title="Save to Google Drive"
+                                                    >
+                                                        {savingToDrive === asset.id ? <Loader2 size={16} className="animate-spin" /> : <Cloud size={16} />}
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleDeleteAsset(asset.id)} 
+                                                        className="text-slate-500 hover:text-red-400 p-1.5 transition-colors rounded-lg hover:bg-slate-700/50"
+                                                        title="Delete File"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
