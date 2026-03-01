@@ -54,6 +54,7 @@ import PalladioPlanner from './pages/PalladioPlanner';
 import PalladioPricing from './pages/PalladioPricing';
 import PalladioProperty from './pages/PalladioProperty';
 import Render3D from './pages/Render3D';
+import UserProfile from './pages/UserProfile';
 import __Layout from './Layout.jsx';
 
 
@@ -65,6 +66,7 @@ export const PAGES = {
     "PalladioPricing": PalladioPricing,
     "PalladioProperty": PalladioProperty,
     "Render3D": Render3D,
+    "UserProfile": UserProfile,
 }
 
 export const pagesConfig = {

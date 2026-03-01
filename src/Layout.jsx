@@ -1,6 +1,23 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { base44 } from '@/api/base44Client';
 
 export default function Layout({ children }) {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    base44.auth.me().then(u => {
+      if (!u) {
+        base44.auth.redirectToLogin();
+      } else {
+        setIsAuthenticated(true);
+      }
+    }).catch(() => {
+      base44.auth.redirectToLogin();
+    });
+  }, []);
+
+  if (!isAuthenticated) return <div style={{ backgroundColor: '#0f1117', minHeight: '100vh' }} />;
+
   return (
     <div className="text-white font-sans" style={{ backgroundColor: '#0f1117', minHeight: '100vh' }}>
       <style>{`
