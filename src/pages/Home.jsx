@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 const tools = [
   { id: 'assess', title: 'Assess Plans', desc: 'AI-powered assessment and detailed analysis of floorplans.', icon: FileImage, color: 'from-cyan-500 to-cyan-700', page: 'PalladioAssess' },
   { id: 'floorplan', title: 'Generate Floorplans', desc: 'AI generated detailed, scaled floorplans for any space.', icon: Layers, color: 'from-violet-500 to-violet-700', page: 'PalladioFloorplan' },
-  { id: 'render', title: '3D Renders', desc: 'Photorealistic AI-rendered architectural visuals from sketches.', icon: Building2, color: 'from-amber-500 to-amber-700', page: 'PalladioRender' },
+  { id: 'render', title: '3D Renders', desc: 'Photorealistic AI-rendered architectural visuals from sketches.', icon: Building2, color: 'from-amber-500 to-amber-700', page: 'Render3D' },
   { id: 'property', title: 'Property Intelligence', desc: 'Retrieve zoning info, land details, planning history and more.', icon: MapPin, color: 'from-emerald-500 to-emerald-700', page: 'PalladioProperty' },
   { id: 'planner', title: 'Town Planner AI', desc: 'Assess developments against local planning schemes and codes.', icon: ClipboardList, color: 'from-rose-500 to-rose-700', page: 'PalladioPlanner' },
 ];
