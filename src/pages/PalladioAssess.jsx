@@ -147,9 +147,70 @@ If the document is clearly not an architectural plan, note that in the overview 
                         </div>
                     ) : (
                         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <div className="bg-white/5 border border-white/10 rounded-3xl p-8 prose prose-invert max-w-none prose-headings:text-cyan-400 prose-a:text-cyan-400 shadow-xl">
-                                <ReactMarkdown>{result}</ReactMarkdown>
-                            </div>
+                            {typeof result === 'object' ? (
+                                <>
+                                    <div className="grid md:grid-cols-3 gap-6">
+                                        <div className="bg-cyan-900/20 border border-cyan-500/30 rounded-2xl p-6 shadow-lg md:col-span-2">
+                                            <h3 className="text-cyan-400 font-semibold mb-2 text-lg">{result.plan_type || 'Plan Assessment'}</h3>
+                                            <p className="text-slate-200 leading-relaxed">{result.overview}</p>
+                                        </div>
+                                        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-lg flex flex-col items-center justify-center text-center">
+                                            <p className="text-slate-400 text-sm mb-2">Overall Score</p>
+                                            <div className="text-5xl font-bold text-cyan-400">{result.overall_score}<span className="text-2xl text-slate-500">/10</span></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-md">
+                                        <h3 className="text-cyan-400 font-semibold mb-3">Spatial Analysis</h3>
+                                        <p className="text-slate-300 leading-relaxed">{result.spatial_analysis}</p>
+                                    </div>
+
+                                    <div className="grid md:grid-cols-2 gap-6">
+                                        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-md">
+                                            <h3 className="text-cyan-400 font-semibold mb-4">Design Observations</h3>
+                                            <ul className="space-y-3">
+                                                {result.design_observations?.map((obs, i) => (
+                                                    <li key={i} className="flex gap-3 text-slate-300 text-sm">
+                                                        <span className="text-cyan-500 mt-0.5">•</span>
+                                                        <span>{obs}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                        
+                                        <div className="space-y-6">
+                                            <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-6 shadow-md">
+                                                <h3 className="text-amber-400 font-semibold mb-4 flex items-center gap-2">
+                                                    <AlertCircle size={18} /> Compliance & Flags
+                                                </h3>
+                                                <ul className="space-y-3">
+                                                    {result.compliance_flags?.map((flag, i) => (
+                                                        <li key={i} className="flex gap-3 text-amber-200 text-sm">
+                                                            <span className="text-amber-500 mt-0.5">•</span>
+                                                            <span>{flag}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-6 shadow-md">
+                                                <h3 className="text-emerald-400 font-semibold mb-4">Recommendations</h3>
+                                                <ul className="space-y-3">
+                                                    {result.recommendations?.map((rec, i) => (
+                                                        <li key={i} className="flex gap-3 text-emerald-200 text-sm">
+                                                            <span className="text-emerald-500 mt-0.5">•</span>
+                                                            <span>{rec}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="bg-white/5 border border-white/10 rounded-3xl p-8 prose prose-invert max-w-none prose-headings:text-cyan-400 prose-a:text-cyan-400 shadow-xl">
+                                    <ReactMarkdown>{result}</ReactMarkdown>
+                                </div>
+                            )}
                             <Button 
                                 onClick={() => { setResult(null); setFile(null); setFileUrl(null); setPreviewUrl(null); }}
                                 variant="outline"
