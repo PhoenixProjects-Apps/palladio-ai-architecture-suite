@@ -21,6 +21,13 @@ export default function PalladioAssess() {
     const handleFileSelect = async (e) => {
         const selectedFile = e.target.files[0];
         if (!selectedFile) return;
+        
+        // Ensure file isn't insanely large (limit to 20MB just to be safe, but 2.5MB is perfectly fine!)
+        if (selectedFile.size > 20 * 1024 * 1024) {
+            toast.error("File is too large. Please upload a file smaller than 20MB.");
+            return;
+        }
+
         setFile(selectedFile);
         setResult(null);
         setUploadError(null);
