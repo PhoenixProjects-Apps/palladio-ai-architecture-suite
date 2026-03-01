@@ -47,26 +47,24 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
-import Render3D from './pages/Render3D';
+import Home from './pages/Home';
 import PalladioAssess from './pages/PalladioAssess';
-import PalladioProperty from './pages/PalladioProperty';
+import PalladioFloorplan from './pages/PalladioFloorplan';
 import PalladioPlanner from './pages/PalladioPlanner';
 import PalladioPricing from './pages/PalladioPricing';
-import PalladioRender from './pages/PalladioRender';
-import PalladioFloorplan from './pages/PalladioFloorplan';
-import Home from './pages/Home';
+import PalladioProperty from './pages/PalladioProperty';
+import Render3D from './pages/Render3D';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Render3D": Render3D,
+    "Home": Home,
     "PalladioAssess": PalladioAssess,
-    "PalladioProperty": PalladioProperty,
+    "PalladioFloorplan": PalladioFloorplan,
     "PalladioPlanner": PalladioPlanner,
     "PalladioPricing": PalladioPricing,
-    "PalladioRender": PalladioRender,
-    "PalladioFloorplan": PalladioFloorplan,
-    "Home": Home,
+    "PalladioProperty": PalladioProperty,
+    "Render3D": Render3D,
 }
 
 export const pagesConfig = {
