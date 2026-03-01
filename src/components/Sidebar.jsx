@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Home, MessageSquare, Settings, Menu, X, Layers, Building2, MapPin, ClipboardList, FileImage, PanelLeftClose, PanelLeftOpen, ShieldAlert, CreditCard } from 'lucide-react';
+import { Home, MessageSquare, Settings, Menu, X, Layers, Building2, MapPin, ClipboardList, FileImage, PanelLeftClose, PanelLeftOpen, ShieldAlert, CreditCard, Folder } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
@@ -31,6 +31,7 @@ export default function Sidebar() {
       title: "Overview",
       items: [
         { name: 'Dashboard', icon: Home, path: 'Home' },
+        { name: 'Projects', icon: Folder, path: 'Projects' },
         { name: 'AI Assistant', icon: MessageSquare, path: 'SavedChats' },
       ]
     },

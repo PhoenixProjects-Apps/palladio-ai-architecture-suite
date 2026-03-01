@@ -24,7 +24,13 @@ export default function SavedChats() {
     try {
       const convos = await base44.agents.listConversations({ agent_name: "architecture_assistant" });
       setConversations(convos || []);
-      if (convos.length > 0 && !activeConvId) {
+      
+      const searchParams = new URLSearchParams(window.location.search);
+      const urlConvId = searchParams.get('convId');
+
+      if (urlConvId && convos.find(c => c.id === urlConvId)) {
+        selectConversation(urlConvId);
+      } else if (convos.length > 0 && !activeConvId) {
         selectConversation(convos[0].id);
       } else if (convos.length === 0) {
         handleNewChat();
