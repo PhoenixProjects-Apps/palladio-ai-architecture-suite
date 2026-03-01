@@ -23,6 +23,7 @@ export default function PalladioAssess() {
         if (!selectedFile) return;
         setFile(selectedFile);
         setResult(null);
+        setUploadError(null);
 
         if (selectedFile.type.startsWith('image/')) {
             setPreviewUrl(URL.createObjectURL(selectedFile));
