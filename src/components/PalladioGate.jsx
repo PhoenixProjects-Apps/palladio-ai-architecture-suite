@@ -17,6 +17,10 @@ export default function PalladioGate({ children }) {
                     setHasAccess(false);
                     return;
                 }
+                if (user.role === 'admin') {
+                    setHasAccess(true);
+                    return;
+                }
                 const subs = await base44.entities.Subscription.filter({ user_email: user.email, status: 'active' });
                 setHasAccess(subs.length > 0);
             } catch (e) {
