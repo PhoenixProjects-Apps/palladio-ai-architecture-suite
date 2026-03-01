@@ -15,6 +15,7 @@ export default function PalladioAssess() {
     const [isUploading, setIsUploading] = useState(false);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [result, setResult] = useState(null);
+    const [uploadError, setUploadError] = useState(null);
     const fileInputRef = useRef(null);
 
     const handleFileSelect = async (e) => {
