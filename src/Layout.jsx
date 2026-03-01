@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import Sidebar from '@/components/Sidebar';
+import { Toaster } from 'sonner';
 
 export default function Layout({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -44,6 +45,7 @@ export default function Layout({ children }) {
       <main className="flex-1 overflow-y-auto overflow-x-hidden h-full relative">
         {children}
       </main>
+      <Toaster theme="dark" position="bottom-right" />
     </div>
   );
 }
