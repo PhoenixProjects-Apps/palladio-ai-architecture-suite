@@ -61,6 +61,10 @@ export default function Render3D() {
   const [file, setFile] = useState(null);
   const [fileUrl, setFileUrl] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [styleFile, setStyleFile] = useState(null);
+  const [styleFileUrl, setStyleFileUrl] = useState(null);
+  const [stylePreviewUrl, setStylePreviewUrl] = useState(null);
+  const [isUploadingStyle, setIsUploadingStyle] = useState(false);
   const [presets, setPresets] = useState({});
   const [prompt, setPrompt] = useState('');
   const [isUploading, setIsUploading] = useState(false);
@@ -71,6 +75,7 @@ export default function Render3D() {
   const [presetName, setPresetName] = useState('');
   const [isSavingPreset, setIsSavingPreset] = useState(false);
   const fileInputRef = useRef(null);
+  const styleInputRef = useRef(null);
 
   useEffect(() => {
     fetchSavedPresets();
