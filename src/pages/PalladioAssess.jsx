@@ -118,8 +118,8 @@ Format the response in Markdown. Use clear headings.`;
 
                             <Button 
                                 onClick={handleAnalyze} 
-                                disabled={!fileUrl || isAnalyzing}
-                                className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-6 text-lg rounded-xl shadow-lg shadow-cyan-500/20 disabled:opacity-50"
+                                disabled={!file || isUploading || isAnalyzing}
+                                className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-6 text-lg rounded-xl shadow-lg shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isAnalyzing ? <><Loader2 size={20} className="animate-spin mr-2" /> Analysing Plan...</> : "Analyse Plan"}
                             </Button>
