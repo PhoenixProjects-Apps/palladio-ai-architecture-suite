@@ -134,6 +134,26 @@ export default function Render3D() {
     }
   };
 
+  const handleStyleSelect = async (e) => {
+    const selectedFile = e.target.files[0];
+    if (!selectedFile) return;
+    setStyleFile(selectedFile);
+
+    if (selectedFile.type.startsWith('image/')) {
+      setStylePreviewUrl(URL.createObjectURL(selectedFile));
+    } else {
+      setStylePreviewUrl(null);
+    }
+
+    setIsUploadingStyle(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: selectedFile });
+      setStyleFileUrl(file_url);
+    } finally {
+      setIsUploadingStyle(false);
+    }
+  };
+
   const handleRender = async () => {
     if (!fileUrl) return;
     setIsRendering(true);
@@ -152,12 +172,20 @@ export default function Render3D() {
       'Add photorealistic textures, materials, atmospheric lighting, shadows, reflections and environmental details.',
       'Professional architectural visualisation quality. High detail, photorealistic.',
       prompt ? `Additional instructions: ${prompt}` : '',
+      styleFileUrl ? 'CRITICAL INSTRUCTION: Match the aesthetic, colors, materials, style, and overall mood of the provided style reference image.' : ''
     ].filter(Boolean);
 
     const constructedPrompt = lines.join('\n');
     const isImage = file?.type?.startsWith('image/');
     const params = { prompt: constructedPrompt };
-    if (isImage && fileUrl) params.existing_image_urls = [fileUrl];
+    
+    const imageUrls = [];
+    if (isImage && fileUrl) imageUrls.push(fileUrl);
+    if (styleFileUrl) imageUrls.push(styleFileUrl);
+    
+    if (imageUrls.length > 0) {
+      params.existing_image_urls = imageUrls;
+    }
 
     try {
       const result = await base44.integrations.Core.GenerateImage(params);
