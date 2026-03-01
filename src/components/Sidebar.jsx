@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Home, MessageSquare, Settings, Menu, X, Layers, Building2, MapPin, ClipboardList, FileImage, PanelLeftClose, PanelLeftOpen, ShieldAlert, CreditCard, Folder } from 'lucide-react';
+import { Home, MessageSquare, Settings, Menu, X, Layers, Building2, MapPin, ClipboardList, FileImage, PanelLeftClose, PanelLeftOpen, ShieldAlert, CreditCard, Folder, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
@@ -10,6 +10,7 @@ export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   const location = useLocation();
 
   useEffect(() => {
@@ -17,6 +18,23 @@ export default function Sidebar() {
       if (u) setUser(u);
     });
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    const loadUnreadCount = async () => {
+      try {
+        const notifs = await base44.entities.Notification.filter({ user_email: user.email, is_read: false });
+        setUnreadCount(notifs.length);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    loadUnreadCount();
+    const unsubscribe = base44.entities.Notification?.subscribe?.(() => {
+      loadUnreadCount();
+    });
+    return () => unsubscribe && unsubscribe();
+  }, [user]);
 
   const isActive = (path) => {
     try {
@@ -32,6 +50,7 @@ export default function Sidebar() {
       items: [
         { name: 'Dashboard', icon: Home, path: 'Home' },
         { name: 'Projects', icon: Folder, path: 'Projects' },
+        { name: 'Notifications', icon: Bell, path: 'Notifications', badge: unreadCount },
         { name: 'AI Assistant', icon: MessageSquare, path: 'SavedChats' },
       ]
     },
@@ -84,9 +103,17 @@ export default function Sidebar() {
               {group.items.map((item) => {
                 const active = isActive(item.path);
                 return (
-                  <Link key={item.path} to={createPageUrl(item.path)} onClick={() => setIsMobileOpen(false)} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${active ? 'bg-amber-500/10 text-amber-400' : 'hover:bg-white/5 text-slate-400 hover:text-white'} ${isCollapsed ? 'justify-center' : ''}`} title={isCollapsed ? item.name : ''}>
-                    <item.icon size={20} className={active ? 'text-amber-500' : ''} />
-                    {!isCollapsed && <span className="font-medium text-sm">{item.name}</span>}
+                  <Link key={item.path} to={createPageUrl(item.path)} onClick={() => setIsMobileOpen(false)} className={`relative flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${active ? 'bg-amber-500/10 text-amber-400' : 'hover:bg-white/5 text-slate-400 hover:text-white'} ${isCollapsed ? 'justify-center' : ''}`} title={isCollapsed ? item.name : ''}>
+                    <div className="flex items-center gap-3">
+                      <item.icon size={20} className={active ? 'text-amber-500' : ''} />
+                      {!isCollapsed && <span className="font-medium text-sm">{item.name}</span>}
+                    </div>
+                    {!isCollapsed && item.badge > 0 && (
+                      <span className="bg-amber-500 text-[#0a0c10] text-xs font-bold px-2 py-0.5 rounded-full">{item.badge}</span>
+                    )}
+                    {isCollapsed && item.badge > 0 && (
+                      <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-[#0a0c10]"></div>
+                    )}
                   </Link>
                 );
               })}

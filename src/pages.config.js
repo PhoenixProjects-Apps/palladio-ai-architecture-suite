@@ -58,6 +58,7 @@ import Projects from './pages/Projects';
 import Render3D from './pages/Render3D';
 import SavedChats from './pages/SavedChats';
 import UserProfile from './pages/UserProfile';
+import Notifications from './pages/Notifications';
 import __Layout from './Layout.jsx';
 
 
@@ -73,6 +74,7 @@ export const PAGES = {
     "Render3D": Render3D,
     "SavedChats": SavedChats,
     "UserProfile": UserProfile,
+    "Notifications": Notifications,
 }
 
 export const pagesConfig = {
