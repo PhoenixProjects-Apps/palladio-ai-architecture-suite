@@ -4,9 +4,12 @@ import { createPageUrl } from '@/utils';
 import { ArrowLeft, Check, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { base44 } from '@/api/base44Client';
+import { toast } from 'sonner';
 
 export default function PalladioPricing() {
     const [inIframe, setInIframe] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         try {
@@ -26,11 +29,29 @@ export default function PalladioPricing() {
         "Priority Support"
     ];
 
-    const handleSubscribe = () => {
+    const handleSubscribe = async (priceId, planType) => {
         if (inIframe) {
             window.open(window.location.href, '_blank');
-        } else {
-            alert("Stripe checkout would open here. Ensure Stripe is installed and keys are set.");
+            return;
+        }
+        
+        try {
+            setLoading(true);
+            const { data } = await base44.functions.invoke('createCheckoutSession', {
+                priceId,
+                planType
+            });
+            
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                throw new Error("No checkout URL returned");
+            }
+        } catch (error) {
+            console.error("Error creating checkout session:", error);
+            toast.error("Failed to start checkout. Please try again.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -69,7 +90,7 @@ export default function PalladioPricing() {
                         <h3 className="text-2xl font-semibold mb-2">Palladio Monthly</h3>
                         <p className="text-slate-500 mb-6">Flexibility for ongoing projects.</p>
                         <div className="mb-8">
-                            <span className="text-5xl font-bold">$19.99</span>
+                            <span className="text-5xl font-bold">$49.00</span>
                             <span className="text-slate-500">/month</span>
                         </div>
                         <ul className="space-y-4 mb-8 flex-1">
@@ -83,10 +104,11 @@ export default function PalladioPricing() {
                             ))}
                         </ul>
                         <Button 
-                            onClick={handleSubscribe}
+                            onClick={() => handleSubscribe('price_1T6HcrI97AS5ZzLypQcUPybL', 'palladio_monthly')}
+                            disabled={loading}
                             className="w-full bg-slate-900 hover:bg-slate-800 text-white h-12 rounded-xl text-lg shadow-md"
                         >
-                            Subscribe Monthly
+                            {loading ? "Loading..." : "Subscribe Monthly"}
                         </Button>
                     </div>
 
@@ -95,11 +117,11 @@ export default function PalladioPricing() {
                         <h3 className="text-2xl font-semibold mb-2">Palladio Annual</h3>
                         <p className="text-slate-500 mb-6">Best value for professionals.</p>
                         <div className="mb-8">
-                            <span className="text-5xl font-bold">$199.90</span>
+                            <span className="text-5xl font-bold">$470.00</span>
                             <span className="text-slate-500">/year</span>
                         </div>
                         <p className="text-cyan-700 font-medium mb-6 bg-cyan-100 inline-block px-3 py-1 rounded-md text-sm self-start">
-                            Saves $39.78 per year
+                            Saves $118 per year
                         </p>
                         <ul className="space-y-4 mb-8 flex-1">
                             {features.map((f, i) => (
@@ -112,10 +134,11 @@ export default function PalladioPricing() {
                             ))}
                         </ul>
                         <Button 
-                            onClick={handleSubscribe}
+                            onClick={() => handleSubscribe('price_1T6HcrI97AS5ZzLywHG5r5F2', 'palladio_annual')}
+                            disabled={loading}
                             className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl text-lg shadow-lg shadow-cyan-500/20"
                         >
-                            Subscribe Annually
+                            {loading ? "Loading..." : "Subscribe Annually"}
                         </Button>
                     </div>
                 </div>
