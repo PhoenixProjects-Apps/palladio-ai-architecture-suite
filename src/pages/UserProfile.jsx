@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Mail, CreditCard, LogOut, Loader2, User } from 'lucide-react';
+import { ArrowLeft, Mail, CreditCard, LogOut, Loader2, User, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
@@ -119,6 +119,18 @@ export default function UserProfile() {
               </div>
             )}
           </div>
+
+          {user?.role === 'admin' && (
+            <div className="border-t border-white/10 pt-6 pb-2">
+              <h3 className="text-xs sm:text-sm font-medium text-slate-400 uppercase tracking-wider mb-4">Administration</h3>
+              <Link to={createPageUrl('Admin')}>
+                <Button className="w-full sm:w-auto bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/20 h-11">
+                  <ShieldAlert size={18} className="mr-2" />
+                  Admin Dashboard
+                </Button>
+              </Link>
+            </div>
+          )}
 
           <div className="border-t border-white/10 pt-6">
             <Button 
