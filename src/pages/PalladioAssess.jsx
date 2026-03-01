@@ -122,6 +122,13 @@ Format the response in Markdown. Use clear headings.`;
                                 )}
                                 <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*,.pdf" className="hidden" />
                             </div>
+                            
+                            {uploadError && (
+                                <div className="text-red-400 text-sm text-center bg-red-400/10 py-3 rounded-lg border border-red-400/20">
+                                    <AlertCircle className="inline-block w-4 h-4 mr-2 mb-0.5" />
+                                    {uploadError}
+                                </div>
+                            )}
 
                             <Button 
                                 onClick={handleAnalyze} 
