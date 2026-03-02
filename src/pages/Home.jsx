@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { FileImage, Layers, Building2, MapPin, ClipboardList, User } from 'lucide-react';
+import { FileImage, Layers, Building2, MapPin, ClipboardList, User, Calculator } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 
@@ -11,6 +11,7 @@ const tools = [
   { id: 'render', title: '3D Renders', desc: 'Photorealistic AI-rendered architectural visuals from sketches.', icon: Building2, color: 'from-amber-500 to-amber-700', page: 'Render3D' },
   { id: 'property', title: 'Property Intelligence', desc: 'Retrieve zoning info, land details, planning history and more.', icon: MapPin, color: 'from-emerald-500 to-emerald-700', page: 'PalladioProperty' },
   { id: 'planner', title: 'Town Planner AI', desc: 'Assess developments against local planning schemes and codes.', icon: ClipboardList, color: 'from-rose-500 to-rose-700', page: 'PalladioPlanner' },
+  { id: 'estimator', title: 'Cost Estimator', desc: 'AI takeoff and material cost estimation using live local data.', icon: Calculator, color: 'from-blue-500 to-blue-700', page: 'PalladioEstimator' },
 ];
 
 export default function Home() {

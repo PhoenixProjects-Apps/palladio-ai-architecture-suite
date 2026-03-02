@@ -60,6 +60,8 @@ import Render3D from './pages/Render3D';
 import SavedChats from './pages/SavedChats';
 import UserProfile from './pages/UserProfile';
 import SubscriptionManagement from './pages/SubscriptionManagement';
+import CostDatabase from './pages/CostDatabase';
+import PalladioEstimator from './pages/PalladioEstimator';
 import __Layout from './Layout.jsx';
 
 
@@ -77,6 +79,8 @@ export const PAGES = {
     "SavedChats": SavedChats,
     "UserProfile": UserProfile,
     "SubscriptionManagement": SubscriptionManagement,
+    "CostDatabase": CostDatabase,
+    "PalladioEstimator": PalladioEstimator,
 }
 
 export const pagesConfig = {
