@@ -58,34 +58,33 @@ ${analysis}`;
 
         const rooms = llmResponse.rooms || [];
 
-        // Build DXF using dxf-writer
-        const d = new Drawing();
-        d.setUnits('Millimeters');
-        d.addLayer('WALLS', Drawing.ACI.CYAN, 'CONTINUOUS');
-        d.addLayer('TEXT', Drawing.ACI.GREEN, 'CONTINUOUS');
+        // Build DXF using makerjs
+        const model = {
+            models: {}
+        };
 
-        rooms.forEach(r => {
-            // Note: Y is inverted in CAD vs screen
+        rooms.forEach((r, i) => {
             const x = r.x;
             const y = -r.y;
             const w = r.w;
-            const h = r.h; // Note height direction (going down means negative Y)
-
-            d.setActiveLayer('WALLS');
-            // Draw 4 walls (polyline or individual lines)
-            d.drawLine(x, y, x + w, y);
-            d.drawLine(x + w, y, x + w, y - h);
-            d.drawLine(x + w, y - h, x, y - h);
-            d.drawLine(x, y - h, x, y);
-
-            // Add Text label
-            d.setActiveLayer('TEXT');
-            const cx = x + (w / 2);
-            const cy = y - (h / 2);
-            d.drawText(cx, cy, 150, 0, r.name, 'center', 'middle');
+            const h = r.h;
+            
+            // Create a rectangle for the room
+            const roomModel = new makerjs.models.Rectangle(w, h);
+            
+            // Assign the room to a specific layer
+            roomModel.layer = 'WALLS';
+            
+            // Move it to the correct coordinates
+            // Note: makerjs rectangle's origin is bottom-left, our y is the top, 
+            // so bottom-left is (x, y - h)
+            roomModel.origin = [x, y - h];
+            
+            model.models[`room_${i}`] = roomModel;
         });
 
-        const dxfString = d.toDxfString();
+        // makerjs generates a clean R12 DXF file which is highly compatible
+        const dxfString = makerjs.exporter.toDXF(model);
 
         return new Response(dxfString, {
             headers: {
