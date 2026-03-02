@@ -34,22 +34,28 @@ ${analysis}`;
         const llmResponse = await base44.asServiceRole.integrations.Core.InvokeLLM({
             prompt,
             response_json_schema: {
-                type: "array",
-                items: {
-                    type: "object",
-                    properties: {
-                        name: { type: "string" },
-                        x: { type: "number" },
-                        y: { type: "number" },
-                        w: { type: "number" },
-                        h: { type: "number" }
-                    },
-                    required: ["name", "x", "y", "w", "h"]
-                }
+                type: "object",
+                properties: {
+                    rooms: {
+                        type: "array",
+                        items: {
+                            type: "object",
+                            properties: {
+                                name: { type: "string" },
+                                x: { type: "number" },
+                                y: { type: "number" },
+                                w: { type: "number" },
+                                h: { type: "number" }
+                            },
+                            required: ["name", "x", "y", "w", "h"]
+                        }
+                    }
+                },
+                required: ["rooms"]
             }
         });
 
-        const rooms = Array.isArray(llmResponse) ? llmResponse : [];
+        const rooms = llmResponse.rooms || [];
 
         // Build DXF content
         let dxf = `0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1009\n0\nENDSEC\n`;
