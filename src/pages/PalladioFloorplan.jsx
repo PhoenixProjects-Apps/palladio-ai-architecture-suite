@@ -86,7 +86,9 @@ export default function PalladioFloorplan() {
         try {
             const response = await base44.functions.invoke('generateDXF', { 
                 analysis: cadResult.analysis,
-                imageUrl: cadFileUrl
+                imageUrl: cadFileUrl,
+                overallWidth: overallWidth ? Number(overallWidth) : null,
+                overallLength: overallLength ? Number(overallLength) : null
             });
             const blob = new Blob([response.data], { type: 'application/octet-stream' });
             const url = window.URL.createObjectURL(blob);
