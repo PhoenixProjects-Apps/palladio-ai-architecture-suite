@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.18';
-import makerjs from 'npm:makerjs@0.17.1';
+import DxfWriter from 'npm:dxf-writer';
 
 Deno.serve(async (req) => {
     try {
