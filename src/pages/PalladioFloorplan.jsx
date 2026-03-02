@@ -79,10 +79,13 @@ export default function PalladioFloorplan() {
     };
 
     const handleExportDXF = async () => {
-        if (!cadResult.analysis) return;
+        if (!cadResult.analysis && !cadFileUrl) return;
         setIsExporting(true);
         try {
-            const response = await base44.functions.invoke('generateDXF', { analysis: cadResult.analysis });
+            const response = await base44.functions.invoke('generateDXF', { 
+                analysis: cadResult.analysis,
+                imageUrl: cadFileUrl
+            });
             const blob = new Blob([response.data], { type: 'application/octet-stream' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');

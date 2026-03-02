@@ -48,9 +48,11 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import Admin from './pages/Admin';
+import CostDatabase from './pages/CostDatabase';
 import Home from './pages/Home';
 import Notifications from './pages/Notifications';
 import PalladioAssess from './pages/PalladioAssess';
+import PalladioEstimator from './pages/PalladioEstimator';
 import PalladioFloorplan from './pages/PalladioFloorplan';
 import PalladioPlanner from './pages/PalladioPlanner';
 import PalladioPricing from './pages/PalladioPricing';
@@ -58,18 +60,18 @@ import PalladioProperty from './pages/PalladioProperty';
 import Projects from './pages/Projects';
 import Render3D from './pages/Render3D';
 import SavedChats from './pages/SavedChats';
-import UserProfile from './pages/UserProfile';
 import SubscriptionManagement from './pages/SubscriptionManagement';
-import CostDatabase from './pages/CostDatabase';
-import PalladioEstimator from './pages/PalladioEstimator';
+import UserProfile from './pages/UserProfile';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Admin": Admin,
+    "CostDatabase": CostDatabase,
     "Home": Home,
     "Notifications": Notifications,
     "PalladioAssess": PalladioAssess,
+    "PalladioEstimator": PalladioEstimator,
     "PalladioFloorplan": PalladioFloorplan,
     "PalladioPlanner": PalladioPlanner,
     "PalladioPricing": PalladioPricing,
@@ -77,10 +79,8 @@ export const PAGES = {
     "Projects": Projects,
     "Render3D": Render3D,
     "SavedChats": SavedChats,
-    "UserProfile": UserProfile,
     "SubscriptionManagement": SubscriptionManagement,
-    "CostDatabase": CostDatabase,
-    "PalladioEstimator": PalladioEstimator,
+    "UserProfile": UserProfile,
 }
 
 export const pagesConfig = {
