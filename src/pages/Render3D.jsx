@@ -4,10 +4,11 @@ import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Upload, Wand2, Loader2, FileText, Download, RefreshCcw, CheckCircle, ChevronDown, ChevronUp, Save, Bookmark } from 'lucide-react';
+import { ArrowLeft, Upload, Wand2, Loader2, FileText, Download, RefreshCcw, CheckCircle, ChevronDown, ChevronUp, Save, Bookmark, Brush } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
 
 const PRESETS = [
   {
@@ -74,6 +75,9 @@ export default function Render3D() {
   const [savedPresetsList, setSavedPresetsList] = useState([]);
   const [presetName, setPresetName] = useState('');
   const [isSavingPreset, setIsSavingPreset] = useState(false);
+  const [magicEditMode, setMagicEditMode] = useState(false);
+  const [magicEditPrompt, setMagicEditPrompt] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
   const fileInputRef = useRef(null);
   const styleInputRef = useRef(null);
 
@@ -190,8 +194,32 @@ export default function Render3D() {
     try {
       const result = await base44.integrations.Core.GenerateImage(params);
       setRenderedImage(result.url);
+      setMagicEditMode(false);
     } finally {
       setIsRendering(false);
+    }
+  };
+
+  const handleMagicEdit = async () => {
+    if (!renderedImage || !magicEditPrompt.trim()) return;
+    setIsEditing(true);
+
+    try {
+      const params = {
+        prompt: `MAGIC EDIT EXACTLY AS REQUESTED: ${magicEditPrompt}. KEEP THE REST OF THE IMAGE EXACTLY THE SAME. PHOTOREALISTIC ARCHITECTURAL RENDER.`,
+        existing_image_urls: [renderedImage]
+      };
+      
+      const result = await base44.integrations.Core.GenerateImage(params);
+      setRenderedImage(result.url);
+      toast.success("Magic edit applied!");
+    } catch (err) {
+      toast.error("Failed to apply edit");
+      console.error(err);
+    } finally {
+      setIsEditing(false);
+      setMagicEditPrompt('');
+      setMagicEditMode(false);
     }
   };
 
@@ -474,6 +502,41 @@ export default function Render3D() {
                 <RefreshCcw size={15} className="mr-2" />
                 Re-render
               </Button>
+            </div>
+            
+            <div className="mt-4 p-4 rounded-xl border border-slate-700/50 bg-slate-800/20">
+              <Button
+                variant="ghost"
+                onClick={() => setMagicEditMode(!magicEditMode)}
+                className="w-full justify-start h-auto p-0 hover:bg-transparent text-indigo-400 hover:text-indigo-300"
+              >
+                <Brush size={16} className="mr-2" />
+                <span className="font-medium text-sm">Magic Edit</span>
+                {magicEditMode ? <ChevronUp size={14} className="ml-auto" /> : <ChevronDown size={14} className="ml-auto" />}
+              </Button>
+
+              {magicEditMode && (
+                <div className="mt-4 space-y-3">
+                  <p className="text-xs text-slate-400">Describe what you want to change in the generated image above.</p>
+                  <Textarea
+                    value={magicEditPrompt}
+                    onChange={e => setMagicEditPrompt(e.target.value)}
+                    placeholder="E.g. 'Make the sky darker', 'Change the wood siding to brick', 'Add a person walking on the sidewalk'"
+                    className="bg-slate-900 border-slate-700 text-white text-sm rounded-xl min-h-[80px] resize-none"
+                  />
+                  <Button 
+                    onClick={handleMagicEdit}
+                    disabled={isEditing || !magicEditPrompt.trim()}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl h-10"
+                  >
+                    {isEditing ? (
+                      <><Loader2 size={16} className="animate-spin mr-2" /> Editing...</>
+                    ) : (
+                      <><Wand2 size={16} className="mr-2" /> Apply Magic Edit</>
+                    )}
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}
