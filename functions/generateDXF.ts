@@ -14,14 +14,28 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Method not allowed' }, { status: 405 });
         }
 
-        const { analysis } = await req.json();
+        const { analysis, imageUrl } = await req.json();
 
-        if (!analysis) {
-            return Response.json({ error: 'Missing analysis text' }, { status: 400 });
+        if (!imageUrl && !analysis) {
+            return Response.json({ error: 'Missing analysis text or image URL' }, { status: 400 });
         }
 
-        // Call LLM to parse the analysis text into structured room coordinates
-        const prompt = `Based on the following architectural floorplan analysis, extract the approximate layout.
+        let prompt;
+        let file_urls = undefined;
+
+        if (imageUrl) {
+            prompt = `Carefully analyze this floorplan image. Extract the exact layout to create a highly accurate CAD drawing.
+Look closely at the dimensions written in the rooms (e.g., "3.1 x 3.0" means 3100mm x 3000mm). 
+Return a valid JSON array of rooms. Each room must have:
+- name: string (e.g., "Master Bedroom", "Kitchen", "Living")
+- x: number (top-left X coordinate in mm, start at 0, relative to the overall plan. Pay extreme attention to alignment with other rooms)
+- y: number (top-left Y coordinate in mm, start at 0, relative to the overall plan)
+- w: number (width in mm, read from the text in the image if available)
+- h: number (height in mm, read from the text in the image if available)
+Make sure the rooms form a logical layout exactly matching the image. Rooms that are adjacent in the image should share the exact same coordinates on their shared edges (no overlapping, no gaps).`;
+            file_urls = [imageUrl];
+        } else {
+            prompt = `Based on the following architectural floorplan analysis, extract the approximate layout.
 Return a valid JSON array of rooms. Each room must have:
 - name: string
 - x: number (top-left X coordinate in mm, start at 0)
@@ -31,9 +45,11 @@ Return a valid JSON array of rooms. Each room must have:
 Make sure the rooms form a logical layout without overlapping. Assume standard wall thickness is 150mm (but just give inner dimensions).
 Analysis text:
 ${analysis}`;
+        }
 
         const llmResponse = await base44.asServiceRole.integrations.Core.InvokeLLM({
             prompt,
+            ...(file_urls ? { file_urls } : {}),
             response_json_schema: {
                 type: "object",
                 properties: {
