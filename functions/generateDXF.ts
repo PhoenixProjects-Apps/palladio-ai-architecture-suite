@@ -84,7 +84,9 @@ ${analysis}`;
         });
 
         // makerjs generates a clean R12 DXF file which is highly compatible
-        const dxfString = makerjs.exporter.toDXF(model);
+        const dxfString = makerjs.exporter.toDXF(model, {
+            units: makerjs.unitType.Millimeter
+        });
 
         return new Response(dxfString, {
             headers: {
