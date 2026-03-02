@@ -90,7 +90,11 @@ export default function PalladioFloorplan() {
                 overallWidth: overallWidth ? Number(overallWidth) : null,
                 overallLength: overallLength ? Number(overallLength) : null
             });
-            const blob = new Blob([response.data], { type: 'application/octet-stream' });
+            
+            const { dxf, rooms } = response.data;
+            setCadResult(prev => ({ ...prev, rooms }));
+
+            const blob = new Blob([dxf], { type: 'application/octet-stream' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
