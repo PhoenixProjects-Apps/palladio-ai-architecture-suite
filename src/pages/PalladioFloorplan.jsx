@@ -21,6 +21,8 @@ export default function PalladioFloorplan() {
     // Tab 2 state
     const [cadFile, setCadFile] = useState(null);
     const [cadFileUrl, setCadFileUrl] = useState(null);
+    const [overallWidth, setOverallWidth] = useState('');
+    const [overallLength, setOverallLength] = useState('');
     const [isGeneratingCad, setIsGeneratingCad] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
     const [cadResult, setCadResult] = useState({ image: null, analysis: null });
