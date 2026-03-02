@@ -94,7 +94,7 @@ export default function UserProfile() {
                     </p>
                   </div>
                 </div>
-                <Link to={createPageUrl('PalladioPricing')}>
+                <Link to={createPageUrl('SubscriptionManagement')}>
                   <Button variant="outline" className="w-full sm:w-auto border-amber-500/30 text-amber-500 hover:bg-amber-500/20 hover:text-amber-400">
                     Manage Plan
                   </Button>
