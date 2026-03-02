@@ -205,7 +205,7 @@ export default function PalladioFloorplan() {
                                     <label className="text-sm font-medium text-slate-400 mb-3 block">Upload existing floorplan sketch</label>
                                     <div 
                                         onClick={() => fileInputRef.current?.click()}
-                                        className="border-2 border-dashed border-white/10 hover:border-violet-500/50 rounded-2xl p-8 text-center cursor-pointer transition-colors bg-slate-900"
+                                        className="border-2 border-dashed border-white/10 hover:border-violet-500/50 rounded-2xl p-8 text-center cursor-pointer transition-colors bg-slate-900 mb-6"
                                     >
                                         {cadFile ? (
                                             <div className="flex flex-col items-center">
@@ -219,6 +219,29 @@ export default function PalladioFloorplan() {
                                             </div>
                                         )}
                                         <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*" className="hidden" />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-sm font-medium text-slate-400 mb-1 block">Overall Width (mm) <span className="text-xs text-slate-500">*Optional</span></label>
+                                            <input 
+                                                type="number" 
+                                                value={overallWidth} 
+                                                onChange={e => setOverallWidth(e.target.value)} 
+                                                placeholder="e.g. 15000" 
+                                                className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-violet-500 transition-colors text-sm" 
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-sm font-medium text-slate-400 mb-1 block">Overall Length (mm) <span className="text-xs text-slate-500">*Optional</span></label>
+                                            <input 
+                                                type="number" 
+                                                value={overallLength} 
+                                                onChange={e => setOverallLength(e.target.value)} 
+                                                placeholder="e.g. 8000" 
+                                                className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-violet-500 transition-colors text-sm" 
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                                 <Button 
