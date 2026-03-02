@@ -58,44 +58,36 @@ ${analysis}`;
 
         const rooms = llmResponse.rooms || [];
 
-        // Build DXF content
-        let dxf = `0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1009\n0\nENDSEC\n`;
-        dxf += `0\nSECTION\n2\nTABLES\n`;
-        dxf += `0\nTABLE\n2\nLAYER\n70\n2\n`;
-        dxf += `0\nLAYER\n2\nWALLS\n70\n0\n62\n7\n0\n`; // Cyan
-        dxf += `0\nLAYER\n2\nTEXT\n70\n0\n62\n3\n0\n`; // Green
-        dxf += `0\nENDTAB\n0\nENDSEC\n`;
-        
-        dxf += `0\nSECTION\n2\nENTITIES\n`;
+        // Build DXF using dxf-writer
+        const d = new Drawing();
+        d.setUnits('Millimeters');
+        d.addLayer('WALLS', Drawing.ACI.CYAN, 'CONTINUOUS');
+        d.addLayer('TEXT', Drawing.ACI.GREEN, 'CONTINUOUS');
 
         rooms.forEach(r => {
-            // Draw 4 walls for each room
-            const pts = [
-                { x: r.x, y: r.y },
-                { x: r.x + r.w, y: r.y },
-                { x: r.x + r.w, y: r.y + r.h },
-                { x: r.x, y: r.y + r.h }
-            ];
+            // Note: Y is inverted in CAD vs screen
+            const x = r.x;
+            const y = -r.y;
+            const w = r.w;
+            const h = r.h; // Note height direction (going down means negative Y)
 
-            for (let i = 0; i < 4; i++) {
-                const p1 = pts[i];
-                const p2 = pts[(i + 1) % 4];
-                dxf += `0\nLINE\n8\nWALLS\n`;
-                dxf += `10\n${p1.x}\n20\n${-p1.y}\n30\n0.0\n`; // Note: Y is usually inverted in CAD vs screen
-                dxf += `11\n${p2.x}\n21\n${-p2.y}\n31\n0.0\n`;
-            }
+            d.setActiveLayer('WALLS');
+            // Draw 4 walls (polyline or individual lines)
+            d.drawLine(x, y, x + w, y);
+            d.drawLine(x + w, y, x + w, y - h);
+            d.drawLine(x + w, y - h, x, y - h);
+            d.drawLine(x, y - h, x, y);
 
             // Add Text label
-            const cx = r.x + (r.w / 2);
-            const cy = r.y + (r.h / 2);
-            dxf += `0\nTEXT\n8\nTEXT\n`;
-            dxf += `10\n${cx}\n20\n${-cy}\n30\n0.0\n40\n150.0\n1\n${r.name}\n`; // height 150mm
-            dxf += `72\n1\n11\n${cx}\n21\n${-cy}\n31\n0.0\n`; // Center aligned
+            d.setActiveLayer('TEXT');
+            const cx = x + (w / 2);
+            const cy = y - (h / 2);
+            d.drawText(cx, cy, 150, 0, r.name, 'center', 'middle');
         });
 
-        dxf += `0\nENDSEC\n0\nEOF\n`;
+        const dxfString = d.toDxfString();
 
-        return new Response(dxf, {
+        return new Response(dxfString, {
             headers: {
                 'Content-Type': 'application/octet-stream',
                 'Content-Disposition': 'attachment; filename="floorplan.dxf"'
