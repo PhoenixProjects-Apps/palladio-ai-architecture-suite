@@ -270,6 +270,15 @@ export default function PalladioFloorplan() {
                                         >
                                             {isExporting ? <><Loader2 size={18} className="animate-spin mr-2" /> Exporting...</> : <><Download size={18} className="mr-2" /> Export as DXF</>}
                                         </Button>
+                                        
+                                        {cadResult.rooms && (
+                                            <div className="bg-slate-900 border border-white/10 rounded-2xl p-4 overflow-hidden mt-4">
+                                                <h4 className="text-sm font-medium text-slate-300 mb-2">Generated Room Data (JSON)</h4>
+                                                <pre className="text-xs text-slate-400 overflow-auto max-h-[300px] p-2 bg-black/50 rounded-lg">
+                                                    {JSON.stringify(cadResult.rooms, null, 2)}
+                                                </pre>
+                                            </div>
+                                        )}
                                     </div>
                                 ) : (
                                     <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-white/5 border border-white/10 rounded-3xl border-dashed">
