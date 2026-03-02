@@ -78,6 +78,11 @@ export default function Render3D() {
   const [magicEditMode, setMagicEditMode] = useState(false);
   const [magicEditPrompt, setMagicEditPrompt] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [hasDrawn, setHasDrawn] = useState(false);
+  const [brushSize, setBrushSize] = useState(30);
+  const imageRef = useRef(null);
+  const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
   const styleInputRef = useRef(null);
 
@@ -115,6 +120,68 @@ export default function Render3D() {
   const applyPreset = (savedPreset) => {
     if (savedPreset.presets) setPresets(savedPreset.presets);
     if (savedPreset.prompt) setPrompt(savedPreset.prompt);
+  };
+
+  useEffect(() => {
+    if (magicEditMode && imageRef.current && canvasRef.current) {
+      canvasRef.current.width = imageRef.current.clientWidth;
+      canvasRef.current.height = imageRef.current.clientHeight;
+      setHasDrawn(false);
+    }
+  }, [magicEditMode]);
+
+  const getCoordinates = (e) => {
+      if (!canvasRef.current) return { offsetX: 0, offsetY: 0 };
+      const rect = canvasRef.current.getBoundingClientRect();
+      const scaleX = canvasRef.current.width / rect.width;
+      const scaleY = canvasRef.current.height / rect.height;
+      
+      let clientX, clientY;
+      if (e.touches && e.touches.length > 0) {
+          clientX = e.touches[0].clientX;
+          clientY = e.touches[0].clientY;
+      } else {
+          clientX = e.clientX;
+          clientY = e.clientY;
+      }
+
+      return {
+          offsetX: (clientX - rect.left) * scaleX,
+          offsetY: (clientY - rect.top) * scaleY
+      };
+  };
+
+  const startDrawing = (e) => {
+      const { offsetX, offsetY } = getCoordinates(e);
+      const ctx = canvasRef.current.getContext('2d');
+      ctx.beginPath();
+      ctx.moveTo(offsetX, offsetY);
+      setIsDrawing(true);
+  };
+
+  const draw = (e) => {
+      if (!isDrawing) return;
+      if (e.cancelable) e.preventDefault(); // Prevent scrolling on touch devices while drawing
+      const { offsetX, offsetY } = getCoordinates(e);
+      const ctx = canvasRef.current.getContext('2d');
+      ctx.lineTo(offsetX, offsetY);
+      ctx.strokeStyle = 'rgba(234, 179, 8, 0.6)'; // Amber with opacity
+      ctx.lineWidth = brushSize;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+      setHasDrawn(true);
+  };
+
+  const stopDrawing = () => {
+      setIsDrawing(false);
+  };
+
+  const clearCanvas = () => {
+      if (!canvasRef.current) return;
+      const ctx = canvasRef.current.getContext('2d');
+      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      setHasDrawn(false);
   };
 
   const handleFileSelect = async (e) => {
@@ -205,13 +272,31 @@ export default function Render3D() {
     setIsEditing(true);
 
     try {
+      let maskUrl = null;
+      if (hasDrawn && canvasRef.current) {
+        const blob = await new Promise(resolve => canvasRef.current.toBlob(resolve, 'image/png'));
+        if (blob) {
+          const file = new File([blob], 'mask.png', { type: 'image/png' });
+          const uploadRes = await base44.integrations.Core.UploadFile({ file });
+          maskUrl = uploadRes.file_url;
+        }
+      }
+
+      const imageUrls = [renderedImage];
+      if (maskUrl) imageUrls.push(maskUrl);
+
       const params = {
-        prompt: `MAGIC EDIT EXACTLY AS REQUESTED: ${magicEditPrompt}. KEEP THE REST OF THE IMAGE EXACTLY THE SAME. PHOTOREALISTIC ARCHITECTURAL RENDER.`,
-        existing_image_urls: [renderedImage]
+        prompt: `MAGIC EDIT EXACTLY AS REQUESTED: ${magicEditPrompt}. KEEP THE REST OF THE IMAGE EXACTLY THE SAME. ${maskUrl ? 'The second image is a mask highlighting the specific area to change.' : ''} PHOTOREALISTIC ARCHITECTURAL RENDER.`,
+        existing_image_urls: imageUrls
       };
       
       const result = await base44.integrations.Core.GenerateImage(params);
       setRenderedImage(result.url);
+      setHasDrawn(false);
+      if (canvasRef.current) {
+        const ctx = canvasRef.current.getContext('2d');
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      }
       toast.success("Magic edit applied!");
     } catch (err) {
       toast.error("Failed to apply edit");
@@ -477,8 +562,33 @@ export default function Render3D() {
         {renderedImage && (
           <div>
             <h2 className="text-white text-sm font-semibold mb-3">Your Rendered Design</h2>
-            <div className="rounded-2xl overflow-hidden mb-3" style={{ border: '1px solid rgba(20,184,166,0.35)' }}>
-              <img src={renderedImage} alt="AI Architectural Render" className="w-full block" />
+            <div className="rounded-2xl overflow-hidden mb-3 relative" style={{ border: '1px solid rgba(20,184,166,0.35)' }}>
+              <img 
+                ref={imageRef} 
+                src={renderedImage} 
+                alt="AI Architectural Render" 
+                className="w-full block" 
+                onLoad={() => {
+                  if (magicEditMode && canvasRef.current && imageRef.current) {
+                    canvasRef.current.width = imageRef.current.clientWidth;
+                    canvasRef.current.height = imageRef.current.clientHeight;
+                  }
+                }}
+              />
+              {magicEditMode && (
+                <canvas
+                  ref={canvasRef}
+                  onMouseDown={startDrawing}
+                  onMouseMove={draw}
+                  onMouseUp={stopDrawing}
+                  onMouseLeave={stopDrawing}
+                  onTouchStart={startDrawing}
+                  onTouchMove={draw}
+                  onTouchEnd={stopDrawing}
+                  className="absolute top-0 left-0 w-full h-full cursor-crosshair"
+                  style={{ touchAction: 'none' }}
+                />
+              )}
             </div>
             <div className="flex gap-3">
               <a
@@ -517,7 +627,30 @@ export default function Render3D() {
 
               {magicEditMode && (
                 <div className="mt-4 space-y-3">
-                  <p className="text-xs text-slate-400">Describe what you want to change in the generated image above.</p>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs text-amber-400 font-medium flex items-center gap-1.5">
+                      <Brush size={14} /> Draw over the image to highlight areas
+                    </p>
+                    {hasDrawn && (
+                      <button onClick={clearCanvas} className="text-xs text-slate-400 hover:text-red-400 transition-colors">
+                        Clear Brush
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-xs text-slate-400">Brush Size:</span>
+                    <input 
+                      type="range" 
+                      min="10" 
+                      max="100" 
+                      value={brushSize} 
+                      onChange={(e) => setBrushSize(parseInt(e.target.value))}
+                      className="flex-1 accent-amber-500"
+                    />
+                  </div>
+
+                  <p className="text-xs text-slate-400 mt-2">Describe what you want to change in the highlighted area.</p>
                   <Textarea
                     value={magicEditPrompt}
                     onChange={e => setMagicEditPrompt(e.target.value)}
