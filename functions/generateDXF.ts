@@ -78,35 +78,26 @@ ${analysis}`;
 
         const rooms = llmResponse.rooms || [];
 
-        // Build DXF using makerjs
-        const model = {
-            models: {}
-        };
+        // Build DXF using dxf-writer
+        const dxf = new DxfWriter();
+        dxf.setUnits('Millimeters');
+        dxf.addLayer('WALLS', DxfWriter.ACI.WHITE, 'CONTINUOUS');
+        dxf.setActiveLayer('WALLS');
 
-        rooms.forEach((r, i) => {
+        rooms.forEach((r) => {
             const x = r.x;
             const y = -r.y;
             const w = r.w;
             const h = r.h;
             
-            // Create a rectangle for the room
-            const roomModel = new makerjs.models.Rectangle(w, h);
-            
-            // Assign the room to a specific layer
-            roomModel.layer = 'WALLS';
-            
-            // Move it to the correct coordinates
-            // Note: makerjs rectangle's origin is bottom-left, our y is the top, 
-            // so bottom-left is (x, y - h)
-            roomModel.origin = [x, y - h];
-            
-            model.models[`room_${i}`] = roomModel;
+            // Draw 4 lines for the rectangle
+            dxf.drawLine(x, y, x + w, y); // Top
+            dxf.drawLine(x + w, y, x + w, y - h); // Right
+            dxf.drawLine(x + w, y - h, x, y - h); // Bottom
+            dxf.drawLine(x, y - h, x, y); // Left
         });
 
-        // makerjs generates a clean R12 DXF file which is highly compatible
-        const dxfString = makerjs.exporter.toDXF(model, {
-            units: makerjs.unitType.Millimeter
-        });
+        const dxfString = dxf.toDxfString();
 
         return new Response(dxfString, {
             headers: {
