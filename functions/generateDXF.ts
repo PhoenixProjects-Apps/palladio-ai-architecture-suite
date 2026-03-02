@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Method not allowed' }, { status: 405 });
         }
 
-        const { analysis, imageUrl } = await req.json();
+        const { analysis, imageUrl, overallWidth, overallLength } = await req.json();
 
         if (!imageUrl && !analysis) {
             return Response.json({ error: 'Missing analysis text or image URL' }, { status: 400 });
@@ -22,10 +22,14 @@ Deno.serve(async (req) => {
 
         let prompt;
         let file_urls = undefined;
+        
+        const dimensionContext = (overallWidth || overallLength) 
+            ? `\n\nCRITICAL SCALING INFO: The overall bounding box of this floorplan is ${overallWidth || 'unknown'}mm wide by ${overallLength || 'unknown'}mm long. Use these dimensions as a strict boundary. Scale and position all rooms so they fit perfectly within this area.`
+            : '';
 
         if (imageUrl) {
             prompt = `Carefully analyze this floorplan image. Extract the exact layout to create a highly accurate CAD drawing.
-Look closely at the dimensions written in the rooms (e.g., "3.1 x 3.0" means 3100mm x 3000mm). 
+Look closely at the dimensions written in the rooms (e.g., "3.1 x 3.0" means 3100mm x 3000mm).${dimensionContext}
 Return a valid JSON array of rooms. Each room must have:
 - name: string (e.g., "Master Bedroom", "Kitchen", "Living")
 - x: number (top-left X coordinate in mm, start at 0, relative to the overall plan. Pay extreme attention to alignment with other rooms)
