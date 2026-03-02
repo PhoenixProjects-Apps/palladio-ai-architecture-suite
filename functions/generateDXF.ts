@@ -99,11 +99,9 @@ ${analysis}`;
 
         const dxfString = dxf.toDxfString();
 
-        return new Response(dxfString, {
-            headers: {
-                'Content-Type': 'application/octet-stream',
-                'Content-Disposition': 'attachment; filename="floorplan.dxf"'
-            }
+        return Response.json({
+            dxf: dxfString,
+            rooms: rooms
         });
 
     } catch (error) {
