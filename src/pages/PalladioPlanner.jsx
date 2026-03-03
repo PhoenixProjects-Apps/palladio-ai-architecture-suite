@@ -156,7 +156,50 @@ Return a valid JSON object matching this structure:
                             <div className="bg-white/5 border border-white/10 rounded-3xl p-6 shadow-xl space-y-6">
                                 <div>
                                     <label className="text-sm font-medium text-slate-400 mb-2 block">1. Property Address</label>
-                                    <AddressAutocomplete value={address} onChange={setAddress} onSelect={setAddress} />
+                                    <AddressAutocomplete value={address} onChange={setAddress} onSelect={handleAddressSelect} />
+                                    
+                                    {isFetchingProperty && (
+                                        <div className="mt-4 flex items-center gap-2 text-sm text-rose-400 bg-rose-500/10 p-3 rounded-lg border border-rose-500/20">
+                                            <Loader2 size={16} className="animate-spin" />
+                                            Searching public council records...
+                                        </div>
+                                    )}
+
+                                    {propertyData && !isFetchingProperty && (
+                                        <div className="mt-4 space-y-3 bg-slate-900/50 p-4 rounded-xl border border-white/5 text-sm">
+                                            <h4 className="font-semibold text-slate-200 flex items-center gap-2"><MapPin size={16} className="text-rose-500"/> Property Details</h4>
+                                            <div className="grid grid-cols-2 gap-3 text-slate-300">
+                                                <div><span className="text-slate-500 block text-xs">Lot / RP</span>{propertyData.lot_rp || 'N/A'}</div>
+                                                <div><span className="text-slate-500 block text-xs">Site Area</span>{propertyData.site_area || 'N/A'}</div>
+                                                <div className="col-span-2"><span className="text-slate-500 block text-xs">Zoning</span>{propertyData.zoning || 'N/A'}</div>
+                                            </div>
+                                            
+                                            {propertyData.overlays?.length > 0 && (
+                                                <div className="pt-2 border-t border-white/5">
+                                                    <span className="text-slate-500 block text-xs mb-1 flex items-center gap-1"><Layers size={12}/> Overlays</span>
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        {propertyData.overlays.map((overlay, idx) => (
+                                                            <span key={idx} className="bg-white/10 px-2 py-0.5 rounded text-xs text-slate-300">{overlay}</span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {propertyData.forms_and_applications?.length > 0 && (
+                                                <div className="pt-2 border-t border-white/5">
+                                                    <span className="text-slate-500 block text-xs mb-1 flex items-center gap-1"><FileText size={12}/> Relevant Forms & Applications</span>
+                                                    <div className="space-y-1.5">
+                                                        {propertyData.forms_and_applications.map((form, idx) => (
+                                                            <a key={idx} href={form.link} target="_blank" rel="noreferrer" className="flex items-center justify-between group hover:bg-white/5 p-2 rounded-lg transition-colors border border-transparent hover:border-white/10 text-xs">
+                                                                <span className="text-rose-400 group-hover:text-rose-300 transition-colors">{form.name}</span>
+                                                                <ExternalLink size={12} className="text-slate-500 group-hover:text-rose-300" />
+                                                            </a>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                                 
                                 <div>
