@@ -171,7 +171,7 @@ export default function PalladioFloorplan() {
                         </div>
                     )}
 
-                    {tab === 'cad' && (
+                    {tab === 'sketch' && (
                         <div className="grid lg:grid-cols-2 gap-8">
                             <div className="bg-white/5 border border-white/10 rounded-3xl p-6 shadow-xl space-y-6">
                                 <div>
@@ -193,67 +193,39 @@ export default function PalladioFloorplan() {
                                         )}
                                         <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*" className="hidden" />
                                     </div>
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="text-sm font-medium text-slate-400 mb-1 block">Overall Width (mm) <span className="text-xs text-slate-500">*Optional</span></label>
-                                            <input 
-                                                type="number" 
-                                                value={overallWidth} 
-                                                onChange={e => setOverallWidth(e.target.value)} 
-                                                placeholder="e.g. 15000" 
-                                                className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-violet-500 transition-colors text-sm" 
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-sm font-medium text-slate-400 mb-1 block">Overall Length (mm) <span className="text-xs text-slate-500">*Optional</span></label>
-                                            <input 
-                                                type="number" 
-                                                value={overallLength} 
-                                                onChange={e => setOverallLength(e.target.value)} 
-                                                placeholder="e.g. 8000" 
-                                                className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-violet-500 transition-colors text-sm" 
-                                            />
-                                        </div>
-                                    </div>
                                 </div>
                                 <Button 
-                                    onClick={handleCadGenerate}
-                                    disabled={!cadFileUrl || isGeneratingCad}
+                                    onClick={handleSketchGenerate}
+                                    disabled={!cadFileUrl || isGeneratingSketch}
                                     className="w-full bg-violet-600 hover:bg-violet-700 text-white h-12 rounded-xl shadow-lg shadow-violet-500/20"
                                 >
-                                    {isGeneratingCad ? <><Loader2 size={18} className="animate-spin mr-2" /> Processing CAD...</> : "Generate CAD Redraw"}
+                                    {isGeneratingSketch ? <><Loader2 size={18} className="animate-spin mr-2" /> Generating...</> : "Generate Professional Floorplan"}
                                 </Button>
                             </div>
 
                             <div>
-                                {cadResult.image ? (
+                                {sketchResult ? (
                                     <div className="space-y-6 animate-in fade-in duration-500">
                                         <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-lg p-4">
-                                            <img src={cadResult.image} alt="CAD Redraw" className="w-full rounded-lg" />
+                                            <img src={sketchResult} alt="Generated Floorplan" className="w-full rounded-lg" />
                                         </div>
-                                        <Button 
-                                            onClick={handleExportPDF}
-                                            disabled={isExporting}
-                                            className="w-full bg-white text-black hover:bg-slate-200 h-12 rounded-xl"
+                                        <a 
+                                            href={sketchResult} 
+                                            download="floorplan.png" 
+                                            target="_blank" 
+                                            rel="noreferrer"
+                                            className="block w-full"
                                         >
-                                            {isExporting ? <><Loader2 size={18} className="animate-spin mr-2" /> Exporting...</> : <><Download size={18} className="mr-2" /> Export as PDF</>}
-                                        </Button>
-                                        
-                                        {cadResult.rooms && (
-                                            <div className="bg-slate-900 border border-white/10 rounded-2xl p-4 overflow-hidden mt-4">
-                                                <h4 className="text-sm font-medium text-slate-300 mb-2">Generated Room Data (JSON)</h4>
-                                                <pre className="text-xs text-slate-400 overflow-auto max-h-[300px] p-2 bg-black/50 rounded-lg">
-                                                    {JSON.stringify(cadResult.rooms, null, 2)}
-                                                </pre>
-                                            </div>
-                                        )}
+                                            <Button className="w-full bg-white text-black hover:bg-slate-200 h-12 rounded-xl">
+                                                <Download size={18} className="mr-2" /> Download Image
+                                            </Button>
+                                        </a>
                                     </div>
                                 ) : (
                                     <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-white/5 border border-white/10 rounded-3xl border-dashed">
                                         <ImageIcon size={48} className="text-slate-600 mb-4" />
-                                        <h3 className="text-lg font-medium text-slate-300">Upload to generate CAD</h3>
-                                        <p className="text-slate-500 text-sm mt-2">The AI will extract walls and dimensions to create a downloadable PDF file.</p>
+                                        <h3 className="text-lg font-medium text-slate-300">Upload to generate Floorplan</h3>
+                                        <p className="text-slate-500 text-sm mt-2">The AI will convert your sketch into a neat, professional floorplan.</p>
                                     </div>
                                 )}
                             </div>
