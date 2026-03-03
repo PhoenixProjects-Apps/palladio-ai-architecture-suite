@@ -22,6 +22,59 @@ export default function PalladioPlanner() {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [result, setResult] = useState(null);
 
+    const [propertyData, setPropertyData] = useState(null);
+    const [isFetchingProperty, setIsFetchingProperty] = useState(false);
+
+    const handleAddressSelect = async (addr) => {
+        setAddress(addr);
+        if (!addr) {
+            setPropertyData(null);
+            return;
+        }
+        setIsFetchingProperty(true);
+        setPropertyData(null);
+        try {
+            const prompt = `Search public council information and property databases for the address: ${addr}. Obtain the Lot & RP (Registered Plan) numbers, Site Area, zoning, and Overlays. Also provide links to relevant local council forms and applications for development.
+Return a valid JSON object matching this structure:
+{
+    "lot_rp": "Lot and RP numbers",
+    "site_area": "Site Area (e.g. 600 sqm)",
+    "zoning": "Zoning description",
+    "overlays": ["Overlay 1", "Overlay 2"],
+    "forms_and_applications": [
+        {"name": "Form Name", "link": "https://link-to-form.com"}
+    ]
+}`;
+            const response = await base44.integrations.Core.InvokeLLM({
+                prompt,
+                add_context_from_internet: true,
+                response_json_schema: {
+                    type: "object",
+                    properties: {
+                        lot_rp: { type: "string" },
+                        site_area: { type: "string" },
+                        zoning: { type: "string" },
+                        overlays: { type: "array", items: { type: "string" } },
+                        forms_and_applications: { 
+                            type: "array", 
+                            items: { 
+                                type: "object", 
+                                properties: { name: { type: "string" }, link: { type: "string" } },
+                                required: ["name", "link"]
+                            } 
+                        }
+                    },
+                    required: ["lot_rp", "site_area", "zoning", "overlays", "forms_and_applications"]
+                }
+            });
+            setPropertyData(response);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsFetchingProperty(false);
+        }
+    };
+
     const handleAnalyze = async () => {
         if (!address || !selectedType || !description) return;
         setIsAnalyzing(true);
