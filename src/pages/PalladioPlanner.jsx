@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, ClipboardList, Loader2, AlertCircle, CheckCircle2, XCircle, HelpCircle, MapPin, ExternalLink, FileText, Layers, Download } from 'lucide-react';
+import { ArrowLeft, ClipboardList, Loader2, AlertCircle, CheckCircle2, XCircle, HelpCircle, MapPin, ExternalLink, FileText, Layers, Download, Upload, File } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,6 +17,8 @@ const devTypes = [
 ];
 
 export default function PalladioPlanner() {
+    const [activeTab, setActiveTab] = useState('assessment');
+
     const [address, setAddress] = useState('');
     const [selectedType, setSelectedType] = useState('');
     const [description, setDescription] = useState('');
@@ -25,6 +27,12 @@ export default function PalladioPlanner() {
 
     const [propertyData, setPropertyData] = useState(null);
     const [isFetchingProperty, setIsFetchingProperty] = useState(false);
+
+    // Document Analysis States
+    const [docFile, setDocFile] = useState(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [isAnalyzingDoc, setIsAnalyzingDoc] = useState(false);
+    const [docResult, setDocResult] = useState(null);
 
     const handleAddressSelect = async (addr) => {
         setAddress(addr);
@@ -173,6 +181,52 @@ Return a valid JSON object matching this structure:
         }
     };
 
+    const handleDocUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        setDocFile(file);
+        setDocResult(null);
+    };
+
+    const handleAnalyzeDoc = async () => {
+        if (!docFile) return;
+        setIsUploading(true);
+        setIsAnalyzingDoc(true);
+        try {
+            const { file_url } = await base44.integrations.Core.UploadFile({ file: docFile });
+            setIsUploading(false);
+
+            const prompt = `Analyze this uploaded planning document (e.g. council report, property title, scheme code). 
+Extract the key information, provide a concise summary, and identify any potential compliance issues, red flags, or specific requirements mentioned.
+Return a valid JSON object matching this structure:
+{
+    "summary": "Concise summary of the document",
+    "key_information": ["Key point 1", "Key point 2"],
+    "compliance_issues": ["Potential issue 1", "Potential issue 2"],
+    "requirements": ["Requirement 1", "Requirement 2"]
+}`;
+            const response = await base44.integrations.Core.InvokeLLM({
+                prompt,
+                file_urls: [file_url],
+                response_json_schema: {
+                    type: "object",
+                    properties: {
+                        summary: { type: "string" },
+                        key_information: { type: "array", items: { type: "string" } },
+                        compliance_issues: { type: "array", items: { type: "string" } },
+                        requirements: { type: "array", items: { type: "string" } }
+                    }
+                }
+            });
+            setDocResult(response);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsUploading(false);
+            setIsAnalyzingDoc(false);
+        }
+    };
+
     const getVerdictColor = (v) => {
         if (v === "LIKELY PERMITTED") return { bg: "bg-green-500/20", border: "border-green-500/50", text: "text-green-400", icon: CheckCircle2 };
         if (v === "APPROVAL REQUIRED") return { bg: "bg-amber-500/20", border: "border-amber-500/50", text: "text-amber-400", icon: AlertCircle };
@@ -196,7 +250,24 @@ Return a valid JSON object matching this structure:
                         <h1 className="text-2xl font-bold">Town Planner AI</h1>
                     </header>
 
-                    <div className="grid lg:grid-cols-2 gap-8 mb-8">
+                    <div className="flex bg-slate-900 rounded-xl p-1 mb-8 w-max">
+                        <button 
+                            onClick={() => setActiveTab('assessment')}
+                            className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'assessment' ? 'bg-rose-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
+                        >
+                            Proposal Assessment
+                        </button>
+                        <button 
+                            onClick={() => setActiveTab('document')}
+                            className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'document' ? 'bg-rose-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
+                        >
+                            Document Analysis
+                        </button>
+                    </div>
+
+                    {activeTab === 'assessment' && (
+                        <>
+                            <div className="grid lg:grid-cols-2 gap-8 mb-8">
                         <div className="space-y-6">
                             <div className="bg-white/5 border border-white/10 rounded-3xl p-6 shadow-xl space-y-6">
                                 <div>
@@ -363,6 +434,87 @@ Return a valid JSON object matching this structure:
                             </div>
                             <div className="md:col-span-2 bg-slate-800/50 p-4 rounded-xl text-xs text-slate-400 text-center">
                                 {result.disclaimer || "This report is AI-generated for informational purposes. Consult a professional town planner."}
+                            </div>
+                        </div>
+                    )}
+                        </>
+                    )}
+
+                    {activeTab === 'document' && (
+                        <div className="grid lg:grid-cols-2 gap-8 mb-8">
+                            <div className="space-y-6">
+                                <div className="bg-white/5 border border-white/10 rounded-3xl p-6 shadow-xl space-y-6">
+                                    <div>
+                                        <label className="text-sm font-medium text-slate-400 mb-3 block">Upload Planning Document</label>
+                                        <div className="border-2 border-dashed border-white/10 hover:border-rose-500/50 rounded-2xl p-8 text-center transition-colors bg-slate-900 mb-6 relative group">
+                                            {docFile ? (
+                                                <div className="flex flex-col items-center">
+                                                    <File size={32} className="text-rose-500 mb-2" />
+                                                    <p className="text-white text-sm">{docFile.name}</p>
+                                                </div>
+                                            ) : (
+                                                <div className="flex flex-col items-center">
+                                                    <Upload size={32} className="text-slate-500 mb-2 group-hover:text-rose-400 transition-colors" />
+                                                    <p className="text-sm font-medium text-white">Click or drag document here</p>
+                                                    <p className="text-xs text-slate-500 mt-1">PDF, DOCX, TXT, Images</p>
+                                                </div>
+                                            )}
+                                            <input type="file" onChange={handleDocUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept=".pdf,.doc,.docx,.txt,image/*" />
+                                        </div>
+                                    </div>
+                                    
+                                    <Button 
+                                        onClick={handleAnalyzeDoc}
+                                        disabled={!docFile || isAnalyzingDoc}
+                                        className="w-full bg-rose-600 hover:bg-rose-700 text-white h-12 rounded-xl shadow-lg shadow-rose-500/20"
+                                    >
+                                        {isAnalyzingDoc ? <><Loader2 size={18} className="animate-spin mr-2" /> {isUploading ? 'Uploading...' : 'Analyzing Document...'}</> : "Analyze Document"}
+                                    </Button>
+                                </div>
+                            </div>
+
+                            <div>
+                                {docResult ? (
+                                    <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
+                                        <div className="bg-white/5 border border-white/10 rounded-xl p-5 shadow-sm">
+                                            <h3 className="text-rose-400 font-semibold mb-3">Document Summary</h3>
+                                            <p className="text-slate-300 text-sm leading-relaxed">{docResult.summary}</p>
+                                        </div>
+
+                                        {docResult.key_information?.length > 0 && (
+                                            <div className="bg-white/5 border border-white/10 rounded-xl p-5 shadow-sm">
+                                                <h3 className="text-white font-semibold mb-3 flex items-center gap-2"><FileText size={16} className="text-blue-400" /> Key Information</h3>
+                                                <ul className="space-y-2">
+                                                    {docResult.key_information.map((info, i) => <li key={i} className="text-slate-300 text-sm flex gap-2"><span className="text-blue-500">•</span>{info}</li>)}
+                                                </ul>
+                                            </div>
+                                        )}
+
+                                        {docResult.compliance_issues?.length > 0 && (
+                                            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-5 shadow-sm">
+                                                <h3 className="text-red-400 font-semibold mb-3 flex items-center gap-2"><AlertCircle size={16} /> Compliance Issues & Red Flags</h3>
+                                                <ul className="space-y-2">
+                                                    {docResult.compliance_issues.map((issue, i) => <li key={i} className="text-red-200 text-sm flex gap-2"><span className="text-red-500">•</span>{issue}</li>)}
+                                                </ul>
+                                            </div>
+                                        )}
+
+                                        {docResult.requirements?.length > 0 && (
+                                            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-5 shadow-sm">
+                                                <h3 className="text-amber-400 font-semibold mb-3 flex items-center gap-2"><CheckCircle2 size={16} /> Requirements</h3>
+                                                <ul className="space-y-2">
+                                                    {docResult.requirements.map((req, i) => <li key={i} className="text-amber-200 text-sm flex gap-2"><span className="text-amber-500">•</span>{req}</li>)}
+                                                </ul>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-white/5 border border-white/10 rounded-3xl border-dashed">
+                                        <FileText size={48} className="text-slate-600 mb-4" />
+                                        <h3 className="text-lg font-medium text-slate-300 mb-2">Awaiting Document</h3>
+                                        <p className="text-slate-500 text-sm">Upload a council report, property title, or planning document to extract key info and identify compliance issues.</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
