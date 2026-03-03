@@ -63,13 +63,16 @@ export default function PalladioAssess() {
         }
         setIsAnalyzing(true);
         try {
-            const prompt = `You are an expert architect. Analyze this uploaded architectural plan or drawing.
+            const prompt = `You are an expert architect and building surveyor. Analyze this uploaded architectural plan or drawing for compliance with drafting standards and building regulations.
 Please provide a detailed assessment. Evaluate the overall quality to provide a score out of 10.
+Crucially, assess the plans against Australian Standard "AS 1684.2 Residential Timber Framed Construction" and the "National Construction Code (NCC) - Residential" (use your knowledge and web search to recall specifics). 
+Highlight any potential non-compliance, missing details required by these standards, or drafting errors.
 If the document is clearly not an architectural plan, note that in the overview and score it a 0.`;
             
             const response = await base44.integrations.Core.InvokeLLM({
                 prompt,
                 file_urls: [fileUrl],
+                add_context_from_internet: true,
                 response_json_schema: {
                     type: "object",
                     properties: {
