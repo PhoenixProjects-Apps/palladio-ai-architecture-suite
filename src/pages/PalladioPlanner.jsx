@@ -76,6 +76,50 @@ Return a valid JSON object matching this structure:
         }
     };
 
+    const generatePrefilledForm = (formName) => {
+        const doc = new jsPDF();
+        
+        doc.setFontSize(20);
+        doc.text("Planning Application Draft", 20, 20);
+        
+        doc.setFontSize(14);
+        doc.text(`Form: ${formName}`, 20, 35);
+        
+        doc.setFontSize(12);
+        doc.text("Property Details", 20, 50);
+        
+        doc.setFontSize(10);
+        doc.text(`Address: ${address || 'N/A'}`, 20, 60);
+        doc.text(`Lot / RP: ${propertyData?.lot_rp || 'N/A'}`, 20, 70);
+        doc.text(`Site Area: ${propertyData?.site_area || 'N/A'}`, 20, 80);
+        doc.text(`Zoning: ${propertyData?.zoning || 'N/A'}`, 20, 90);
+        
+        doc.setFontSize(12);
+        doc.text("Development Details", 20, 110);
+        
+        doc.setFontSize(10);
+        doc.text(`Type: ${selectedType || 'N/A'}`, 20, 120);
+        
+        doc.text("Description:", 20, 130);
+        const splitDesc = doc.splitTextToSize(description || 'N/A', 170);
+        doc.text(splitDesc, 20, 140);
+        
+        let yPos = 140 + (splitDesc.length * 5) + 10;
+        
+        if (propertyData?.overlays?.length > 0) {
+            doc.setFontSize(12);
+            doc.text("Overlays", 20, yPos);
+            doc.setFontSize(10);
+            yPos += 10;
+            propertyData.overlays.forEach(overlay => {
+                doc.text(`• ${overlay}`, 25, yPos);
+                yPos += 6;
+            });
+        }
+        
+        doc.save(`Prefilled_Draft_${formName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`);
+    };
+
     const handleAnalyze = async () => {
         if (!address || !selectedType || !description) return;
         setIsAnalyzing(true);
