@@ -280,14 +280,40 @@ Return a valid JSON object matching this structure:
                                         </div>
                                     )}
 
-                                    {propertyData && !isFetchingProperty && (
-                                        <div className="mt-4 space-y-3 bg-slate-900/50 p-4 rounded-xl border border-white/5 text-sm">
-                                            <h4 className="font-semibold text-slate-200 flex items-center gap-2"><MapPin size={16} className="text-rose-500"/> Property Details</h4>
-                                            <div className="grid grid-cols-2 gap-3 text-slate-300">
-                                                <div><span className="text-slate-500 block text-xs">Lot / RP</span>{propertyData.lot_rp || 'N/A'}</div>
-                                                <div><span className="text-slate-500 block text-xs">Site Area</span>{propertyData.site_area || 'N/A'}</div>
-                                                <div className="col-span-2"><span className="text-slate-500 block text-xs">Zoning</span>{propertyData.zoning || 'N/A'}</div>
+                                    <div className="mt-4 space-y-3 bg-slate-900/50 p-4 rounded-xl border border-white/5 text-sm">
+                                        <h4 className="font-semibold text-slate-200 flex items-center gap-2"><MapPin size={16} className="text-rose-500"/> Property Details</h4>
+                                        <div className="grid grid-cols-2 gap-3 text-slate-300">
+                                            <div>
+                                                <span className="text-slate-500 block text-xs mb-1">Lot / RP</span>
+                                                <input 
+                                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white" 
+                                                    value={propertyData.lot_rp || ''} 
+                                                    onChange={e => setPropertyData({...propertyData, lot_rp: e.target.value})}
+                                                    placeholder="e.g. Lot 1 RP 12345"
+                                                    disabled={isFetchingProperty}
+                                                />
                                             </div>
+                                            <div>
+                                                <span className="text-slate-500 block text-xs mb-1">Site Area</span>
+                                                <input 
+                                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white" 
+                                                    value={propertyData.site_area || ''} 
+                                                    onChange={e => setPropertyData({...propertyData, site_area: e.target.value})}
+                                                    placeholder="e.g. 600 sqm"
+                                                    disabled={isFetchingProperty}
+                                                />
+                                            </div>
+                                            <div className="col-span-2">
+                                                <span className="text-slate-500 block text-xs mb-1">Zoning</span>
+                                                <input 
+                                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white" 
+                                                    value={propertyData.zoning || ''} 
+                                                    onChange={e => setPropertyData({...propertyData, zoning: e.target.value})}
+                                                    placeholder="e.g. Low Density Residential"
+                                                    disabled={isFetchingProperty}
+                                                />
+                                            </div>
+                                        </div>
                                             
                                             {propertyData.overlays?.length > 0 && (
                                                 <div className="pt-2 border-t border-white/5">
