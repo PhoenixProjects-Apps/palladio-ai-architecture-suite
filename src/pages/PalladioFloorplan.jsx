@@ -103,10 +103,10 @@ export default function PalladioFloorplan() {
                             Generate from Text
                         </button>
                         <button 
-                            onClick={() => setTab('cad')}
-                            className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${tab === 'cad' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
+                            onClick={() => setTab('sketch')}
+                            className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${tab === 'sketch' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
                         >
-                            Floorplan to CAD
+                            Sketch to Floorplan
                         </button>
                     </div>
 
