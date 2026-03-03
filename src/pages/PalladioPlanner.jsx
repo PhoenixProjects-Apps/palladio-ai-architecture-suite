@@ -232,13 +232,23 @@ Return a valid JSON object matching this structure:
 
                                             {propertyData.forms_and_applications?.length > 0 && (
                                                 <div className="pt-2 border-t border-white/5">
-                                                    <span className="text-slate-500 block text-xs mb-1 flex items-center gap-1"><FileText size={12}/> Relevant Forms & Applications</span>
-                                                    <div className="space-y-1.5">
+                                                    <span className="text-slate-500 block text-xs mb-2 flex items-center gap-1"><FileText size={12}/> Relevant Forms & Applications</span>
+                                                    <div className="space-y-2">
                                                         {propertyData.forms_and_applications.map((form, idx) => (
-                                                            <a key={idx} href={form.link} target="_blank" rel="noreferrer" className="flex items-center justify-between group hover:bg-white/5 p-2 rounded-lg transition-colors border border-transparent hover:border-white/10 text-xs">
-                                                                <span className="text-rose-400 group-hover:text-rose-300 transition-colors">{form.name}</span>
-                                                                <ExternalLink size={12} className="text-slate-500 group-hover:text-rose-300" />
-                                                            </a>
+                                                            <div key={idx} className="flex flex-col gap-2 p-2 rounded-lg border border-white/5 bg-black/20">
+                                                                <a href={form.link} target="_blank" rel="noreferrer" className="flex items-center justify-between group hover:bg-white/5 p-1 rounded transition-colors text-xs">
+                                                                    <span className="text-rose-400 group-hover:text-rose-300 transition-colors font-medium">{form.name}</span>
+                                                                    <ExternalLink size={12} className="text-slate-500 group-hover:text-rose-300" />
+                                                                </a>
+                                                                <Button 
+                                                                    variant="outline" 
+                                                                    size="sm" 
+                                                                    onClick={() => generatePrefilledForm(form.name)}
+                                                                    className="h-7 text-[10px] bg-rose-600/10 hover:bg-rose-600/20 border-rose-500/20 text-rose-300 w-full flex justify-center"
+                                                                >
+                                                                    <Download size={10} className="mr-1.5" /> Download Pre-filled Draft
+                                                                </Button>
+                                                            </div>
                                                         ))}
                                                     </div>
                                                 </div>
