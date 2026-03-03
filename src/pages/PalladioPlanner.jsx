@@ -25,7 +25,7 @@ export default function PalladioPlanner() {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [result, setResult] = useState(null);
 
-    const [propertyData, setPropertyData] = useState(null);
+    const [propertyData, setPropertyData] = useState({ lot_rp: '', site_area: '', zoning: '', overlays: [], forms_and_applications: [] });
     const [isFetchingProperty, setIsFetchingProperty] = useState(false);
 
     // Document Analysis States
@@ -37,11 +37,10 @@ export default function PalladioPlanner() {
     const handleAddressSelect = async (addr) => {
         setAddress(addr);
         if (!addr) {
-            setPropertyData(null);
+            setPropertyData({ lot_rp: '', site_area: '', zoning: '', overlays: [], forms_and_applications: [] });
             return;
         }
         setIsFetchingProperty(true);
-        setPropertyData(null);
         try {
             const prompt = `Search public council information and property databases for the address: ${addr}. Obtain the Lot & RP (Registered Plan) numbers, Site Area, zoning, and Overlays. Also provide links to relevant local council forms and applications for development.
 Return a valid JSON object matching this structure:
