@@ -80,25 +80,23 @@ export default function PalladioFloorplan() {
         }
     };
 
-    const handleExportDXF = async () => {
+    const handleExportPDF = async () => {
         if (!cadResult.analysis && !cadFileUrl) return;
         setIsExporting(true);
         try {
-            const response = await base44.functions.invoke('generateDXF', { 
+            const response = await base44.functions.invoke('generatePDF', { 
                 analysis: cadResult.analysis,
                 imageUrl: cadFileUrl,
                 overallWidth: overallWidth ? Number(overallWidth) : null,
                 overallLength: overallLength ? Number(overallLength) : null
             });
             
-            const { dxf, rooms } = response.data;
+            const { pdfDataUri, rooms } = response.data;
             setCadResult(prev => ({ ...prev, rooms }));
 
-            const blob = new Blob([dxf], { type: 'application/octet-stream' });
-            const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = 'floorplan.dxf';
+            a.href = pdfDataUri;
+            a.download = 'floorplan.pdf';
             a.click();
         } catch (err) {
             console.error(err);
@@ -264,11 +262,11 @@ export default function PalladioFloorplan() {
                                             <img src={cadResult.image} alt="CAD Redraw" className="w-full rounded-lg" />
                                         </div>
                                         <Button 
-                                            onClick={handleExportDXF}
+                                            onClick={handleExportPDF}
                                             disabled={isExporting}
                                             className="w-full bg-white text-black hover:bg-slate-200 h-12 rounded-xl"
                                         >
-                                            {isExporting ? <><Loader2 size={18} className="animate-spin mr-2" /> Exporting...</> : <><Download size={18} className="mr-2" /> Export as DXF</>}
+                                            {isExporting ? <><Loader2 size={18} className="animate-spin mr-2" /> Exporting...</> : <><Download size={18} className="mr-2" /> Export as PDF</>}
                                         </Button>
                                         
                                         {cadResult.rooms && (
@@ -284,7 +282,7 @@ export default function PalladioFloorplan() {
                                     <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-white/5 border border-white/10 rounded-3xl border-dashed">
                                         <ImageIcon size={48} className="text-slate-600 mb-4" />
                                         <h3 className="text-lg font-medium text-slate-300">Upload to generate CAD</h3>
-                                        <p className="text-slate-500 text-sm mt-2">The AI will extract walls and dimensions to create a downloadable DXF file.</p>
+                                        <p className="text-slate-500 text-sm mt-2">The AI will extract walls and dimensions to create a downloadable PDF file.</p>
                                     </div>
                                 )}
                             </div>

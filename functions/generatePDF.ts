@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.18';
-import DxfWriter from 'npm:dxf-writer';
+import { jsPDF } from 'npm:jspdf@4.0.0';
 
 Deno.serve(async (req) => {
     try {
@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
             : '';
 
         if (imageUrl) {
-            prompt = `Carefully analyze this floorplan image. Extract the exact layout to create a highly accurate CAD drawing.
+            prompt = `Carefully analyze this floorplan image. Extract the exact layout to create a highly accurate floorplan.
 Look closely at the dimensions written in the rooms (e.g., "3.1 x 3.0" means 3100mm x 3000mm).${dimensionContext}
 Return a valid JSON array of rooms. Each room must have:
 - name: string (e.g., "Master Bedroom", "Kitchen", "Living")
@@ -78,29 +78,72 @@ ${analysis}`;
 
         const rooms = llmResponse.rooms || [];
 
-        // Build DXF using dxf-writer
-        const dxf = new DxfWriter();
-        dxf.setUnits('Millimeters');
-        dxf.addLayer('WALLS', DxfWriter.ACI.WHITE, 'CONTINUOUS');
-        dxf.setActiveLayer('WALLS');
-
-        rooms.forEach((r) => {
-            const x = r.x;
-            const y = -r.y;
-            const w = r.w;
-            const h = r.h;
-            
-            // Draw 4 lines for the rectangle
-            dxf.drawLine(x, y, x + w, y); // Top
-            dxf.drawLine(x + w, y, x + w, y - h); // Right
-            dxf.drawLine(x + w, y - h, x, y - h); // Bottom
-            dxf.drawLine(x, y - h, x, y); // Left
+        // Build PDF using jsPDF
+        const doc = new jsPDF({
+            orientation: 'landscape',
+            unit: 'mm',
+            format: 'a4'
         });
 
-        const dxfString = dxf.toDxfString();
+        if (rooms.length > 0) {
+            const pageWidth = 297;
+            const pageHeight = 210;
+
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            rooms.forEach(r => {
+                if (r.x < minX) minX = r.x;
+                if (r.y < minY) minY = r.y;
+                if (r.x + r.w > maxX) maxX = r.x + r.w;
+                if (r.y + r.h > maxY) maxY = r.y + r.h;
+            });
+
+            if (minX === Infinity) { minX = 0; minY = 0; maxX = 1000; maxY = 1000; }
+
+            const fpWidth = maxX - minX;
+            const fpHeight = maxY - minY;
+
+            const padding = 15;
+            const scale = Math.min(
+                (pageWidth - 2 * padding) / Math.max(fpWidth, 1),
+                (pageHeight - 2 * padding) / Math.max(fpHeight, 1)
+            );
+
+            // Center the drawing
+            const offsetX = padding - minX * scale + ((pageWidth - 2 * padding) - fpWidth * scale) / 2;
+            const offsetY = padding - minY * scale + ((pageHeight - 2 * padding) - fpHeight * scale) / 2;
+
+            doc.setDrawColor(0);
+            doc.setLineWidth(0.5);
+
+            rooms.forEach(r => {
+                const rx = offsetX + r.x * scale;
+                const ry = offsetY + r.y * scale;
+                const rw = r.w * scale;
+                const rh = r.h * scale;
+
+                doc.rect(rx, ry, rw, rh);
+                
+                // Add room name text
+                const fontSize = Math.min(10, rw / 2, rh / 2);
+                if (fontSize >= 1) {
+                    doc.setFontSize(fontSize);
+                    const textWidth = doc.getTextWidth(r.name);
+                    if (textWidth < rw - 2) {
+                        doc.text(
+                            r.name, 
+                            rx + rw / 2, 
+                            ry + rh / 2, 
+                            { align: 'center', baseline: 'middle' }
+                        );
+                    }
+                }
+            });
+        }
+
+        const pdfDataUri = doc.output('datauristring');
 
         return Response.json({
-            dxf: dxfString,
+            pdfDataUri: pdfDataUri,
             rooms: rooms
         });
 
