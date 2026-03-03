@@ -57,48 +57,22 @@ export default function PalladioFloorplan() {
         }
     };
 
-    const handleCadGenerate = async () => {
+    const handleSketchGenerate = async () => {
         if (!cadFileUrl) return;
-        setIsGeneratingCad(true);
+        setIsGeneratingSketch(true);
         try {
-            const analysisPrompt = `Analyze this floorplan. Extract all rooms, their names, and approximate relative dimensions. Format as a structured list.`;
-            const imagePrompt = `Clean CAD-style vector redraw of the provided architectural floorplan. Black lines on white background, highly precise, professional drafting.`;
+            const imagePrompt = `A neat, professional, coloured 2D architectural floorplan with dimensions and furniture, top-down view, high quality. The layout should match the provided sketch perfectly.`;
 
-            const [analysisRes, imageRes] = await Promise.all([
-                base44.integrations.Core.InvokeLLM({ prompt: analysisPrompt, file_urls: [cadFileUrl] }),
-                base44.integrations.Core.GenerateImage({ prompt: imagePrompt, existing_image_urls: [cadFileUrl] })
-            ]);
-
-            setCadResult({ analysis: analysisRes, image: imageRes.url });
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setIsGeneratingCad(false);
-        }
-    };
-
-    const handleExportPDF = async () => {
-        if (!cadResult.analysis && !cadFileUrl) return;
-        setIsExporting(true);
-        try {
-            const response = await base44.functions.invoke('generatePDF', { 
-                analysis: cadResult.analysis,
-                imageUrl: cadFileUrl,
-                overallWidth: overallWidth ? Number(overallWidth) : null,
-                overallLength: overallLength ? Number(overallLength) : null
+            const imageRes = await base44.integrations.Core.GenerateImage({ 
+                prompt: imagePrompt, 
+                existing_image_urls: [cadFileUrl] 
             });
-            
-            const { pdfDataUri, rooms } = response.data;
-            setCadResult(prev => ({ ...prev, rooms }));
 
-            const a = document.createElement('a');
-            a.href = pdfDataUri;
-            a.download = 'floorplan.pdf';
-            a.click();
+            setSketchResult(imageRes.url);
         } catch (err) {
             console.error(err);
         } finally {
-            setIsExporting(false);
+            setIsGeneratingSketch(false);
         }
     };
 
