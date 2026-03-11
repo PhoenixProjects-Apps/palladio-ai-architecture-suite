@@ -184,6 +184,52 @@ export default function Render3D() {
       setHasDrawn(false);
   };
 
+  const handleCaptureScreen = async (e) => {
+    if (e) e.stopPropagation();
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({ video: { displaySurface: 'window' } });
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      await new Promise((resolve) => {
+        video.onloadedmetadata = () => {
+          video.play();
+          resolve();
+        };
+      });
+      
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
+      stream.getTracks().forEach(track => track.stop());
+
+      if (blob) {
+        const capturedFile = new File([blob], 'screenshot.jpg', { type: 'image/jpeg' });
+        setFile(capturedFile);
+        setRenderedImage(null);
+        setPreviewUrl(URL.createObjectURL(capturedFile));
+        
+        setIsUploading(true);
+        try {
+          const { file_url } = await base44.integrations.Core.UploadFile({ file: capturedFile });
+          setFileUrl(file_url);
+        } finally {
+          setIsUploading(false);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to capture screen:', err);
+      if (err.name !== 'NotAllowedError') {
+        toast.error('Failed to capture screen.');
+      }
+    }
+  };
+
   const handleFileSelect = async (e) => {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
