@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Home, MessageSquare, Settings, Menu, X, Layers, Building2, MapPin, ClipboardList, FileImage, PanelLeftClose, PanelLeftOpen, ShieldAlert, CreditCard, Folder, Bell } from 'lucide-react';
+import { Home, MessageSquare, Settings, Menu, X, Layers, Building2, MapPin, ClipboardList, FileImage, PanelLeftClose, PanelLeftOpen, ShieldAlert, CreditCard, Folder, Bell, PenTool } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
@@ -62,6 +62,7 @@ export default function Sidebar() {
         { name: '3D Renders', icon: Building2, path: 'Render3D' },
         { name: 'Property Intel', icon: MapPin, path: 'PalladioProperty' },
         { name: 'Town Planner', icon: ClipboardList, path: 'PalladioPlanner' },
+        { name: 'SketchPad', icon: PenTool, href: 'https://archistroke-design-flow.base44.app', isExternal: true },
       ]
     }
   ];
@@ -101,9 +102,9 @@ export default function Sidebar() {
             {!isCollapsed && <div className="px-3 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">{group.title}</div>}
             <div className="space-y-1">
               {group.items.map((item) => {
-                const active = isActive(item.path);
-                return (
-                  <Link key={item.path} to={createPageUrl(item.path)} onClick={() => setIsMobileOpen(false)} className={`relative flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${active ? 'bg-amber-500/10 text-amber-400' : 'hover:bg-white/5 text-slate-400 hover:text-white'} ${isCollapsed ? 'justify-center' : ''}`} title={isCollapsed ? item.name : ''}>
+                const active = item.path ? isActive(item.path) : false;
+                const linkContent = (
+                  <>
                     <div className="flex items-center gap-3">
                       <item.icon size={20} className={active ? 'text-amber-500' : ''} />
                       {!isCollapsed && <span className="font-medium text-sm">{item.name}</span>}
@@ -114,6 +115,22 @@ export default function Sidebar() {
                     {isCollapsed && item.badge > 0 && (
                       <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-[#0a0c10]"></div>
                     )}
+                  </>
+                );
+                
+                const className = `relative flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${active ? 'bg-amber-500/10 text-amber-400' : 'hover:bg-white/5 text-slate-400 hover:text-white'} ${isCollapsed ? 'justify-center' : ''}`;
+
+                if (item.isExternal) {
+                  return (
+                    <a key={item.name} href={item.href} target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileOpen(false)} className={className} title={isCollapsed ? item.name : ''}>
+                      {linkContent}
+                    </a>
+                  );
+                }
+
+                return (
+                  <Link key={item.path} to={createPageUrl(item.path)} onClick={() => setIsMobileOpen(false)} className={className} title={isCollapsed ? item.name : ''}>
+                    {linkContent}
                   </Link>
                 );
               })}
