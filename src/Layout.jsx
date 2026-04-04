@@ -7,11 +7,6 @@ export default function Layout({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://unpkg.com/@elevenlabs/convai-widget-embed";
-    script.async = true;
-    document.body.appendChild(script);
-
     base44.auth.me().then(u => {
       if (!u) {
         base44.auth.redirectToLogin();
@@ -51,7 +46,6 @@ export default function Layout({ children }) {
         {children}
       </main>
       <Toaster theme="dark" position="bottom-right" />
-      <elevenlabs-convai agent-id="agent_4001kkj0bnj4e3ks7hnxcc9bxpvj"></elevenlabs-convai>
     </div>
   );
 }
