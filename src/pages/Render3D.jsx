@@ -276,6 +276,19 @@ export default function Render3D() {
     setIsRendering(true);
     setRenderedImage(null);
 
+    try {
+        const tokenRes = await base44.functions.invoke('consumeToken', {});
+        if (tokenRes.data?.error) {
+            toast.error("You don't have enough AI tokens. Please upgrade your plan.");
+            setIsRendering(false);
+            return;
+        }
+    } catch (e) {
+        toast.error("Error checking tokens.");
+        setIsRendering(false);
+        return;
+    }
+
     const lines = [
       'Create a highly photorealistic professional architectural exterior rendering.',
       presets.wallMaterial ? `Wall material: ${presets.wallMaterial}.` : '',

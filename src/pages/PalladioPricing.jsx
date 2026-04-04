@@ -90,9 +90,10 @@ export default function PalladioPricing() {
                         <h3 className="text-2xl font-semibold mb-2">Palladio Monthly</h3>
                         <p className="text-slate-500 mb-6">Flexibility for ongoing projects.</p>
                         <div className="mb-8">
-                            <span className="text-5xl font-bold">$49.00</span>
+                            <span className="text-5xl font-bold">$19.95</span>
                             <span className="text-slate-500">/month</span>
                         </div>
+                        <div className="text-cyan-600 font-bold mb-4">100 AI Tokens included every month</div>
                         <ul className="space-y-4 mb-8 flex-1">
                             {features.map((f, i) => (
                                 <li key={i} className="flex items-center gap-3 text-slate-600">
@@ -117,12 +118,13 @@ export default function PalladioPricing() {
                         <h3 className="text-2xl font-semibold mb-2">Palladio Annual</h3>
                         <p className="text-slate-500 mb-6">Best value for professionals.</p>
                         <div className="mb-8">
-                            <span className="text-5xl font-bold">$470.00</span>
+                            <span className="text-5xl font-bold">$190.00</span>
                             <span className="text-slate-500">/year</span>
                         </div>
                         <p className="text-cyan-700 font-medium mb-6 bg-cyan-100 inline-block px-3 py-1 rounded-md text-sm self-start">
-                            Saves $118 per year
+                            Saves $49 per year
                         </p>
+                        <div className="text-cyan-600 font-bold mb-4">100 AI Tokens included every month</div>
                         <ul className="space-y-4 mb-8 flex-1">
                             {features.map((f, i) => (
                                 <li key={i} className="flex items-center gap-3 text-slate-600">

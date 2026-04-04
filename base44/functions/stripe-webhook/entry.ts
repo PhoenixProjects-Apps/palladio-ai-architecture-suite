@@ -45,8 +45,32 @@ Deno.serve(async (req) => {
                     status: 'active'
                 });
             }
+
+            // Grant 100 tokens on new subscription checkout
+            const users = await base44.asServiceRole.entities.User.filter({ email: customerEmail });
+            if (users.length > 0) {
+                const u = users[0];
+                const currentTokens = u.tokens !== undefined ? u.tokens : 10;
+                await base44.asServiceRole.entities.User.update(u.id, { tokens: currentTokens + 100 });
+            }
         }
         
+        if (event.type === 'invoice.paid') {
+            const invoice = event.data.object;
+            // Only add tokens if it's a renewal (billing_reason is subscription_cycle)
+            if (invoice.billing_reason === 'subscription_cycle') {
+                const customerEmail = invoice.customer_email;
+                if (customerEmail) {
+                    const users = await base44.asServiceRole.entities.User.filter({ email: customerEmail });
+                    if (users.length > 0) {
+                        const u = users[0];
+                        const currentTokens = u.tokens !== undefined ? u.tokens : 10;
+                        await base44.asServiceRole.entities.User.update(u.id, { tokens: currentTokens + 100 });
+                    }
+                }
+            }
+        }
+
         if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.deleted') {
             const subscription = event.data.object;
             const customerId = subscription.customer;

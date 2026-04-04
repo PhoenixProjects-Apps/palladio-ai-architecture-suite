@@ -8,6 +8,7 @@ import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
 import PalladioGate from '../components/PalladioGate';
 import Floorplan3DViewer from '../components/Floorplan3DViewer';
+import { toast } from 'sonner';
 
 export default function PalladioFloorplan() {
     const [tab, setTab] = useState('text'); // 'text' or 'cad'
@@ -29,6 +30,12 @@ export default function PalladioFloorplan() {
         if (!desc) return;
         setIsGeneratingText(true);
         try {
+            const tokenRes = await base44.functions.invoke('consumeToken', {});
+            if (tokenRes.data?.error) {
+                toast.error("You don't have enough AI tokens. Please upgrade your plan.");
+                setIsGeneratingText(false);
+                return;
+            }
             const layoutPrompt = `Act as an architect. Create a detailed layout brief for: ${desc}. Include specific room dimensions (e.g. 4m x 5m) and relationships.`;
             const imagePrompt = `Architectural floorplan blueprint, top-down view, 2D layout, high quality, professional CAD drawing style. Description: ${desc}`;
 
@@ -61,6 +68,12 @@ export default function PalladioFloorplan() {
         if (!cadFileUrl) return;
         setIsGeneratingSketch(true);
         try {
+            const tokenRes = await base44.functions.invoke('consumeToken', {});
+            if (tokenRes.data?.error) {
+                toast.error("You don't have enough AI tokens. Please upgrade your plan.");
+                setIsGeneratingSketch(false);
+                return;
+            }
             const imagePrompt = `A neat, professional, coloured 2D architectural floorplan with dimensions and furniture, top-down view, high quality. The layout should match the provided sketch perfectly.`;
 
             const imageRes = await base44.integrations.Core.GenerateImage({ 

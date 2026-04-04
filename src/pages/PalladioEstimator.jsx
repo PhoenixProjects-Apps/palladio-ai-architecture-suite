@@ -60,6 +60,12 @@ export default function PalladioEstimator() {
     setIsAnalyzing(true);
     
     try {
+      const tokenRes = await base44.functions.invoke('consumeToken', {});
+      if (tokenRes.data?.error) {
+          toast.error("You don't have enough AI tokens. Please upgrade your plan.");
+          setIsAnalyzing(false);
+          return;
+      }
       const allCosts = await base44.entities.MaterialCost.list();
       const localCosts = allCosts.filter(c => c.state === state);
       

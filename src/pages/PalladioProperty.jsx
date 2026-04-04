@@ -7,6 +7,7 @@ import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
 import AddressAutocomplete from '../components/AddressAutocomplete';
 import PalladioGate from '../components/PalladioGate';
+import { toast } from 'sonner';
 
 export default function PalladioProperty() {
     const [address, setAddress] = useState('');
@@ -17,6 +18,12 @@ export default function PalladioProperty() {
         if (!address) return;
         setIsSearching(true);
         try {
+            const tokenRes = await base44.functions.invoke('consumeToken', {});
+            if (tokenRes.data?.error) {
+                toast.error("You don't have enough AI tokens. Please upgrade your plan.");
+                setIsSearching(false);
+                return;
+            }
             const prompt = `Provide a detailed property intelligence report for the following address in Australia: "${address}". 
             Search the web for zoning info, local planning scheme details, development potential, and neighbourhood insights.
             You MUST return the output as a valid JSON object matching this exact structure:

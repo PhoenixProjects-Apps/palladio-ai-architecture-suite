@@ -14,9 +14,20 @@ export default function Sidebar() {
   const location = useLocation();
 
   useEffect(() => {
+    let currentUser = null;
     base44.auth.me().then(u => {
-      if (u) setUser(u);
+      if (u) {
+        setUser(u);
+        currentUser = u;
+      }
     });
+    
+    const unsubscribe = base44.entities.User?.subscribe?.((event) => {
+        if (event.type === 'update' && currentUser && event.id === currentUser.id) {
+            setUser(prev => ({ ...prev, tokens: event.data.tokens }));
+        }
+    });
+    return () => unsubscribe && unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -68,6 +79,7 @@ export default function Sidebar() {
   ];
 
   const bottomItems = [
+    { name: `Tokens: ${user?.tokens !== undefined ? user.tokens : 10}`, icon: CreditCard, path: 'PalladioPricing' },
     { name: 'Pricing', icon: CreditCard, path: 'PalladioPricing' },
     { name: 'Settings', icon: Settings, path: 'UserProfile' },
   ];

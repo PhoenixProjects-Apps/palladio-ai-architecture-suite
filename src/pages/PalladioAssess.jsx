@@ -63,6 +63,13 @@ export default function PalladioAssess() {
         }
         setIsAnalyzing(true);
         try {
+            const tokenRes = await base44.functions.invoke('consumeToken', {});
+            if (tokenRes.data?.error) {
+                toast.error("You don't have enough AI tokens. Please upgrade your plan.");
+                setIsAnalyzing(false);
+                return;
+            }
+
             const prompt = `You are an expert architect and building surveyor. Analyze this uploaded architectural plan or drawing for compliance with drafting standards and building regulations.
 Please provide a detailed assessment. Evaluate the overall quality to provide a score out of 10.
 Crucially, assess the plans against Australian Standard "AS 1684.2 Residential Timber Framed Construction" and the "National Construction Code (NCC) - Residential" (use your knowledge and web search to recall specifics). 

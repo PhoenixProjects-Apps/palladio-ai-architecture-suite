@@ -9,6 +9,7 @@ import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
 import AddressAutocomplete from '../components/AddressAutocomplete';
 import PalladioGate from '../components/PalladioGate';
+import { toast } from 'sonner';
 
 const devTypes = [
     "New Dwelling", "Extension/Addition", "Subdivision", 
@@ -131,6 +132,12 @@ Return a valid JSON object matching this structure:
         if (!address || !selectedType || !description) return;
         setIsAnalyzing(true);
         try {
+            const tokenRes = await base44.functions.invoke('consumeToken', {});
+            if (tokenRes.data?.error) {
+                toast.error("You don't have enough AI tokens. Please upgrade your plan.");
+                setIsAnalyzing(false);
+                return;
+            }
             const prompt = `Act as an expert Australian Town Planner. Assess this proposed development:
 Address: ${address}
 Type: ${selectedType}
@@ -192,6 +199,13 @@ Return a valid JSON object matching this structure:
         setIsUploading(true);
         setIsAnalyzingDoc(true);
         try {
+            const tokenRes = await base44.functions.invoke('consumeToken', {});
+            if (tokenRes.data?.error) {
+                toast.error("You don't have enough AI tokens. Please upgrade your plan.");
+                setIsUploading(false);
+                setIsAnalyzingDoc(false);
+                return;
+            }
             const { file_url } = await base44.integrations.Core.UploadFile({ file: docFile });
             setIsUploading(false);
 

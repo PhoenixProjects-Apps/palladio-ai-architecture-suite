@@ -21,8 +21,9 @@ export default function PalladioGate({ children }) {
                     setHasAccess(true);
                     return;
                 }
-                const subs = await base44.entities.Subscription.filter({ user_email: user.email, status: 'active' });
-                setHasAccess(subs.length > 0);
+                const freshUser = await base44.entities.User.get(user.id);
+                const tokens = freshUser?.tokens !== undefined ? freshUser.tokens : 10;
+                setHasAccess(tokens > 0);
             } catch (e) {
                 setHasAccess(false);
             } finally {
@@ -40,8 +41,8 @@ export default function PalladioGate({ children }) {
                 <div className="w-16 h-16 rounded-2xl bg-slate-800 flex items-center justify-center mb-6">
                     <Lock size={32} className="text-slate-400" />
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-2">Subscription Required</h2>
-                <p className="text-slate-400 max-w-md mb-8">Unlock the full power of Palladio AI architecture suite. Assess plans, generate floorplans, render in 3D, and get property intelligence.</p>
+                <h2 className="text-2xl font-bold text-white mb-2">Out of AI Tokens</h2>
+                <p className="text-slate-400 max-w-md mb-8">You've used up your available AI tokens. Subscribe to Palladio AI to get 100 Tokens every month and unlock the full suite.</p>
                 <Link to={createPageUrl('PalladioPricing')}>
                     <Button className="bg-white text-black hover:bg-slate-200 px-8 py-6 rounded-xl font-semibold text-lg">
                         View Pricing
