@@ -12,6 +12,10 @@ import { toast } from 'sonner';
 
 const PRESETS = [
   {
+    key: 'architecturalStyle', label: 'Architectural Style',
+    options: ['Modern', 'Minimalist', 'Industrial', 'Heritage', 'Contemporary', 'Scandinavian', 'Mid-Century', 'Victorian', 'Art Deco', 'Coastal']
+  },
+  {
     key: 'wallMaterial', label: 'Wall Material',
     options: [
       'Red Brick', 'Exposed Concrete', 'Glass Curtain Wall', 'Timber / Wood Panel',
@@ -291,6 +295,7 @@ export default function Render3D() {
 
     const lines = [
       'Create a highly photorealistic professional architectural exterior rendering.',
+      presets.architecturalStyle ? `Architectural style/aesthetic: ${presets.architecturalStyle}.` : '',
       presets.wallMaterial ? `Wall material: ${presets.wallMaterial}.` : '',
       presets.roofMaterial ? `Roof material: ${presets.roofMaterial}.` : '',
       presets.timeOfDay ? `Lighting / time of day: ${presets.timeOfDay}.` : '',

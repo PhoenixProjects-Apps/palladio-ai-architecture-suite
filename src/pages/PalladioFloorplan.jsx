@@ -4,6 +4,7 @@ import { createPageUrl } from '@/utils';
 import { ArrowLeft, Layers, Loader2, Upload, Box, Download, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
 import PalladioGate from '../components/PalladioGate';
@@ -13,6 +14,9 @@ import { toast } from 'sonner';
 export default function PalladioFloorplan() {
     const [tab, setTab] = useState('text'); // 'text' or 'cad'
     
+    const [style, setStyle] = useState('Modern');
+    const ARCH_STYLES = ['Modern', 'Minimalist', 'Industrial', 'Heritage', 'Contemporary', 'Scandinavian', 'Coastal', 'Mid-Century'];
+
     // Tab 1 state
     const [desc, setDesc] = useState('');
     const [isGeneratingText, setIsGeneratingText] = useState(false);
@@ -36,8 +40,8 @@ export default function PalladioFloorplan() {
                 setIsGeneratingText(false);
                 return;
             }
-            const layoutPrompt = `Act as an architect. Create a detailed layout brief for: ${desc}. Include specific room dimensions (e.g. 4m x 5m) and relationships.`;
-            const imagePrompt = `Architectural floorplan blueprint, top-down view, 2D layout, high quality, professional CAD drawing style. Description: ${desc}`;
+            const layoutPrompt = `Act as an architect. Create a detailed layout brief for: ${desc}. Include specific room dimensions (e.g. 4m x 5m) and relationships. The architectural style is ${style}.`;
+            const imagePrompt = `Architectural floorplan blueprint, top-down view, 2D layout, high quality, professional CAD drawing style. Description: ${desc}. Architectural aesthetic: ${style}.`;
 
             const [layoutRes, imageRes] = await Promise.all([
                 base44.integrations.Core.InvokeLLM({ prompt: layoutPrompt }),
@@ -74,7 +78,7 @@ export default function PalladioFloorplan() {
                 setIsGeneratingSketch(false);
                 return;
             }
-            const imagePrompt = `A neat, professional, coloured 2D architectural floorplan with dimensions and furniture, top-down view, high quality. The layout should match the provided sketch perfectly.`;
+            const imagePrompt = `A neat, professional, coloured 2D architectural floorplan with dimensions and furniture, top-down view, high quality. The layout should match the provided sketch perfectly. Architectural aesthetic: ${style}.`;
 
             const imageRes = await base44.integrations.Core.GenerateImage({ 
                 prompt: imagePrompt, 
@@ -127,6 +131,19 @@ export default function PalladioFloorplan() {
                         <div className="grid lg:grid-cols-2 gap-8">
                             <div className="bg-white/5 border border-white/10 rounded-3xl p-6 shadow-xl space-y-6">
                                 <div>
+                                    <div className="mb-6">
+                                        <label className="text-sm font-medium text-slate-400 mb-3 block">Architectural Style</label>
+                                        <Select value={style} onValueChange={setStyle}>
+                                            <SelectTrigger className="bg-slate-900 border-slate-700 text-white w-full rounded-xl h-11">
+                                                <SelectValue placeholder="Select style..." />
+                                            </SelectTrigger>
+                                            <SelectContent className="bg-slate-900 border-slate-700">
+                                                {ARCH_STYLES.map(s => (
+                                                    <SelectItem key={s} value={s} className="text-white cursor-pointer">{s}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                     <label className="text-sm font-medium text-slate-400 mb-3 block">Describe your space</label>
                                     <Textarea 
                                         value={desc}
@@ -188,6 +205,19 @@ export default function PalladioFloorplan() {
                         <div className="grid lg:grid-cols-2 gap-8">
                             <div className="bg-white/5 border border-white/10 rounded-3xl p-6 shadow-xl space-y-6">
                                 <div>
+                                    <div className="mb-6">
+                                        <label className="text-sm font-medium text-slate-400 mb-3 block">Architectural Style</label>
+                                        <Select value={style} onValueChange={setStyle}>
+                                            <SelectTrigger className="bg-slate-900 border-slate-700 text-white w-full rounded-xl h-11">
+                                                <SelectValue placeholder="Select style..." />
+                                            </SelectTrigger>
+                                            <SelectContent className="bg-slate-900 border-slate-700">
+                                                {ARCH_STYLES.map(s => (
+                                                    <SelectItem key={s} value={s} className="text-white cursor-pointer">{s}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                     <label className="text-sm font-medium text-slate-400 mb-3 block">Upload existing floorplan sketch</label>
                                     <div 
                                         onClick={() => fileInputRef.current?.click()}
