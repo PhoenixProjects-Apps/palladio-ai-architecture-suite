@@ -104,7 +104,7 @@ export default function PalladioPricing() {
                             ))}
                         </ul>
                         <Button 
-                            onClick={() => handleSubscribe('price_1T6HcrI97AS5ZzLypQcUPybL', 'palladio_monthly')}
+                            onClick={() => handleSubscribe('price_1TIXlVI97AS5ZzLyb0soASiJ', 'palladio_monthly')}
                             disabled={loading}
                             className="w-full bg-slate-900 hover:bg-slate-800 text-white h-12 rounded-xl text-lg shadow-md"
                         >
@@ -134,7 +134,7 @@ export default function PalladioPricing() {
                             ))}
                         </ul>
                         <Button 
-                            onClick={() => handleSubscribe('price_1T6HcrI97AS5ZzLywHG5r5F2', 'palladio_annual')}
+                            onClick={() => handleSubscribe('price_1TIXlVI97AS5ZzLyj6yPvWK1', 'palladio_annual')}
                             disabled={loading}
                             className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl text-lg shadow-lg shadow-cyan-500/20"
                         >
