@@ -298,7 +298,10 @@ export default function Render3D() {
     const typeText = type === 'interior' ? 'interior' : 'exterior';
 
     const lines = [
-      `Create a highly photorealistic professional architectural ${typeText} rendering.`,
+      `This is a strict image-to-image texture mapping task for an architectural ${typeText}.`,
+      'CRITICAL REQUIREMENT: You MUST maintain the EXACT 3D structure, lines, perspective, and geometry of the uploaded reference image.',
+      'DO NOT hallucinate, add, move, or remove any walls, floors, stairs, doors, windows, or structural elements.',
+      'Your ONLY job is to colorize and apply photorealistic materials, lighting, and textures to the existing surfaces in the provided drawing.',
       presets.architecturalStyle ? `Architectural style/aesthetic: ${presets.architecturalStyle}.` : '',
       presets.wallMaterial ? `Wall/Surface material: ${presets.wallMaterial}.` : '',
       presets.roofMaterial && type === 'exterior' ? `Roof material: ${presets.roofMaterial}.` : '',
@@ -307,9 +310,7 @@ export default function Render3D() {
       presets.cameraAngle ? `Camera angle: ${presets.cameraAngle}.` : '',
       presets.lightingStyle ? `Lighting style: ${presets.lightingStyle}.` : '',
       presets.mood ? `Mood/Atmosphere: ${presets.mood}.` : '',
-      'CRITICAL INSTRUCTION: STRICTLY adhere to the geometry, windows, doors, walls, and structure in the uploaded image. DO NOT add, remove, or move any structural elements, windows, or doors. ONLY apply textures, materials, and lighting to the exact existing geometry.',
-      'Maintain the exact architectural form, proportions, massing and structure from the reference view.',
-      'Add photorealistic textures, materials, atmospheric lighting, shadows, reflections and environmental details.',
+      'Again: DO NOT change the underlying drawing or architecture. Just apply realistic textures, shadows, and lighting directly over the existing lines.',
       'Professional architectural visualisation quality. High detail, photorealistic.',
       prompt ? `Additional instructions: ${prompt}` : '',
       styleFileUrl ? 'CRITICAL INSTRUCTION: Match the aesthetic, colors, materials, style, and overall mood of the provided style reference image.' : ''
