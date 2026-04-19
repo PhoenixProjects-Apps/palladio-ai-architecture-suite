@@ -74,6 +74,7 @@ export default function Render3D() {
   const [prompt, setPrompt] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [isRendering, setIsRendering] = useState(false);
+  const [currentRenderType, setCurrentRenderType] = useState(null);
   const [renderedImage, setRenderedImage] = useState(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [savedPresetsList, setSavedPresetsList] = useState([]);
@@ -275,9 +276,10 @@ export default function Render3D() {
     }
   };
 
-  const handleRender = async () => {
+  const handleRender = async (type = 'exterior') => {
     if (!fileUrl) return;
     setIsRendering(true);
+    setCurrentRenderType(type);
     setRenderedImage(null);
 
     try {
@@ -293,17 +295,20 @@ export default function Render3D() {
         return;
     }
 
+    const typeText = type === 'interior' ? 'interior' : 'exterior';
+
     const lines = [
-      'Create a highly photorealistic professional architectural exterior rendering.',
+      `Create a highly photorealistic professional architectural ${typeText} rendering.`,
       presets.architecturalStyle ? `Architectural style/aesthetic: ${presets.architecturalStyle}.` : '',
-      presets.wallMaterial ? `Wall material: ${presets.wallMaterial}.` : '',
-      presets.roofMaterial ? `Roof material: ${presets.roofMaterial}.` : '',
+      presets.wallMaterial ? `Wall/Surface material: ${presets.wallMaterial}.` : '',
+      presets.roofMaterial && type === 'exterior' ? `Roof material: ${presets.roofMaterial}.` : '',
       presets.timeOfDay ? `Lighting / time of day: ${presets.timeOfDay}.` : '',
-      presets.background ? `Environment and background: ${presets.background}.` : '',
+      presets.background && type === 'exterior' ? `Environment and background: ${presets.background}.` : '',
       presets.cameraAngle ? `Camera angle: ${presets.cameraAngle}.` : '',
       presets.lightingStyle ? `Lighting style: ${presets.lightingStyle}.` : '',
       presets.mood ? `Mood/Atmosphere: ${presets.mood}.` : '',
-      'Maintain the exact architectural form, proportions, massing and structure from the reference black and white 3D view.',
+      'CRITICAL INSTRUCTION: STRICTLY adhere to the geometry, windows, doors, walls, and structure in the uploaded image. DO NOT add, remove, or move any structural elements, windows, or doors. ONLY apply textures, materials, and lighting to the exact existing geometry.',
+      'Maintain the exact architectural form, proportions, massing and structure from the reference view.',
       'Add photorealistic textures, materials, atmospheric lighting, shadows, reflections and environmental details.',
       'Professional architectural visualisation quality. High detail, photorealistic.',
       prompt ? `Additional instructions: ${prompt}` : '',
@@ -610,25 +615,45 @@ export default function Render3D() {
           </div>
         </div>
 
-        {/* Render Button */}
-        <Button
-          onClick={handleRender}
-          disabled={!fileUrl || isRendering}
-          className="w-full py-6 text-base font-semibold rounded-xl disabled:opacity-40"
-          style={{ backgroundColor: '#14b8a6', color: 'white' }}
-        >
-          {isRendering ? (
-            <>
-              <Loader2 size={20} className="animate-spin mr-2" />
-              Generating Render… (~30 seconds)
-            </>
-          ) : (
-            <>
-              <Wand2 size={20} className="mr-2" />
-              Generate AI Render
-            </>
-          )}
-        </Button>
+        {/* Render Buttons */}
+        <div className="flex gap-3">
+          <Button
+            onClick={() => handleRender('exterior')}
+            disabled={!fileUrl || isRendering}
+            className="flex-1 py-6 text-base font-semibold rounded-xl disabled:opacity-40"
+            style={{ backgroundColor: '#14b8a6', color: 'white' }}
+          >
+            {isRendering && currentRenderType === 'exterior' ? (
+              <>
+                <Loader2 size={20} className="animate-spin mr-2" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Wand2 size={20} className="mr-2" />
+                Exterior Render
+              </>
+            )}
+          </Button>
+          <Button
+            onClick={() => handleRender('interior')}
+            disabled={!fileUrl || isRendering}
+            className="flex-1 py-6 text-base font-semibold rounded-xl disabled:opacity-40"
+            style={{ backgroundColor: '#8b5cf6', color: 'white' }}
+          >
+            {isRendering && currentRenderType === 'interior' ? (
+              <>
+                <Loader2 size={20} className="animate-spin mr-2" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Wand2 size={20} className="mr-2" />
+                Interior Render
+              </>
+            )}
+          </Button>
+        </div>
 
         {/* Result */}
         {renderedImage && (
@@ -677,13 +702,13 @@ export default function Render3D() {
                 </Button>
               </a>
               <Button
-                onClick={handleRender}
+                onClick={() => handleRender(currentRenderType || 'exterior')}
                 variant="outline"
                 className="flex-1 rounded-xl border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white"
               >
                 <RefreshCcw size={15} className="mr-2" />
                 Re-render
-              </Button>
+              </Button
             </div>
             
             <div className="mt-4 p-4 rounded-xl border border-slate-700/50 bg-slate-800/20">
