@@ -708,7 +708,7 @@ export default function Render3D() {
               >
                 <RefreshCcw size={15} className="mr-2" />
                 Re-render
-              </Button
+              </Button>
             </div>
             
             <div className="mt-4 p-4 rounded-xl border border-slate-700/50 bg-slate-800/20">
