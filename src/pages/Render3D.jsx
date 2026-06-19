@@ -282,19 +282,6 @@ export default function Render3D() {
     setCurrentRenderType(type);
     setRenderedImage(null);
 
-    try {
-        const tokenRes = await base44.functions.invoke('consumeToken', {});
-        if (tokenRes.data?.error) {
-            toast.error("You don't have enough AI tokens. Please upgrade your plan.");
-            setIsRendering(false);
-            return;
-        }
-    } catch (e) {
-        toast.error("Error checking tokens.");
-        setIsRendering(false);
-        return;
-    }
-
     const typeText = type === 'interior' ? 'interior' : 'exterior';
 
     const lines = [
