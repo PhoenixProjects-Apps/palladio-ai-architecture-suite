@@ -1,0 +1,35 @@
+{
+  "name": "MaterialCost",
+  "type": "object",
+  "properties": {
+    "state": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "item": {
+      "type": "string"
+    },
+    "unit": {
+      "type": "string"
+    },
+    "rate": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "state",
+    "city",
+    "category",
+    "item",
+    "unit",
+    "rate"
+  ]
+}

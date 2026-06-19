@@ -1,0 +1,30 @@
+{
+  "name": "ProjectAsset",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string"
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "file_name": {
+      "type": "string"
+    },
+    "asset_type": {
+      "type": "string",
+      "enum": [
+        "plan",
+        "render",
+        "document",
+        "other"
+      ],
+      "default": "other"
+    }
+  },
+  "required": [
+    "project_id",
+    "file_url",
+    "file_name"
+  ]
+}
