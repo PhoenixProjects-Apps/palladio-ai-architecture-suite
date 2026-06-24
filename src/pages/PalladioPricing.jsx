@@ -91,7 +91,7 @@ export default function PalladioPricing() {
                         <p className="text-slate-500 mb-6">Flexibility for ongoing projects.</p>
                         <div className="mb-8">
                             <span className="text-5xl font-bold">$19.95</span>
-                            <span className="text-slate-500">/month</span>
+                            <span className="text-slate-500">/month AUD</span>
                         </div>
                         <div className="text-cyan-600 font-bold mb-4">100 AI Tokens included every month</div>
                         <ul className="space-y-4 mb-8 flex-1">
@@ -105,7 +105,7 @@ export default function PalladioPricing() {
                             ))}
                         </ul>
                         <Button 
-                            onClick={() => handleSubscribe('price_1TIZG8I97AS5ZzLytYuJuyIb', 'palladio_monthly')}
+                            onClick={() => handleSubscribe('price_1TlsDlI97AS5ZzLyyMZWhGSu', 'palladio_monthly')}
                             disabled={loading}
                             className="w-full bg-slate-900 hover:bg-slate-800 text-white h-12 rounded-xl text-lg shadow-md"
                         >
@@ -119,7 +119,7 @@ export default function PalladioPricing() {
                         <p className="text-slate-500 mb-6">Best value for professionals.</p>
                         <div className="mb-8">
                             <span className="text-5xl font-bold">$190.00</span>
-                            <span className="text-slate-500">/year</span>
+                            <span className="text-slate-500">/year AUD</span>
                         </div>
                         <p className="text-cyan-700 font-medium mb-6 bg-cyan-100 inline-block px-3 py-1 rounded-md text-sm self-start">
                             Saves $49 per year
@@ -136,7 +136,7 @@ export default function PalladioPricing() {
                             ))}
                         </ul>
                         <Button 
-                            onClick={() => handleSubscribe('price_1TIZG8I97AS5ZzLyPRvFhK0T', 'palladio_annual')}
+                            onClick={() => handleSubscribe('price_1TlsDlI97AS5ZzLyrIbw5DK1', 'palladio_annual')}
                             disabled={loading}
                             className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl text-lg shadow-lg shadow-cyan-500/20"
                         >

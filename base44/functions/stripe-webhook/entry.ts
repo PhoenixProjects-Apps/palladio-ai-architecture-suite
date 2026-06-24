@@ -71,6 +71,18 @@ Deno.serve(async (req) => {
             }
         }
 
+        if (event.type === 'invoice.payment_failed') {
+            const invoice = event.data.object;
+            const customerId = invoice.customer;
+            const existingSubs = await base44.asServiceRole.entities.Subscription.filter({ stripe_customer_id: customerId });
+            if (existingSubs.length > 0) {
+                await base44.asServiceRole.entities.Subscription.update(existingSubs[0].id, {
+                    status: 'past_due'
+                });
+            }
+            console.log("Payment failed for customer:", customerId);
+        }
+
         if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.deleted') {
             const subscription = event.data.object;
             const customerId = subscription.customer;
