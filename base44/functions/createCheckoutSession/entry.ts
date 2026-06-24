@@ -1,16 +1,9 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.18';
 import Stripe from 'npm:stripe@14.14.0';
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
 
 Deno.serve(async (req) => {
     try {
-        const base44 = createClientFromRequest(req);
-        const user = await base44.auth.me();
-        if (!user) {
-            return Response.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
         const payload = await req.json();
         const { priceId, planType } = payload;
         const origin = req.headers.get('origin') || "https://example.com";
@@ -18,7 +11,6 @@ Deno.serve(async (req) => {
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             mode: 'subscription',
-            customer_email: user.email,
             line_items: [
                 {
                     price: priceId,
