@@ -26,6 +26,20 @@ Deno.serve(async (req) => {
             const customerId = session.customer;
             const subscriptionId = session.subscription;
             const planType = session.metadata?.plan_type || 'palladio_monthly';
+            const purchaseType = session.metadata?.purchase_type;
+            
+            // One-time token pack purchase — grant tokens, no subscription record
+            if (purchaseType === 'token_pack') {
+                const tokenAmount = parseInt(session.metadata?.token_amount || '100', 10);
+                const users = await base44.asServiceRole.entities.User.filter({ email: customerEmail });
+                if (users.length > 0) {
+                    const u = users[0];
+                    const currentTokens = u.tokens !== undefined ? u.tokens : 5;
+                    await base44.asServiceRole.entities.User.update(u.id, { tokens: currentTokens + tokenAmount });
+                    console.log(`Granted ${tokenAmount} tokens to ${customerEmail} via token pack purchase`);
+                }
+                return new Response(JSON.stringify({ received: true }), { status: 200 });
+            }
             
             const existingSubs = await base44.asServiceRole.entities.Subscription.filter({ user_email: customerEmail });
             

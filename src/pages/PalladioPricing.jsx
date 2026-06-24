@@ -61,6 +61,33 @@ export default function PalladioPricing() {
         }
     };
 
+    const handleBuyTokens = async () => {
+        if (inIframe) {
+            window.open(window.location.href, '_blank');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const { data } = await base44.functions.invoke('createTokenCheckout', {});
+
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                throw new Error("No checkout URL returned");
+            }
+        } catch (error) {
+            console.error("Error creating token pack checkout:", error);
+            if (error?.response?.status === 401) {
+                base44.auth.redirectToLogin();
+                return;
+            }
+            toast.error("Failed to start checkout. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white text-slate-900 p-6 font-sans">
             <div className="max-w-5xl mx-auto">
@@ -158,6 +185,34 @@ export default function PalladioPricing() {
                         >
                             {loading ? "Loading..." : "Subscribe Annually"}
                         </Button>
+                    </div>
+                </div>
+
+                {/* Token Pack - One Time */}
+                <div className="max-w-4xl mx-auto mt-8">
+                    <div className="border border-slate-200 rounded-3xl p-8 bg-white shadow-lg flex flex-col md:flex-row items-center gap-6 hover:-translate-y-1 transition-transform">
+                        <div className="flex-1 text-center md:text-left">
+                            <h3 className="text-2xl font-semibold mb-2">Token Top-Up Pack</h3>
+                            <p className="text-slate-500 mb-4">Need more tokens without a subscription? Buy a one-time pack.</p>
+                            <div className="flex flex-wrap justify-center md:justify-start gap-2 text-sm text-slate-600">
+                                <span className="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full font-medium">100 AI Tokens</span>
+                                <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full font-medium">One-time payment</span>
+                                <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full font-medium">Tokens never expire</span>
+                            </div>
+                        </div>
+                        <div className="text-center md:text-right shrink-0">
+                            <div className="mb-4">
+                                <span className="text-4xl font-bold">$25.00</span>
+                                <span className="text-slate-500 block text-sm">one-time AUD</span>
+                            </div>
+                            <Button 
+                                onClick={handleBuyTokens}
+                                disabled={loading}
+                                className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white h-12 rounded-xl text-lg shadow-md px-10"
+                            >
+                                {loading ? "Loading..." : "Buy 100 Tokens"}
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </div>
