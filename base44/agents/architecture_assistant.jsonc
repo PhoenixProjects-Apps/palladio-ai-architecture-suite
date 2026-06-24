@@ -8,8 +8,7 @@
       "allowed_operations": [
         "read",
         "create",
-        "update",
-        "delete"
+        "update"
       ]
     },
     {
@@ -17,10 +16,22 @@
       "allowed_operations": [
         "read",
         "create",
-        "update",
-        "delete"
+        "update"
       ]
     }
   ],
+  "context_files": [],
+  "app_user_connector_configs": [],
+  "selected_skill_names": [],
+  "selected_workspace_skill_ids": [],
+  "model": "automatic",
+  "telegram_greeting": "",
+  "line_greeting": "",
+  "memory_config": {
+    "enabled": true,
+    "scope": "both",
+    "include_other_conversation_context": false,
+    "instructions": null
+  },
   "name": "architecture_assistant"
 }
