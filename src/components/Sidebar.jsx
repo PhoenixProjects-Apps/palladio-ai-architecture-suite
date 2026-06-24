@@ -80,7 +80,7 @@ export default function Sidebar() {
 
   const bottomItems = user
     ? [
-        { name: `Tokens: ${user.tokens !== undefined ? user.tokens : 10}`, icon: CreditCard, path: 'PalladioPricing' },
+        { name: `Tokens: ${user.tokens !== undefined ? user.tokens : 5}`, icon: CreditCard, path: 'PalladioPricing' },
         { name: 'Pricing', icon: CreditCard, path: 'PalladioPricing' },
         { name: 'Settings', icon: Settings, path: 'UserProfile' },
       ]

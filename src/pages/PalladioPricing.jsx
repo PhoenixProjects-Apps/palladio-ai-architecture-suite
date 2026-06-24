@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 export default function PalladioPricing() {
     const [inIframe, setInIframe] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [user, setUser] = useState(null);
 
     useEffect(() => {
         try {
@@ -17,6 +18,7 @@ export default function PalladioPricing() {
         } catch (e) {
             setInIframe(true);
         }
+        base44.auth.me().then(u => { if (u) setUser(u); }).catch(() => {});
     }, []);
 
     const features = [
@@ -49,6 +51,10 @@ export default function PalladioPricing() {
             }
         } catch (error) {
             console.error("Error creating checkout session:", error);
+            if (error?.response?.status === 401) {
+                base44.auth.redirectToLogin();
+                return;
+            }
             toast.error("Failed to start checkout. Please try again.");
         } finally {
             setLoading(false);
@@ -77,6 +83,16 @@ export default function PalladioPricing() {
                         <AlertTitle className="text-amber-800">Checkout disabled in preview</AlertTitle>
                         <AlertDescription className="text-amber-700">
                             You are viewing this in an iframe. To complete checkout, please open this app in a new tab.
+                        </AlertDescription>
+                    </Alert>
+                )}
+
+                {!user && (
+                    <Alert className="max-w-2xl mx-auto mb-8 bg-cyan-50 border-cyan-200">
+                        <AlertCircle className="h-4 w-4 text-cyan-600" />
+                        <AlertTitle className="text-cyan-800">Sign in to subscribe</AlertTitle>
+                        <AlertDescription className="text-cyan-700">
+                            You need an account to subscribe. <button onClick={() => base44.auth.redirectToLogin()} className="underline font-semibold">Sign in or sign up</button> to continue.
                         </AlertDescription>
                     </Alert>
                 )}

@@ -24,7 +24,7 @@ export default function PalladioGate({ children }) {
                     return;
                 }
                 const freshUser = await base44.entities.User.get(user.id);
-                const tokens = freshUser?.tokens !== undefined ? freshUser.tokens : 10;
+                const tokens = freshUser?.tokens !== undefined ? freshUser.tokens : 5;
                 setHasTokens(tokens > 0);
             } catch (e) {
                 setIsAuthenticated(false);

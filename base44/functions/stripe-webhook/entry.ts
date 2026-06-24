@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
             const users = await base44.asServiceRole.entities.User.filter({ email: customerEmail });
             if (users.length > 0) {
                 const u = users[0];
-                const currentTokens = u.tokens !== undefined ? u.tokens : 10;
+                const currentTokens = u.tokens !== undefined ? u.tokens : 5;
                 await base44.asServiceRole.entities.User.update(u.id, { tokens: currentTokens + 100 });
             }
         }
@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
                     const users = await base44.asServiceRole.entities.User.filter({ email: customerEmail });
                     if (users.length > 0) {
                         const u = users[0];
-                        const currentTokens = u.tokens !== undefined ? u.tokens : 10;
+                        const currentTokens = u.tokens !== undefined ? u.tokens : 5;
                         await base44.asServiceRole.entities.User.update(u.id, { tokens: currentTokens + 100 });
                     }
                 }
