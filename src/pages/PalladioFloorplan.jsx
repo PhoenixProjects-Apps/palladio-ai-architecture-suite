@@ -34,9 +34,9 @@ export default function PalladioFloorplan() {
         if (!desc) return;
         setIsGeneratingText(true);
         try {
-            const tokenRes = await base44.functions.invoke('consumeToken', {});
+            const tokenRes = await base44.functions.invoke('consumeToken', { amount: 5 });
             if (tokenRes.data?.error) {
-                toast.error("You don't have enough AI tokens. Please upgrade your plan.");
+                toast.error("You don't have enough AI tokens. Floorplan generation requires 5 tokens. Please upgrade your plan.");
                 setIsGeneratingText(false);
                 return;
             }
@@ -72,9 +72,9 @@ export default function PalladioFloorplan() {
         if (!cadFileUrl) return;
         setIsGeneratingSketch(true);
         try {
-            const tokenRes = await base44.functions.invoke('consumeToken', {});
+            const tokenRes = await base44.functions.invoke('consumeToken', { amount: 5 });
             if (tokenRes.data?.error) {
-                toast.error("You don't have enough AI tokens. Please upgrade your plan.");
+                toast.error("You don't have enough AI tokens. Floorplan generation requires 5 tokens. Please upgrade your plan.");
                 setIsGeneratingSketch(false);
                 return;
             }

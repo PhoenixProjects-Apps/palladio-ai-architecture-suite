@@ -279,9 +279,9 @@ export default function Render3D() {
 
   const handleRender = async (type = 'exterior') => {
     if (!fileUrl) return;
-    const tokenRes = await base44.functions.invoke('consumeToken', {});
+    const tokenRes = await base44.functions.invoke('consumeToken', { amount: 5 });
     if (tokenRes.data?.error) {
-      toast.error("You don't have enough AI tokens. Please upgrade your plan.");
+      toast.error("You don't have enough AI tokens. Renders require 5 tokens. Please upgrade your plan.");
       return;
     }
     setIsRendering(true);
@@ -332,9 +332,9 @@ export default function Render3D() {
 
   const handleMagicEdit = async () => {
     if (!renderedImage || !magicEditPrompt.trim()) return;
-    const tokenRes = await base44.functions.invoke('consumeToken', {});
+    const tokenRes = await base44.functions.invoke('consumeToken', { amount: 5 });
     if (tokenRes.data?.error) {
-      toast.error("You don't have enough AI tokens. Please upgrade your plan.");
+      toast.error("You don't have enough AI tokens. Magic Edit requires 5 tokens. Please upgrade your plan.");
       return;
     }
     setIsEditing(true);
