@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Home, MessageSquare, Settings, Menu, X, Layers, Building2, MapPin, ClipboardList, FileImage, PanelLeftClose, PanelLeftOpen, ShieldAlert, CreditCard, Folder, Bell, PenTool } from 'lucide-react';
+import { Home, MessageSquare, Settings, Menu, X, Layers, Building2, MapPin, ClipboardList, FileImage, PanelLeftClose, PanelLeftOpen, ShieldAlert, CreditCard, Folder, Bell, PenTool, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
@@ -78,11 +78,16 @@ export default function Sidebar() {
     }
   ];
 
-  const bottomItems = [
-    { name: `Tokens: ${user?.tokens !== undefined ? user.tokens : 10}`, icon: CreditCard, path: 'PalladioPricing' },
-    { name: 'Pricing', icon: CreditCard, path: 'PalladioPricing' },
-    { name: 'Settings', icon: Settings, path: 'UserProfile' },
-  ];
+  const bottomItems = user
+    ? [
+        { name: `Tokens: ${user.tokens !== undefined ? user.tokens : 10}`, icon: CreditCard, path: 'PalladioPricing' },
+        { name: 'Pricing', icon: CreditCard, path: 'PalladioPricing' },
+        { name: 'Settings', icon: Settings, path: 'UserProfile' },
+      ]
+    : [
+        { name: 'Pricing', icon: CreditCard, path: 'PalladioPricing' },
+        { name: 'Sign In', icon: LogIn, action: 'login' },
+      ];
 
   if (user?.role === 'admin') {
     bottomItems.unshift({ name: 'Admin', icon: ShieldAlert, path: 'Admin' });
@@ -153,6 +158,14 @@ export default function Sidebar() {
 
       <div className="p-3 border-t border-white/5 space-y-1">
         {bottomItems.map((item) => {
+          if (item.action === 'login') {
+            return (
+              <button key="login" onClick={() => base44.auth.redirectToLogin()} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors w-full text-left hover:bg-white/5 text-slate-400 hover:text-white ${isCollapsed ? 'justify-center' : ''}`} title={isCollapsed ? item.name : ''}>
+                <item.icon size={20} />
+                {!isCollapsed && <span className="font-medium text-sm">{item.name}</span>}
+              </button>
+            );
+          }
           const active = isActive(item.path);
           return (
             <Link key={item.path} to={createPageUrl(item.path)} onClick={() => setIsMobileOpen(false)} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${active ? 'bg-amber-500/10 text-amber-400' : 'hover:bg-white/5 text-slate-400 hover:text-white'} ${isCollapsed ? 'justify-center' : ''}`} title={isCollapsed ? item.name : ''}>

@@ -31,10 +31,14 @@ export default function Home() {
             <Link to={createPageUrl('PalladioPricing')} className="text-sm font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full transition">
               Pricing
             </Link>
-            {user && (
+            {user ? (
               <Link to={createPageUrl('UserProfile')} className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center text-white font-bold hover:opacity-80 transition shadow-lg border border-white/10">
                 {user.full_name?.charAt(0) || <User size={18} />}
               </Link>
+            ) : (
+              <button onClick={() => base44.auth.redirectToLogin()} className="text-sm font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full transition">
+                Sign In
+              </button>
             )}
           </div>
         </header>
