@@ -15,16 +15,21 @@ export default function Sidebar() {
 
   useEffect(() => {
     let currentUser = null;
-    base44.auth.me().then(u => {
+    base44.auth.me().then(async (u) => {
       if (u) {
-        setUser(u);
         currentUser = u;
+        try {
+          const fullUser = await base44.entities.User.get(u.id);
+          setUser({ ...u, ...fullUser });
+        } catch {
+          setUser(u);
+        }
       }
     });
-    
+
     const unsubscribe = base44.entities.User?.subscribe?.((event) => {
         if (event.type === 'update' && currentUser && event.id === currentUser.id) {
-            setUser(prev => ({ ...prev, tokens: event.data.tokens }));
+            setUser(prev => prev ? { ...prev, tokens: event.data.tokens } : prev);
         }
     });
     return () => unsubscribe && unsubscribe();

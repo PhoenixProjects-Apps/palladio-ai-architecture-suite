@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
         
         // Fetch the user to get the latest token balance
         const currentUser = await base44.asServiceRole.entities.User.get(user.id);
-        const currentTokens = currentUser.tokens !== undefined ? currentUser.tokens : 10;
+        const currentTokens = currentUser.tokens !== undefined ? currentUser.tokens : 5;
         
         if (currentTokens <= 0) {
             return Response.json({ error: 'Insufficient tokens', success: false }, { status: 403 });

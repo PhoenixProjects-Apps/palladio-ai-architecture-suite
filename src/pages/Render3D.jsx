@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import PalladioGate from '@/components/PalladioGate';
 
 const PRESETS = [
   {
@@ -278,6 +279,11 @@ export default function Render3D() {
 
   const handleRender = async (type = 'exterior') => {
     if (!fileUrl) return;
+    const tokenRes = await base44.functions.invoke('consumeToken', {});
+    if (tokenRes.data?.error) {
+      toast.error("You don't have enough AI tokens. Please upgrade your plan.");
+      return;
+    }
     setIsRendering(true);
     setCurrentRenderType(type);
     setRenderedImage(null);
@@ -326,6 +332,11 @@ export default function Render3D() {
 
   const handleMagicEdit = async () => {
     if (!renderedImage || !magicEditPrompt.trim()) return;
+    const tokenRes = await base44.functions.invoke('consumeToken', {});
+    if (tokenRes.data?.error) {
+      toast.error("You don't have enough AI tokens. Please upgrade your plan.");
+      return;
+    }
     setIsEditing(true);
 
     try {
@@ -366,6 +377,7 @@ export default function Render3D() {
   };
 
   return (
+    <PalladioGate>
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a14' }}>
       {/* Header */}
       <div style={{
@@ -760,5 +772,6 @@ export default function Render3D() {
         )}
       </div>
     </div>
+    </PalladioGate>
   );
 }
