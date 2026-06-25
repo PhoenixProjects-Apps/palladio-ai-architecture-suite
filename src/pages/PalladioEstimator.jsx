@@ -150,7 +150,7 @@ INSTRUCTIONS:
                             </Button>
                         </Link>
                         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center shadow-lg">
-                            <ClipboardList size={20} />
+                            <Calculator size={20} />
                         </div>
                         <h1 className="font-bold text-xl">Town Planner AI</h1>
                     </header>
