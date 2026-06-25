@@ -78,7 +78,7 @@ export default function Sidebar() {
         { name: '3D Renders', icon: Building2, path: 'Render3D' },
         { name: 'Property Intel', icon: MapPin, path: 'PalladioProperty' },
         { name: 'Town Planner', icon: ClipboardList, path: 'PalladioPlanner' },
-        { name: 'SketchPad', icon: PenTool, href: 'https://archistroke-design-flow.base44.app', isExternal: true },
+        { name: 'SketchPad', icon: PenTool, path: 'ArchiSketch' },
       ]
     }
   ];
