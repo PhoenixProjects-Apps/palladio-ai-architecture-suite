@@ -11,8 +11,6 @@ import PalladioGate from '../components/PalladioGate';
 import Floorplan3DViewer from '../components/Floorplan3DViewer';
 import SaveToProject from '../components/SaveToProject';
 import Model3DTab from '../components/Model3DTab';
-import GlbViewer from '../components/GlbViewer';
-import { useTripo3DConversion } from '../hooks/useTripo3DConversion';
 import { toast } from 'sonner';
 
 export default function PalladioFloorplan() {
@@ -26,7 +24,6 @@ export default function PalladioFloorplan() {
     const [isGeneratingText, setIsGeneratingText] = useState(false);
     const [textResult, setTextResult] = useState({ layout: null, image: null, layoutData: null });
     const [show3DViewer, setShow3DViewer] = useState(false);
-    const { isConverting: isConverting3D, status: status3D, modelUrl: model3DUrl, convert: convert3D } = useTripo3DConversion();
 
     // Tab 2 state
     const [cadFile, setCadFile] = useState(null);
@@ -228,41 +225,7 @@ export default function PalladioFloorplan() {
                                                 className="flex-1 h-12 rounded-xl border-violet-500/50 text-violet-300 hover:bg-violet-500/10"
                                             />
                                         </div>
-                                        <Button 
-                                            onClick={() => convert3D(textResult.image)}
-                                            disabled={isConverting3D}
-                                            className="w-full bg-violet-600 hover:bg-violet-700 text-white h-12 rounded-xl shadow-lg shadow-violet-500/20"
-                                        >
-                                            {isConverting3D ? <><Loader2 size={18} className="animate-spin mr-2" /> Converting to 3D...</> : <><Box size={18} className="mr-2" /> Create 3D Model from Floorplan</>}
-                                        </Button>
-                                        {(isConverting3D || model3DUrl) && (
-                                            <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-lg">
-                                                {isConverting3D && !model3DUrl ? (
-                                                    <div className="flex flex-col items-center justify-center py-16">
-                                                        <Loader2 size={32} className="text-violet-500 animate-spin mb-3" />
-                                                        <p className="text-sm text-slate-400">{status3D || 'Generating 3D model...'}</p>
-                                                        <p className="text-xs text-slate-500 mt-1">This may take 1-2 minutes</p>
-                                                    </div>
-                                                ) : (
-                                                    <div className="p-4">
-                                                        <GlbViewer url={model3DUrl} height="400px" />
-                                                        <div className="flex gap-3 mt-4">
-                                                            <a href={model3DUrl} download="floorplan-3d.glb" target="_blank" rel="noreferrer" className="flex-1">
-                                                                <Button className="w-full bg-white text-black hover:bg-slate-200 h-11 rounded-xl">
-                                                                    <Download size={18} className="mr-2" /> Download 3D
-                                                                </Button>
-                                                            </a>
-                                                            <SaveToProject
-                                                                fileUrl={model3DUrl}
-                                                                fileName="floorplan-3d.glb"
-                                                                assetType="render"
-                                                                className="flex-1 h-11 rounded-xl border-violet-500/50 text-violet-300 hover:bg-violet-500/10"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
+
                                         <div className="bg-white/5 border border-white/10 rounded-2xl p-6 prose prose-invert max-w-none text-sm">
                                             <h3 className="text-violet-400 mt-0">Layout Brief</h3>
                                             <ReactMarkdown>{textResult.layout}</ReactMarkdown>
