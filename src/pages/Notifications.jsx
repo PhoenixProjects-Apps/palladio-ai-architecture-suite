@@ -97,7 +97,7 @@ export default function Notifications() {
         <PalladioGate>
             <div className="min-h-screen bg-[#0f1117] text-white p-6 md:p-10">
                 <div className="max-w-4xl mx-auto">
-                    <div className="flex items-center justify-between mb-10">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-10">
                         <h1 className="text-3xl font-bold flex items-center gap-3">
                             <Bell className="text-amber-500" size={32} />
                             Notifications
