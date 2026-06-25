@@ -21,7 +21,7 @@ export default function PalladioFloorplan() {
     // Tab 1 state
     const [desc, setDesc] = useState('');
     const [isGeneratingText, setIsGeneratingText] = useState(false);
-    const [textResult, setTextResult] = useState({ layout: null, image: null });
+    const [textResult, setTextResult] = useState({ layout: null, image: null, layoutData: null });
     const [show3DViewer, setShow3DViewer] = useState(false);
 
     // Tab 2 state
@@ -43,13 +43,37 @@ export default function PalladioFloorplan() {
             }
             const layoutPrompt = `Act as an architect. Create a detailed layout brief for: ${desc}. Include specific room dimensions (e.g. 4m x 5m) and relationships. The architectural style is ${style}.`;
             const imagePrompt = `Architectural floorplan blueprint, top-down view, 2D layout, high quality, professional CAD drawing style. Description: ${desc}. Architectural aesthetic: ${style}.`;
+            const structuredPrompt = `You are an architect designing a 2D floorplan layout. Based on this description: "${desc}", create a layout with rooms placed on a coordinate grid. "x" is the horizontal axis (width direction) and "z" is the depth axis. The x and z values represent the CENTER of each room in meters. The origin (0,0) is the center of the house. Rooms must NOT overlap and should be arranged in a realistic, coherent layout with adjacent rooms sharing walls where appropriate. Each room's "width" spans the x-axis and "depth" spans the z-axis, both in meters. Architectural style: ${style}.`;
 
-            const [layoutRes, imageRes] = await Promise.all([
+            const layoutSchema = {
+                type: "object",
+                properties: {
+                    rooms: {
+                        type: "array",
+                        items: {
+                            type: "object",
+                            properties: {
+                                name: { type: "string" },
+                                type: { type: "string", enum: ["living", "bedroom", "kitchen", "bathroom", "dining", "office", "laundry", "garage", "hallway", "balcony", "other"] },
+                                width: { type: "number" },
+                                depth: { type: "number" },
+                                x: { type: "number" },
+                                z: { type: "number" }
+                            },
+                            required: ["name", "type", "width", "depth", "x", "z"]
+                        }
+                    }
+                },
+                required: ["rooms"]
+            };
+
+            const [layoutRes, imageRes, structuredRes] = await Promise.all([
                 base44.integrations.Core.InvokeLLM({ prompt: layoutPrompt }),
-                base44.integrations.Core.GenerateImage({ prompt: imagePrompt })
+                base44.integrations.Core.GenerateImage({ prompt: imagePrompt }),
+                base44.integrations.Core.InvokeLLM({ prompt: structuredPrompt, response_json_schema: layoutSchema })
             ]);
 
-            setTextResult({ layout: layoutRes, image: imageRes.url });
+            setTextResult({ layout: layoutRes, image: imageRes.url, layoutData: structuredRes });
         } catch (err) {
             console.error(err);
         } finally {
@@ -96,7 +120,7 @@ export default function PalladioFloorplan() {
 
     return (
         <PalladioGate>
-            {show3DViewer && <Floorplan3DViewer layoutText={textResult.layout} onClose={() => setShow3DViewer(false)} />}
+            {show3DViewer && <Floorplan3DViewer layoutData={textResult.layoutData} onClose={() => setShow3DViewer(false)} />}
             
             <div className="min-h-screen bg-[#0f1117] text-white p-6 pb-24">
                 <div className="max-w-5xl mx-auto">

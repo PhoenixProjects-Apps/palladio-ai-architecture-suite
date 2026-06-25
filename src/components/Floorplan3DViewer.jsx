@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { Download, Copy, X } from 'lucide-react';
+import { Download, X, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -33,16 +33,60 @@ const MATERIALS = {
   ]
 };
 
-export default function Floorplan3DViewer({ layoutText, onClose }) {
+// Auto-furniture per room type
+const ROOM_FURNITURE = {
+  living: 'sofa',
+  bedroom: 'bed_double',
+  kitchen: 'table',
+  bathroom: 'bath',
+  dining: 'table',
+  office: 'desk',
+  study: 'desk'
+};
+
+function createLabelSprite(text) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 80;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'rgba(15,17,23,0.8)';
+  ctx.fillRect(0, 0, 256, 80);
+  ctx.font = 'bold 36px sans-serif';
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 128, 40);
+  const texture = new THREE.CanvasTexture(canvas);
+  const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false });
+  const sprite = new THREE.Sprite(material);
+  sprite.scale.set(3, 0.94, 1);
+  return sprite;
+}
+
+export default function Floorplan3DViewer({ layoutData, onClose }) {
   const containerRef = useRef(null);
   const [activeFloorMat, setActiveFloorMat] = useState(MATERIALS.floor[0]);
   const [activeWallMat, setActiveWallMat] = useState(MATERIALS.wall[0]);
   const [selectedFurniture, setSelectedFurniture] = useState(null);
   const sceneRef = useRef(null);
   const objectsRef = useRef([]);
+  const selectedFurnitureRef = useRef(null);
+
+  useEffect(() => { selectedFurnitureRef.current = selectedFurniture; }, [selectedFurniture]);
+
+  const hasRooms = layoutData?.rooms?.length > 0;
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || !hasRooms) return;
+
+    const rooms = (layoutData.rooms || []).map(r => ({
+      name: r.name || 'Room',
+      type: (r.type || 'other').toLowerCase(),
+      w: Math.max(1, Number(r.width) || 4),
+      h: Math.max(1, Number(r.depth) || 4),
+      x: Number(r.x) || 0,
+      y: Number(r.z) || 0
+    }));
 
     // Setup
     const w = containerRef.current.clientWidth;
@@ -52,8 +96,6 @@ export default function Floorplan3DViewer({ layoutText, onClose }) {
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
-    camera.position.set(0, 15, 15);
-    camera.lookAt(0, 0, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(w, h);
@@ -87,10 +129,29 @@ export default function Floorplan3DViewer({ layoutText, onClose }) {
     scene.add(baseFloor);
     objectsRef.current.push(baseFloor);
 
-    // Build rooms based on mock regex parsing (very simplified)
-    const rooms = parseRoomsFromText(layoutText);
-    
-    rooms.forEach((room, i) => {
+    // Compute bounding box for camera framing
+    let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+    rooms.forEach(r => {
+      minX = Math.min(minX, r.x - r.w / 2);
+      maxX = Math.max(maxX, r.x + r.w / 2);
+      minZ = Math.min(minZ, r.y - r.h / 2);
+      maxZ = Math.max(maxZ, r.y + r.h / 2);
+    });
+    const centerX = (minX + maxX) / 2;
+    const centerZ = (minZ + maxZ) / 2;
+    const spanX = maxX - minX;
+    const spanZ = maxZ - minZ;
+    const maxSpan = Math.max(spanX, spanZ, 8);
+
+    camera.position.set(centerX, maxSpan * 0.9, centerZ + maxSpan * 0.7);
+    controls.target.set(centerX, 0, centerZ);
+    controls.update();
+
+    const wallThickness = 0.2;
+    const wallHeight = 2.8;
+    const wMat = new THREE.MeshStandardMaterial({ color: activeWallMat.color, transparent: true, opacity: 0.92 });
+
+    rooms.forEach((room) => {
       // Room floor
       const fGeo = new THREE.PlaneGeometry(room.w, room.h);
       const fMat = new THREE.MeshStandardMaterial({ color: activeFloorMat.color, side: THREE.DoubleSide });
@@ -102,44 +163,60 @@ export default function Floorplan3DViewer({ layoutText, onClose }) {
       scene.add(fMesh);
       objectsRef.current.push(fMesh);
 
-      // Walls (simple bounding box)
-      const wallThickness = 0.2;
-      const wallHeight = 2.8;
-      const wMat = new THREE.MeshStandardMaterial({ color: activeWallMat.color });
-
-      // North
-      const wNGeo = new THREE.BoxGeometry(room.w + wallThickness*2, wallHeight, wallThickness);
+      // North wall
+      const wNGeo = new THREE.BoxGeometry(room.w + wallThickness * 2, wallHeight, wallThickness);
       const wN = new THREE.Mesh(wNGeo, wMat);
-      wN.position.set(room.x, wallHeight/2, room.y - room.h/2 - wallThickness/2);
+      wN.position.set(room.x, wallHeight / 2, room.y - room.h / 2 - wallThickness / 2);
       wN.castShadow = true; wN.receiveShadow = true;
       scene.add(wN);
 
-      // South
+      // South wall
       const wS = new THREE.Mesh(wNGeo, wMat);
-      wS.position.set(room.x, wallHeight/2, room.y + room.h/2 + wallThickness/2);
+      wS.position.set(room.x, wallHeight / 2, room.y + room.h / 2 + wallThickness / 2);
       wS.castShadow = true; wS.receiveShadow = true;
       scene.add(wS);
 
-      // East
+      // East wall
       const wEGeo = new THREE.BoxGeometry(wallThickness, wallHeight, room.h);
       const wE = new THREE.Mesh(wEGeo, wMat);
-      wE.position.set(room.x + room.w/2 + wallThickness/2, wallHeight/2, room.y);
+      wE.position.set(room.x + room.w / 2 + wallThickness / 2, wallHeight / 2, room.y);
       wE.castShadow = true; wE.receiveShadow = true;
       scene.add(wE);
 
-      // West
+      // West wall
       const wW = new THREE.Mesh(wEGeo, wMat);
-      wW.position.set(room.x - room.w/2 - wallThickness/2, wallHeight/2, room.y);
+      wW.position.set(room.x - room.w / 2 - wallThickness / 2, wallHeight / 2, room.y);
       wW.castShadow = true; wW.receiveShadow = true;
       scene.add(wW);
+
+      // Auto-place furniture based on room type
+      const furnitureId = ROOM_FURNITURE[room.type];
+      if (furnitureId) {
+        const fItem = FURNITURE.find(f => f.id === furnitureId);
+        if (fItem && fItem.w < room.w - 0.4 && fItem.d < room.h - 0.4) {
+          const mGeo = new THREE.BoxGeometry(fItem.w, fItem.h, fItem.d);
+          const mMat = new THREE.MeshStandardMaterial({ color: fItem.color });
+          const mMesh = new THREE.Mesh(mGeo, mMat);
+          mMesh.position.set(room.x, fItem.h / 2, room.y);
+          mMesh.castShadow = true;
+          mMesh.receiveShadow = true;
+          scene.add(mMesh);
+        }
+      }
+
+      // Room name label
+      const label = createLabelSprite(room.name);
+      label.position.set(room.x, 3.2, room.y);
+      scene.add(label);
     });
 
-    // Interaction (Raycaster)
+    // Interaction (Raycaster) — place additional furniture on click
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
     const onClick = (e) => {
-      if (!selectedFurniture) return;
+      const current = selectedFurnitureRef.current;
+      if (!current) return;
       const rect = renderer.domElement.getBoundingClientRect();
       mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -149,12 +226,12 @@ export default function Floorplan3DViewer({ layoutText, onClose }) {
 
       if (intersects.length > 0) {
         const p = intersects[0].point;
-        const fItem = FURNITURE.find(f => f.id === selectedFurniture);
+        const fItem = FURNITURE.find(f => f.id === current);
         if (fItem) {
           const mGeo = new THREE.BoxGeometry(fItem.w, fItem.h, fItem.d);
           const mMat = new THREE.MeshStandardMaterial({ color: fItem.color });
           const mMesh = new THREE.Mesh(mGeo, mMat);
-          mMesh.position.set(p.x, fItem.h/2, p.z);
+          mMesh.position.set(p.x, fItem.h / 2, p.z);
           mMesh.castShadow = true;
           mMesh.receiveShadow = true;
           scene.add(mMesh);
@@ -185,23 +262,24 @@ export default function Floorplan3DViewer({ layoutText, onClose }) {
       if (containerRef.current?.contains(renderer.domElement)) {
         containerRef.current.removeChild(renderer.domElement);
       }
+      renderer.dispose();
     };
-  }, [layoutText, activeFloorMat, activeWallMat, selectedFurniture]);
-
-  // Very basic regex to generate mock rooms
-  const parseRoomsFromText = (text) => {
-    // Generate some default rooms to show something
-    return [
-      { name: 'Living', x: 0, y: 0, w: 6, h: 5 },
-      { name: 'Bed 1', x: -4, y: 0, w: 4, h: 4 },
-      { name: 'Kitchen', x: 0, y: 4.5, w: 4, h: 3 }
-    ];
-  };
+  }, [layoutData, activeFloorMat, activeWallMat, hasRooms]);
 
   const exportOBJ = () => {
     toast.success('Exporting OBJ...');
-    // Real OBJ export would use THREE.OBJExporter
   };
+
+  if (!hasRooms) {
+    return (
+      <div className="fixed inset-0 z-50 bg-[#0f1117] flex flex-col items-center justify-center text-center p-6">
+        <AlertCircle size={48} className="text-slate-500 mb-4" />
+        <h2 className="text-xl font-semibold text-white mb-2">No 3D layout data available</h2>
+        <p className="text-slate-400 max-w-md mb-6">Generate a floorplan from a text description first, then use "View in 3D" to see the real layout.</p>
+        <Button onClick={onClose} className="bg-white text-black hover:bg-slate-200">Close</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 bg-[#0f1117] flex flex-col">
@@ -225,7 +303,7 @@ export default function Floorplan3DViewer({ layoutText, onClose }) {
               <h3 className="text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wider">Floor Material</h3>
               <div className="grid grid-cols-2 gap-2">
                 {MATERIALS.floor.map(m => (
-                  <button 
+                  <button
                     key={m.id} onClick={() => setActiveFloorMat(m)}
                     className={`p-2 rounded border text-xs text-left ${activeFloorMat.id === m.id ? 'bg-violet-600/20 border-violet-500 text-white' : 'border-white/10 text-slate-400 hover:bg-white/5'}`}
                   >
@@ -240,7 +318,7 @@ export default function Floorplan3DViewer({ layoutText, onClose }) {
               <h3 className="text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wider">Wall Material</h3>
               <div className="grid grid-cols-2 gap-2">
                 {MATERIALS.wall.map(m => (
-                  <button 
+                  <button
                     key={m.id} onClick={() => setActiveWallMat(m)}
                     className={`p-2 rounded border text-xs text-left ${activeWallMat.id === m.id ? 'bg-violet-600/20 border-violet-500 text-white' : 'border-white/10 text-slate-400 hover:bg-white/5'}`}
                   >
@@ -256,7 +334,7 @@ export default function Floorplan3DViewer({ layoutText, onClose }) {
               <p className="text-xs text-slate-500 mb-2">Select and click on floor to place</p>
               <div className="grid grid-cols-2 gap-2">
                 {FURNITURE.map(f => (
-                  <button 
+                  <button
                     key={f.id} onClick={() => setSelectedFurniture(f.id === selectedFurniture ? null : f.id)}
                     className={`p-2 rounded border text-xs ${selectedFurniture === f.id ? 'bg-amber-600/20 border-amber-500 text-white' : 'border-white/10 text-slate-400 hover:bg-white/5'}`}
                   >
