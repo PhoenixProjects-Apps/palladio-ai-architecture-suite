@@ -162,11 +162,13 @@ export default function Model3DTab() {
                 <div className="w-full bg-white/5 border border-white/10 rounded-3xl overflow-hidden shadow-xl flex-1 min-h-[400px] flex items-center justify-center">
                     {activeModel ? (
                         <model-viewer
+                            key={activeModel}
                             src={activeModel}
                             camera-controls
                             auto-rotate
                             shadow-intensity="1"
-                            style={{ width: '100%', height: '500px' }}
+                            environment-image="neutral"
+                            style={{ width: '100%', height: '500px', display: 'block', backgroundColor: '#3a3a5c' }}
                         />
                     ) : (
                         <div className="flex flex-col items-center justify-center text-center p-8">

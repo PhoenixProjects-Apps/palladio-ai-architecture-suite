@@ -245,11 +245,13 @@ export default function PalladioFloorplan() {
                                                 ) : (
                                                     <div className="p-4">
                                                         <model-viewer
+                                                            key={model3DUrl}
                                                             src={model3DUrl}
                                                             camera-controls
                                                             auto-rotate
                                                             shadow-intensity="1"
-                                                            style={{ width: '100%', height: '400px' }}
+                                                            environment-image="neutral"
+                                                            style={{ width: '100%', height: '400px', display: 'block', backgroundColor: '#3a3a5c' }}
                                                         />
                                                         <div className="flex gap-3 mt-4">
                                                             <a href={model3DUrl} download="floorplan-3d.glb" target="_blank" rel="noreferrer" className="flex-1">
