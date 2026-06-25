@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { toast } from 'sonner';
 
 export default function GlbViewer({ url, height = '400px', wallHeightMultiplier = 8 }) {
     const containerRef = useRef(null);
@@ -55,6 +56,7 @@ export default function GlbViewer({ url, height = '400px', wallHeightMultiplier 
 
         // 4. Load the GLB Model
         const loader = new GLTFLoader();
+        loader.setCrossOrigin('anonymous');
         loader.load(
             url,
             (gltf) => {
@@ -85,6 +87,7 @@ export default function GlbViewer({ url, height = '400px', wallHeightMultiplier 
             (error) => {
                 console.error('Error loading model:', error);
                 setLoading(false);
+                toast.error('Failed to load 3D model. The file may be inaccessible or expired.');
             }
         );
         
