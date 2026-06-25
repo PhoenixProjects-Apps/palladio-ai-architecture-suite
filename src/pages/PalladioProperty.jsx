@@ -11,21 +11,21 @@ import SaveToProject from '../components/SaveToProject';
 import { toast } from 'sonner';
 
 export default function PalladioProperty() {
-    const [address, setAddress] = useState('');
-    const [isSearching, setIsSearching] = useState(false);
-    const [result, setResult] = useState(null);
+  const [address, setAddress] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [result, setResult] = useState(null);
 
-    const handleSearch = async () => {
-        if (!address) return;
-        setIsSearching(true);
-        try {
-            const tokenRes = await base44.functions.invoke('consumeToken', {});
-            if (tokenRes.data?.error) {
-                toast.error("You don't have enough AI tokens. Please upgrade your plan.");
-                setIsSearching(false);
-                return;
-            }
-            const prompt = `Provide a detailed property intelligence report for the following address in Australia: "${address}". 
+  const handleSearch = async () => {
+    if (!address) return;
+    setIsSearching(true);
+    try {
+      const tokenRes = await base44.functions.invoke('consumeToken', {});
+      if (tokenRes.data?.error) {
+        toast.error("You don't have enough AI tokens. Please upgrade your plan.");
+        setIsSearching(false);
+        return;
+      }
+      const prompt = `Provide a detailed property intelligence report for the following address in Australia: "${address}". 
             Search the web for zoning info, local planning scheme details, development potential, and neighbourhood insights.
             You MUST return the output as a valid JSON object matching this exact structure:
             {
@@ -38,32 +38,32 @@ export default function PalladioProperty() {
                 "disclaimer": "Standard disclaimer about verifying with council"
             }`;
 
-            const response = await base44.integrations.Core.InvokeLLM({
-                prompt,
-                add_context_from_internet: true,
-                response_json_schema: {
-                    type: "object",
-                    properties: {
-                        overview: { type: "string" },
-                        zoning: { type: "string" },
-                        development_potential: { type: "string" },
-                        neighbourhood: { type: "string" },
-                        planning_trends: { type: "string" },
-                        key_facts: { type: "array", items: { type: "object", properties: { label: { type: "string" }, value: { type: "string" } } } },
-                        disclaimer: { type: "string" }
-                    }
-                }
-            });
-            setResult(response);
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setIsSearching(false);
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt,
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            overview: { type: "string" },
+            zoning: { type: "string" },
+            development_potential: { type: "string" },
+            neighbourhood: { type: "string" },
+            planning_trends: { type: "string" },
+            key_facts: { type: "array", items: { type: "object", properties: { label: { type: "string" }, value: { type: "string" } } } },
+            disclaimer: { type: "string" }
+          }
         }
-    };
+      });
+      setResult(response);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
-    return (
-        <PalladioGate>
+  return (
+    <PalladioGate>
             <div className="min-h-screen bg-[#0f1117] text-white p-6">
                 <div className="max-w-4xl mx-auto">
                     <header className="flex items-center gap-4 mb-8 border-b border-white/10 pb-4">
@@ -75,7 +75,7 @@ export default function PalladioProperty() {
                         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-lg">
                             <MapPin size={20} />
                         </div>
-                        <h1 className="text-2xl font-bold">Property Intelligence</h1>
+                        <h1 className="font-bold text-xl">Property Intelligence</h1>
                     </header>
 
                     <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mb-8 shadow-xl">
@@ -85,11 +85,11 @@ export default function PalladioProperty() {
                                 <AddressAutocomplete value={address} onChange={setAddress} onSelect={setAddress} />
                             </div>
                             <div className="flex items-end">
-                                <Button 
-                                    onClick={handleSearch}
-                                    disabled={!address || isSearching}
-                                    className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-8 h-12 rounded-xl shadow-lg shadow-emerald-500/20"
-                                >
+                                <Button
+                  onClick={handleSearch}
+                  disabled={!address || isSearching}
+                  className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-8 h-12 rounded-xl shadow-lg shadow-emerald-500/20">
+                  
                                     {isSearching ? <Loader2 size={18} className="animate-spin mr-2" /> : <MapPin size={18} className="mr-2" />}
                                     Analyze Property
                                 </Button>
@@ -97,20 +97,20 @@ export default function PalladioProperty() {
                         </div>
                     </div>
 
-                    {result && (
-                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    {result &&
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="bg-emerald-900/20 border border-emerald-500/30 rounded-2xl p-6 shadow-lg">
                                 <h3 className="text-emerald-400 font-semibold mb-2 flex items-center gap-2"><Info size={18} /> Overview</h3>
                                 <p className="text-slate-200 leading-relaxed">{result.overview}</p>
                             </div>
 
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                {result.key_facts?.map((fact, i) => (
-                                    <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-4 shadow-md">
+                                {result.key_facts?.map((fact, i) =>
+              <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-4 shadow-md">
                                         <p className="text-xs text-slate-400 mb-1">{fact.label}</p>
                                         <p className="font-semibold text-white">{fact.value}</p>
                                     </div>
-                                ))}
+              )}
                             </div>
 
                             <div className="grid md:grid-cols-2 gap-6">
@@ -138,15 +138,15 @@ export default function PalladioProperty() {
                             </div>
 
                             <SaveToProject
-                                textContent={`# Property Intelligence Report\n\n**Address:** ${address}\n\n## Overview\n${result.overview}\n\n## Zoning & Overlays\n${result.zoning}\n\n## Development Potential\n${result.development_potential}\n\n## Neighbourhood\n${result.neighbourhood}\n\n## Planning Trends\n${result.planning_trends}\n\n## Key Facts\n${(result.key_facts || []).map(f => `- **${f.label}:** ${f.value}`).join('\n')}\n\n---\n${result.disclaimer || ''}`}
-                                fileName="property-report.md"
-                                assetType="document"
-                                className="w-full border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/10 h-12 rounded-xl"
-                            />
+              textContent={`# Property Intelligence Report\n\n**Address:** ${address}\n\n## Overview\n${result.overview}\n\n## Zoning & Overlays\n${result.zoning}\n\n## Development Potential\n${result.development_potential}\n\n## Neighbourhood\n${result.neighbourhood}\n\n## Planning Trends\n${result.planning_trends}\n\n## Key Facts\n${(result.key_facts || []).map((f) => `- **${f.label}:** ${f.value}`).join('\n')}\n\n---\n${result.disclaimer || ''}`}
+              fileName="property-report.md"
+              assetType="document"
+              className="w-full border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/10 h-12 rounded-xl" />
+            
                         </div>
-                    )}
+          }
                 </div>
             </div>
-        </PalladioGate>
-    );
+        </PalladioGate>);
+
 }
