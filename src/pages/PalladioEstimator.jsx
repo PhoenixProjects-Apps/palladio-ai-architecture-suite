@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -31,6 +31,11 @@ export default function PalladioEstimator() {
 
   const [result, setResult] = useState(null);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    const main = document.querySelector('main');
+    if (main) main.scrollTop = 0;
+  }, []);
 
   const handleFileSelect = async (e) => {
     const selectedFile = e.target.files[0];
