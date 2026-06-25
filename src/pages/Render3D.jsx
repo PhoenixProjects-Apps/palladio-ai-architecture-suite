@@ -698,13 +698,13 @@ export default function Render3D() {
                 />
               )}
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <a
                 href={renderedImage}
                 download="palladio-render.jpg"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1"
+                className="sm:flex-1"
                 style={{ textDecoration: 'none' }}
               >
                 <Button variant="outline" className="w-full rounded-xl border-teal-600/50 text-teal-400 hover:bg-teal-500/10 hover:text-teal-300">
@@ -715,7 +715,7 @@ export default function Render3D() {
               <Button
                 onClick={() => handleRender(currentRenderType || 'exterior')}
                 variant="outline"
-                className="flex-1 rounded-xl border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white"
+                className="sm:flex-1 rounded-xl border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white"
               >
                 <RefreshCcw size={15} className="mr-2" />
                 Re-render
@@ -724,7 +724,7 @@ export default function Render3D() {
                 fileUrl={renderedImage}
                 fileName="palladio-render.jpg"
                 assetType="render"
-                className="flex-1 rounded-xl border-teal-600/50 text-teal-400 hover:bg-teal-500/10 hover:text-teal-300"
+                className="sm:flex-1 rounded-xl border-teal-600/50 text-teal-400 hover:bg-teal-500/10 hover:text-teal-300"
               />
             </div>
             
