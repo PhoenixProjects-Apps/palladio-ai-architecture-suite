@@ -258,6 +258,11 @@ export default function Projects() {
                 <div className="max-w-6xl mx-auto">
                     <div className="flex items-center justify-between mb-10">
                         <h1 className="text-3xl font-bold flex items-center gap-3">
+                      <Link to={createPageUrl('Home')}>
+                        <Button variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
+                            <ArrowLeft size={20} />
+                        </Button>
+                      </Link>
                             <Folder className="text-amber-500" size={32} />
                             Projects
                         </h1>
