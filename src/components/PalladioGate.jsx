@@ -10,28 +10,32 @@ export default function PalladioGate({ children }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [hasTokens, setHasTokens] = useState(false);
 
-    useEffect(() => {
-        const checkAccess = async () => {
-            try {
-                const user = await base44.auth.me();
-                if (!user) {
-                    setIsAuthenticated(false);
-                    return;
-                }
-                setIsAuthenticated(true);
-                if (user.role === 'admin') {
-                    setHasTokens(true);
-                    return;
-                }
-                const freshUser = await base44.entities.User.get(user.id);
-                const tokens = freshUser?.tokens !== undefined ? freshUser.tokens : 5;
-                setHasTokens(tokens > 0);
-            } catch (e) {
+    const checkAccess = async () => {
+        try {
+            const user = await base44.auth.me();
+            if (!user) {
                 setIsAuthenticated(false);
-            } finally {
                 setLoading(false);
+                return;
             }
-        };
+            setIsAuthenticated(true);
+            if (user.role === 'admin') {
+                setHasTokens(true);
+                setLoading(false);
+                return;
+            }
+            const freshUser = await base44.entities.User.get(user.id);
+            const tokens = freshUser?.tokens !== undefined ? freshUser.tokens : 5;
+            setHasTokens(tokens > 0);
+        } catch (e) {
+            console.error('Auth check failed:', e);
+            setIsAuthenticated(false);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         checkAccess();
     }, []);
 
@@ -43,11 +47,14 @@ export default function PalladioGate({ children }) {
                 <div className="w-16 h-16 rounded-2xl bg-slate-800 flex items-center justify-center mb-6">
                     <LogIn size={32} className="text-cyan-400" />
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-2">Sign in to continue</h2>
-                <p className="text-slate-400 max-w-md mb-8">Create an account or sign in to access Palladio AI's architecture tools. New users get 10 free AI tokens to get started.</p>
+                <h2 className="text-2xl font-bold text-white mb-2">Session expired</h2>
+                <p className="text-slate-400 max-w-md mb-8">Your login session has expired. Please sign in again to access Palladio AI's architecture tools.</p>
                 <Button onClick={() => base44.auth.redirectToLogin()} className="bg-white text-black hover:bg-slate-200 px-8 py-6 rounded-xl font-semibold text-lg">
-                    Sign In / Sign Up
+                    Sign In Again
                 </Button>
+                <button onClick={checkAccess} className="mt-4 text-sm text-slate-500 hover:text-white transition-colors underline">
+                    Try again
+                </button>
                 <Link to={createPageUrl('Home')} className="mt-6 text-sm text-slate-500 hover:text-white transition-colors">
                     Return to Home
                 </Link>
