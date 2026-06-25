@@ -27,13 +27,13 @@ export function useTripo3DConversion() {
                         setStatus('');
                     }
                     setIsConverting(false);
-                } else if (data?.error) {
+                } else if (data?.status === 'failed' || data?.error) {
                     clearInterval(pollRef.current);
-                    toast.error(data.error);
+                    toast.error(data.error || '3D model generation failed');
                     setIsConverting(false);
                     setStatus('');
                 } else {
-                    setStatus(`Generating 3D model... (${data?.status || 'processing'})`);
+                    setStatus(`Generating 3D model... (${data?.taskStatus || data?.status || 'processing'})`);
                 }
             } catch (err) {
                 console.error(err);

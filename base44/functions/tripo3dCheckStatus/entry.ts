@@ -27,15 +27,22 @@ Deno.serve(async (req) => {
     const statusData = await statusRes.json();
 
     if (statusData.code !== 0) {
-      console.error('Tripo3D status check failed:', statusData);
-      return Response.json({ error: statusData.msg || 'Failed to check task status' }, { status: 500 });
+      console.error('Tripo3D status check failed:', JSON.stringify(statusData));
+      return Response.json({ status: 'failed', error: statusData.msg || 'Failed to check task status' });
     }
 
     const taskStatus = statusData.data?.status;
     console.log('Tripo3D task', task_id, 'status:', taskStatus);
+    console.log('Tripo3D full data:', JSON.stringify(statusData.data));
 
-    if (taskStatus === 'success') {
-      const modelUrl = statusData.data?.output?.model;
+    // Check for success (handle both lowercase and uppercase)
+    if (taskStatus === 'success' || taskStatus === 'SUCCEEDED' || taskStatus === 'SUCCESS') {
+      // Try multiple possible paths for the model URL
+      const output = statusData.data?.output || {};
+      const modelUrl = output.model || output.pbr_model || output.base_model || output.rendered_image;
+      console.log('Tripo3D output keys:', Object.keys(output));
+      console.log('Tripo3D model URL:', modelUrl);
+
       if (modelUrl) {
         // Save the URL to the user's database record
         try {
@@ -45,14 +52,21 @@ Deno.serve(async (req) => {
         }
         return Response.json({ status: 'completed', modelUrl });
       }
-      return Response.json({ status: 'processing' });
-    } else if (taskStatus === 'failed' || taskStatus === 'cancelled') {
-      return Response.json({ error: '3D model generation failed or was cancelled', status: 'failed' }, { status: 500 });
-    } else {
-      return Response.json({ status: 'processing' });
+      // Model URL not found in expected paths - log and return as failed
+      console.error('Tripo3D task succeeded but no model URL found in output:', JSON.stringify(output));
+      return Response.json({ status: 'failed', error: '3D model generated but download URL not found' });
     }
+
+    // Check for failure (handle both lowercase and uppercase)
+    if (taskStatus === 'failed' || taskStatus === 'cancelled' || taskStatus === 'FAILED' || taskStatus === 'CANCELLED') {
+      console.error('Tripo3D task failed:', taskStatus);
+      return Response.json({ status: 'failed', error: '3D model generation failed or was cancelled' });
+    }
+
+    // Still processing
+    return Response.json({ status: 'processing', taskStatus });
   } catch (error) {
     console.error('tripo3dCheckStatus error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ status: 'failed', error: error.message });
   }
 });

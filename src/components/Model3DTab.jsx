@@ -59,18 +59,15 @@ export default function Model3DTab() {
                         setModelUrl(data.modelUrl);
                         setSavedModelUrl(data.modelUrl);
                         setStatus('');
-                    } else if (data.error) {
-                        toast.error(data.error);
-                        setStatus('');
                     }
                     setIsConverting(false);
-                } else if (data?.error) {
+                } else if (data?.status === 'failed' || data?.error) {
                     clearInterval(pollRef.current);
-                    toast.error(data.error);
+                    toast.error(data.error || '3D model generation failed');
                     setIsConverting(false);
                     setStatus('');
                 } else {
-                    setStatus(`Conversion in progress... (${data?.status || 'processing'})`);
+                    setStatus(`Conversion in progress... (${data?.taskStatus || data?.status || 'processing'})`);
                 }
             } catch (err) {
                 console.error(err);
