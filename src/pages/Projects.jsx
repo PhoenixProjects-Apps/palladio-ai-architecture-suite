@@ -255,7 +255,7 @@ export default function Projects() {
         <PalladioGate>
             <div className="min-h-screen bg-[#0f1117] text-white p-6 md:p-10">
                 <div className="max-w-6xl mx-auto">
-                    <div className="flex items-center justify-between mb-10">
+                    <div className="flex items-center justify-between mb-3">
                         <h1 className="text-3xl font-bold flex items-center gap-3">
                       <Link to={createPageUrl('Home')}>
                         <Button variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
@@ -268,7 +268,7 @@ export default function Projects() {
                     </div>
                         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                             <DialogTrigger asChild>
-                                <Button className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl">
+                                <Button className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl mb-3">
                                     <Plus size={18} className="mr-2" /> New Project
                                 </Button>
                             </DialogTrigger>
