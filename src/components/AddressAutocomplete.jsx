@@ -8,18 +8,24 @@ export default function AddressAutocomplete({ value, onChange, onSelect }) {
     const [loading, setLoading] = useState(false);
     const [open, setOpen] = useState(false);
     const timeoutRef = useRef(null);
+    const containerRef = useRef(null);
+    const skipNextRef = useRef(false);
 
     useEffect(() => {
-        if (query === value && !open) return;
-        if (!query) {
+        if (skipNextRef.current) {
+            skipNextRef.current = false;
+            return;
+        }
+        if (!query || query.length < 3) {
             setResults([]);
+            setOpen(false);
             return;
         }
         setLoading(true);
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
         timeoutRef.current = setTimeout(async () => {
             try {
-                const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&countrycodes=au`);
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&countrycodes=au&limit=5`);
                 const data = await res.json();
                 setResults(data);
                 setOpen(true);
@@ -29,10 +35,22 @@ export default function AddressAutocomplete({ value, onChange, onSelect }) {
                 setLoading(false);
             }
         }, 350);
+        return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
     }, [query]);
 
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handler = (e) => {
+            if (containerRef.current && !containerRef.current.contains(e.target)) {
+                setOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
     return (
-        <div className="relative">
+        <div className="relative" ref={containerRef}>
             <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 <Input 
@@ -41,7 +59,8 @@ export default function AddressAutocomplete({ value, onChange, onSelect }) {
                         setQuery(e.target.value);
                         onChange?.(e.target.value);
                     }}
-                    placeholder="Enter an address..."
+                    onFocus={() => { if (results.length > 0) setOpen(true); }}
+                    placeholder="Start typing an address..."
                     className="pl-10 bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 rounded-xl h-12"
                 />
                 {loading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 animate-spin" size={18} />}
@@ -53,6 +72,7 @@ export default function AddressAutocomplete({ value, onChange, onSelect }) {
                             key={i} 
                             className="p-3 hover:bg-slate-800 cursor-pointer text-sm text-slate-200 border-b border-slate-800 last:border-0"
                             onClick={() => {
+                                skipNextRef.current = true;
                                 setQuery(r.display_name);
                                 setOpen(false);
                                 onSelect?.(r.display_name);
