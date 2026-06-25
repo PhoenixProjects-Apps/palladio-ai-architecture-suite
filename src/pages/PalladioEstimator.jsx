@@ -149,10 +149,10 @@ INSTRUCTIONS:
                                 <ArrowLeft size={20} />
                             </Button>
                         </Link>
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center shadow-lg">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg">
                             <Calculator size={20} />
                         </div>
-                        <h1 className="font-bold text-xl">Cost Estimator</h1>
+                        <h1 className="font-bold text-xl">Town Planner AI</h1>
                     </header>
                 <Link to={createPageUrl('CostDatabase')} className="self-start sm:self-end">
                     <Button variant="outline" className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50">
