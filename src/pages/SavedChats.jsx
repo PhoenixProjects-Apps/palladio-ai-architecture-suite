@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import PalladioGate from '@/components/PalladioGate';
+import SaveToProject from '@/components/SaveToProject';
 
 export default function SavedChats() {
   const [conversations, setConversations] = useState([]);
@@ -80,6 +81,14 @@ export default function SavedChats() {
     }
   };
 
+  const handleSaveConvToProject = async (projectId) => {
+    if (!activeConvId) return;
+    const conv = await base44.agents.getConversation(activeConvId);
+    await base44.agents.updateConversation(activeConvId, {
+      metadata: { ...conv.metadata, project_id: projectId }
+    });
+  };
+
   const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim() || !activeConvId) return;
@@ -150,9 +159,21 @@ export default function SavedChats() {
           {/* Mobile Header */}
           <div className="md:hidden p-4 border-b border-slate-800 flex justify-between items-center bg-[#0a0c10]">
             <h2 className="font-semibold text-white">AI Assistant</h2>
-            <Button onClick={handleNewChat} variant="outline" size="sm" className="bg-slate-800 border-slate-700">
-              <Plus size={16} className="mr-2" /> New
-            </Button>
+            <div className="flex items-center gap-2">
+              <SaveToProject onSave={handleSaveConvToProject} disabled={!activeConvId} variant="outline" size="sm" className="bg-slate-800 border-slate-700 text-slate-300 h-8 text-xs">
+                Save to Project
+              </SaveToProject>
+              <Button onClick={handleNewChat} variant="outline" size="sm" className="bg-slate-800 border-slate-700">
+                <Plus size={16} className="mr-2" /> New
+              </Button>
+            </div>
+          </div>
+
+          {/* Desktop Header */}
+          <div className="hidden md:flex justify-end items-center p-3 border-b border-slate-800 bg-[#0a0c10]">
+            <SaveToProject onSave={handleSaveConvToProject} disabled={!activeConvId} variant="outline" className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700">
+              Save to Project
+            </SaveToProject>
           </div>
 
           <div 

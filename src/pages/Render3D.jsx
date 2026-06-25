@@ -10,6 +10,7 @@ import { createPageUrl } from '@/utils';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import PalladioGate from '@/components/PalladioGate';
+import SaveToProject from '@/components/SaveToProject';
 
 const PRESETS = [
   {
@@ -719,6 +720,12 @@ export default function Render3D() {
                 <RefreshCcw size={15} className="mr-2" />
                 Re-render
               </Button>
+              <SaveToProject
+                fileUrl={renderedImage}
+                fileName="palladio-render.jpg"
+                assetType="render"
+                className="flex-1 rounded-xl border-teal-600/50 text-teal-400 hover:bg-teal-500/10 hover:text-teal-300"
+              />
             </div>
             
             <div className="mt-4 p-4 rounded-xl border border-slate-700/50 bg-slate-800/20">

@@ -7,6 +7,7 @@ import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
 import AddressAutocomplete from '../components/AddressAutocomplete';
 import PalladioGate from '../components/PalladioGate';
+import SaveToProject from '../components/SaveToProject';
 import { toast } from 'sonner';
 
 export default function PalladioProperty() {
@@ -135,6 +136,13 @@ export default function PalladioProperty() {
                                 <AlertTriangle size={20} className="shrink-0 text-amber-500" />
                                 <p>{result.disclaimer || "Disclaimer: This information is AI-generated and for indicative purposes only. Always verify with the local council and a qualified town planner before making financial or development decisions."}</p>
                             </div>
+
+                            <SaveToProject
+                                textContent={`# Property Intelligence Report\n\n**Address:** ${address}\n\n## Overview\n${result.overview}\n\n## Zoning & Overlays\n${result.zoning}\n\n## Development Potential\n${result.development_potential}\n\n## Neighbourhood\n${result.neighbourhood}\n\n## Planning Trends\n${result.planning_trends}\n\n## Key Facts\n${(result.key_facts || []).map(f => `- **${f.label}:** ${f.value}`).join('\n')}\n\n---\n${result.disclaimer || ''}`}
+                                fileName="property-report.md"
+                                assetType="document"
+                                className="w-full border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/10 h-12 rounded-xl"
+                            />
                         </div>
                     )}
                 </div>

@@ -9,6 +9,7 @@ import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
 import AddressAutocomplete from '../components/AddressAutocomplete';
 import PalladioGate from '../components/PalladioGate';
+import SaveToProject from '../components/SaveToProject';
 import { toast } from 'sonner';
 
 const devTypes = [
@@ -472,6 +473,14 @@ Return a valid JSON object matching this structure:
                             </div>
                             <div className="md:col-span-2 bg-slate-800/50 p-4 rounded-xl text-xs text-slate-400 text-center">
                                 {result.disclaimer || "This report is AI-generated for informational purposes. Consult a professional town planner."}
+                            </div>
+                            <div className="md:col-span-2">
+                                <SaveToProject
+                                    textContent={`# Town Planning Assessment\n\n**Address:** ${address}\n**Development Type:** ${selectedType}\n**Description:** ${description}\n\n## Verdict: ${result.verdict}\n${result.verdict_reason}\n\n## Zoning Assessment\n${result.zoning_assessment}\n\n## Planning Controls\n${result.planning_controls}\n\n## Overlays\n${result.overlays}\n\n## Issues\n${(result.issues || []).map(i => `- ${i}`).join('\n')}\n\n## Neighbour Impact\n${result.neighbour_impact}\n\n## Application Requirements\n${result.application_requirements}\n\n## Recommendations\n${(result.recommendations || []).map(r => `- ${r}`).join('\n')}\n\n## Red Flags\n${(result.red_flags || []).map(r => `- ${r}`).join('\n')}\n\n---\n${result.disclaimer || ''}`}
+                                    fileName="planning-assessment.md"
+                                    assetType="document"
+                                    className="w-full border-rose-500/50 text-rose-300 hover:bg-rose-500/10 h-12 rounded-xl"
+                                />
                             </div>
                         </div>
                     )}

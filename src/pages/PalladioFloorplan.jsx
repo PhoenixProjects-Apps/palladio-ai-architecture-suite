@@ -9,6 +9,7 @@ import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
 import PalladioGate from '../components/PalladioGate';
 import Floorplan3DViewer from '../components/Floorplan3DViewer';
+import SaveToProject from '../components/SaveToProject';
 import { toast } from 'sonner';
 
 export default function PalladioFloorplan() {
@@ -179,12 +180,20 @@ export default function PalladioFloorplan() {
                                                 <img src={textResult.image} alt="Generated floorplan" className="w-full h-auto" />
                                             </div>
                                         )}
-                                        <Button 
-                                            onClick={() => setShow3DViewer(true)}
-                                            className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl shadow-lg shadow-cyan-500/20"
-                                        >
-                                            <Box size={18} className="mr-2" /> View in 3D
-                                        </Button>
+                                        <div className="flex gap-3">
+                                            <Button 
+                                                onClick={() => setShow3DViewer(true)}
+                                                className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl shadow-lg shadow-cyan-500/20"
+                                            >
+                                                <Box size={18} className="mr-2" /> View in 3D
+                                            </Button>
+                                            <SaveToProject
+                                                fileUrl={textResult.image}
+                                                fileName="floorplan.png"
+                                                assetType="plan"
+                                                className="flex-1 h-12 rounded-xl border-violet-500/50 text-violet-300 hover:bg-violet-500/10"
+                                            />
+                                        </div>
                                         <div className="bg-white/5 border border-white/10 rounded-2xl p-6 prose prose-invert max-w-none text-sm">
                                             <h3 className="text-violet-400 mt-0">Layout Brief</h3>
                                             <ReactMarkdown>{textResult.layout}</ReactMarkdown>
@@ -252,17 +261,25 @@ export default function PalladioFloorplan() {
                                         <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-lg p-4">
                                             <img src={sketchResult} alt="Generated Floorplan" className="w-full rounded-lg" />
                                         </div>
-                                        <a 
-                                            href={sketchResult} 
-                                            download="floorplan.png" 
-                                            target="_blank" 
-                                            rel="noreferrer"
-                                            className="block w-full"
-                                        >
-                                            <Button className="w-full bg-white text-black hover:bg-slate-200 h-12 rounded-xl">
-                                                <Download size={18} className="mr-2" /> Download Image
-                                            </Button>
-                                        </a>
+                                        <div className="flex gap-3">
+                                            <a 
+                                                href={sketchResult} 
+                                                download="floorplan.png" 
+                                                target="_blank" 
+                                                rel="noreferrer"
+                                                className="flex-1"
+                                            >
+                                                <Button className="w-full bg-white text-black hover:bg-slate-200 h-12 rounded-xl">
+                                                    <Download size={18} className="mr-2" /> Download
+                                                </Button>
+                                            </a>
+                                            <SaveToProject
+                                                fileUrl={sketchResult}
+                                                fileName="floorplan-sketch.png"
+                                                assetType="plan"
+                                                className="flex-1 h-12 rounded-xl border-violet-500/50 text-violet-300 hover:bg-violet-500/10"
+                                            />
+                                        </div>
                                     </div>
                                 ) : (
                                     <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-white/5 border border-white/10 rounded-3xl border-dashed">

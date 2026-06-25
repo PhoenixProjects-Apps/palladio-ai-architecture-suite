@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
 import PalladioGate from '@/components/PalladioGate';
+import SaveToProject from '@/components/SaveToProject';
 import { toast } from 'sonner';
 
 export default function PalladioAssess() {
@@ -230,13 +231,21 @@ If the document is clearly not an architectural plan, note that in the overview 
                                     <ReactMarkdown>{result}</ReactMarkdown>
                                 </div>
                             )}
-                            <Button 
-                                onClick={() => { setResult(null); setFile(null); setFileUrl(null); setPreviewUrl(null); }}
-                                variant="outline"
-                                className="w-full border-white/20 text-white hover:bg-white/10 py-6 rounded-xl text-lg font-medium"
-                            >
-                                Analyse Another Plan
-                            </Button>
+                            <div className="flex gap-3">
+                                <SaveToProject
+                                    textContent={typeof result === 'object' ? `# Plan Assessment: ${result.plan_type || ''}\n\n**Overall Score:** ${result.overall_score}/10\n\n## Overview\n${result.overview}\n\n## Spatial Analysis\n${result.spatial_analysis}\n\n## Design Observations\n${(result.design_observations || []).map(o => `- ${o}`).join('\n')}\n\n## Compliance Flags\n${(result.compliance_flags || []).map(f => `- ${f}`).join('\n')}\n\n## Recommendations\n${(result.recommendations || []).map(r => `- ${r}`).join('\n')}` : String(result)}
+                                    fileName="plan-assessment.md"
+                                    assetType="document"
+                                    className="flex-1 border-white/20 text-white hover:bg-white/10 py-6 rounded-xl text-lg font-medium"
+                                />
+                                <Button 
+                                    onClick={() => { setResult(null); setFile(null); setFileUrl(null); setPreviewUrl(null); }}
+                                    variant="outline"
+                                    className="flex-1 border-white/20 text-white hover:bg-white/10 py-6 rounded-xl text-lg font-medium"
+                                >
+                                    Analyse Another Plan
+                                </Button>
+                            </div>
                         </div>
                     )}
                 </div>
