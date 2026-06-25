@@ -11,7 +11,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'HI3D_API_KEY not configured' }, { status: 500 });
     }
 
-    const body = await req.json();
+    let body;
+    try {
+      body = await req.json();
+    } catch (e) {
+      console.error('Failed to parse request body:', e);
+      return Response.json({ error: 'Invalid request body - expected JSON with task_id' }, { status: 400 });
+    }
     console.log('Received body:', body);
     const task_id = body.task_id;
     if (!task_id) {
