@@ -13,56 +13,56 @@ import PalladioGate from '@/components/PalladioGate';
 import SaveToProject from '@/components/SaveToProject';
 
 const PRESETS = [
-  {
-    key: 'architecturalStyle', label: 'Architectural Style',
-    options: ['Modern', 'Minimalist', 'Industrial', 'Heritage', 'Contemporary', 'Scandinavian', 'Mid-Century', 'Victorian', 'Art Deco', 'Coastal']
-  },
-  {
-    key: 'wallMaterial', label: 'Wall Material',
-    options: [
-      'Red Brick', 'Exposed Concrete', 'Glass Curtain Wall', 'Timber / Wood Panel',
-      'Natural Stone', 'White Render / Stucco', 'Steel Cladding', 'Terracotta Panels',
-      'Limestone', 'Weathered Corten Steel'
-    ]
-  },
-  {
-    key: 'roofMaterial', label: 'Roof Material',
-    options: [
-      'Clay / Terracotta Tiles', 'Metal / Standing Seam', 'Green / Planted Roof',
-      'Flat White Concrete', 'Slate Tiles', 'Glass / Skylight', 'Asphalt Shingles', 'Copper Roof'
-    ]
-  },
-  {
-    key: 'timeOfDay', label: 'Time of Day',
-    options: [
-      'Golden Hour (Sunrise)', 'Bright Midday Sun', 'Warm Sunset / Dusk',
-      'Blue Hour (Night)', 'Overcast / Soft Diffuse', 'Dramatic Storm Light'
-    ]
-  },
-  {
-    key: 'background', label: 'Background',
-    options: [
-      'Urban Cityscape', 'Suburban Neighbourhood', 'Rural Countryside',
-      'Mountain Landscape', 'Coastal / Waterfront', 'Open Sky (Minimal)',
-      'Lush Garden / Park', 'Desert Landscape', 'Snowy Winter Scene'
-    ]
-  },
-];
+{
+  key: 'architecturalStyle', label: 'Architectural Style',
+  options: ['Modern', 'Minimalist', 'Industrial', 'Heritage', 'Contemporary', 'Scandinavian', 'Mid-Century', 'Victorian', 'Art Deco', 'Coastal']
+},
+{
+  key: 'wallMaterial', label: 'Wall Material',
+  options: [
+  'Red Brick', 'Exposed Concrete', 'Glass Curtain Wall', 'Timber / Wood Panel',
+  'Natural Stone', 'White Render / Stucco', 'Steel Cladding', 'Terracotta Panels',
+  'Limestone', 'Weathered Corten Steel']
+
+},
+{
+  key: 'roofMaterial', label: 'Roof Material',
+  options: [
+  'Clay / Terracotta Tiles', 'Metal / Standing Seam', 'Green / Planted Roof',
+  'Flat White Concrete', 'Slate Tiles', 'Glass / Skylight', 'Asphalt Shingles', 'Copper Roof']
+
+},
+{
+  key: 'timeOfDay', label: 'Time of Day',
+  options: [
+  'Golden Hour (Sunrise)', 'Bright Midday Sun', 'Warm Sunset / Dusk',
+  'Blue Hour (Night)', 'Overcast / Soft Diffuse', 'Dramatic Storm Light']
+
+},
+{
+  key: 'background', label: 'Background',
+  options: [
+  'Urban Cityscape', 'Suburban Neighbourhood', 'Rural Countryside',
+  'Mountain Landscape', 'Coastal / Waterfront', 'Open Sky (Minimal)',
+  'Lush Garden / Park', 'Desert Landscape', 'Snowy Winter Scene']
+
+}];
+
 
 const ADVANCED_PRESETS = [
-  {
-    key: 'cameraAngle', label: 'Camera Angle',
-    options: ['Eye Level', "Low Angle (Worm's Eye)", 'High Angle', "Bird's Eye", 'Aerial View', 'Drone Shot']
-  },
-  {
-    key: 'lightingStyle', label: 'Lighting Style',
-    options: ['Natural Light', 'Studio Lighting', 'Dramatic Shadows', 'Soft Ambient', 'Cinematic Lighting', 'High Contrast', 'Neon / Cyberpunk']
-  },
-  {
-    key: 'mood', label: 'Mood / Atmosphere',
-    options: ['Serene & Calm', 'Vibrant & Lively', 'Futuristic & Sci-Fi', 'Dark & Moody', 'Ethereal & Dreamy', 'Warm & Inviting']
-  }
-];
+{
+  key: 'cameraAngle', label: 'Camera Angle',
+  options: ['Eye Level', "Low Angle (Worm's Eye)", 'High Angle', "Bird's Eye", 'Aerial View', 'Drone Shot']
+},
+{
+  key: 'lightingStyle', label: 'Lighting Style',
+  options: ['Natural Light', 'Studio Lighting', 'Dramatic Shadows', 'Soft Ambient', 'Cinematic Lighting', 'High Contrast', 'Neon / Cyberpunk']
+},
+{
+  key: 'mood', label: 'Mood / Atmosphere',
+  options: ['Serene & Calm', 'Vibrant & Lively', 'Futuristic & Sci-Fi', 'Dark & Moody', 'Ethereal & Dreamy', 'Warm & Inviting']
+}];
+
 
 export default function Render3D() {
   const [file, setFile] = useState(null);
@@ -138,57 +138,57 @@ export default function Render3D() {
   }, [magicEditMode]);
 
   const getCoordinates = (e) => {
-      if (!canvasRef.current) return { offsetX: 0, offsetY: 0 };
-      const rect = canvasRef.current.getBoundingClientRect();
-      const scaleX = canvasRef.current.width / rect.width;
-      const scaleY = canvasRef.current.height / rect.height;
-      
-      let clientX, clientY;
-      if (e.touches && e.touches.length > 0) {
-          clientX = e.touches[0].clientX;
-          clientY = e.touches[0].clientY;
-      } else {
-          clientX = e.clientX;
-          clientY = e.clientY;
-      }
+    if (!canvasRef.current) return { offsetX: 0, offsetY: 0 };
+    const rect = canvasRef.current.getBoundingClientRect();
+    const scaleX = canvasRef.current.width / rect.width;
+    const scaleY = canvasRef.current.height / rect.height;
 
-      return {
-          offsetX: (clientX - rect.left) * scaleX,
-          offsetY: (clientY - rect.top) * scaleY
-      };
+    let clientX, clientY;
+    if (e.touches && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+
+    return {
+      offsetX: (clientX - rect.left) * scaleX,
+      offsetY: (clientY - rect.top) * scaleY
+    };
   };
 
   const startDrawing = (e) => {
-      const { offsetX, offsetY } = getCoordinates(e);
-      const ctx = canvasRef.current.getContext('2d');
-      ctx.beginPath();
-      ctx.moveTo(offsetX, offsetY);
-      setIsDrawing(true);
+    const { offsetX, offsetY } = getCoordinates(e);
+    const ctx = canvasRef.current.getContext('2d');
+    ctx.beginPath();
+    ctx.moveTo(offsetX, offsetY);
+    setIsDrawing(true);
   };
 
   const draw = (e) => {
-      if (!isDrawing) return;
-      if (e.cancelable) e.preventDefault(); // Prevent scrolling on touch devices while drawing
-      const { offsetX, offsetY } = getCoordinates(e);
-      const ctx = canvasRef.current.getContext('2d');
-      ctx.lineTo(offsetX, offsetY);
-      ctx.strokeStyle = 'rgba(234, 179, 8, 0.6)'; // Amber with opacity
-      ctx.lineWidth = brushSize;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.stroke();
-      setHasDrawn(true);
+    if (!isDrawing) return;
+    if (e.cancelable) e.preventDefault(); // Prevent scrolling on touch devices while drawing
+    const { offsetX, offsetY } = getCoordinates(e);
+    const ctx = canvasRef.current.getContext('2d');
+    ctx.lineTo(offsetX, offsetY);
+    ctx.strokeStyle = 'rgba(234, 179, 8, 0.6)'; // Amber with opacity
+    ctx.lineWidth = brushSize;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+    setHasDrawn(true);
   };
 
   const stopDrawing = () => {
-      setIsDrawing(false);
+    setIsDrawing(false);
   };
 
   const clearCanvas = () => {
-      if (!canvasRef.current) return;
-      const ctx = canvasRef.current.getContext('2d');
-      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-      setHasDrawn(false);
+    if (!canvasRef.current) return;
+    const ctx = canvasRef.current.getContext('2d');
+    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    setHasDrawn(false);
   };
 
   const handleCaptureScreen = async (e) => {
@@ -203,24 +203,24 @@ export default function Render3D() {
           resolve();
         };
       });
-      
-      await new Promise(resolve => setTimeout(resolve, 300));
+
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
       const canvas = document.createElement('canvas');
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
-      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
-      stream.getTracks().forEach(track => track.stop());
+
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.9));
+      stream.getTracks().forEach((track) => track.stop());
 
       if (blob) {
         const capturedFile = new File([blob], 'screenshot.jpg', { type: 'image/jpeg' });
         setFile(capturedFile);
         setRenderedImage(null);
         setPreviewUrl(URL.createObjectURL(capturedFile));
-        
+
         setIsUploading(true);
         try {
           const { file_url } = await base44.integrations.Core.UploadFile({ file: capturedFile });
@@ -302,32 +302,32 @@ export default function Render3D() {
     const typeText = type === 'interior' ? 'interior' : 'exterior';
 
     const lines = [
-      `This is a strict image-to-image texture mapping task for an architectural ${typeText}.`,
-      'CRITICAL REQUIREMENT: You MUST maintain the EXACT 3D structure, lines, perspective, and geometry of the uploaded reference image.',
-      'DO NOT hallucinate, add, move, or remove any walls, floors, stairs, doors, windows, or structural elements.',
-      'Your ONLY job is to colorize and apply photorealistic materials, lighting, and textures to the existing surfaces in the provided drawing.',
-      presets.architecturalStyle ? `Architectural style/aesthetic: ${presets.architecturalStyle}.` : '',
-      presets.wallMaterial ? `Wall/Surface material: ${presets.wallMaterial}.` : '',
-      presets.roofMaterial && type === 'exterior' ? `Roof material: ${presets.roofMaterial}.` : '',
-      presets.timeOfDay ? `Lighting / time of day: ${presets.timeOfDay}.` : '',
-      presets.background && type === 'exterior' ? `Environment and background: ${presets.background}.` : '',
-      presets.cameraAngle ? `Camera angle: ${presets.cameraAngle}.` : '',
-      presets.lightingStyle ? `Lighting style: ${presets.lightingStyle}.` : '',
-      presets.mood ? `Mood/Atmosphere: ${presets.mood}.` : '',
-      'Again: DO NOT change the underlying drawing or architecture. Just apply realistic textures, shadows, and lighting directly over the existing lines.',
-      'Professional architectural visualisation quality. High detail, photorealistic.',
-      prompt ? `Additional instructions: ${prompt}` : '',
-      styleFileUrl ? 'CRITICAL INSTRUCTION: Match the aesthetic, colors, materials, style, and overall mood of the provided style reference image.' : ''
-    ].filter(Boolean);
+    `This is a strict image-to-image texture mapping task for an architectural ${typeText}.`,
+    'CRITICAL REQUIREMENT: You MUST maintain the EXACT 3D structure, lines, perspective, and geometry of the uploaded reference image.',
+    'DO NOT hallucinate, add, move, or remove any walls, floors, stairs, doors, windows, or structural elements.',
+    'Your ONLY job is to colorize and apply photorealistic materials, lighting, and textures to the existing surfaces in the provided drawing.',
+    presets.architecturalStyle ? `Architectural style/aesthetic: ${presets.architecturalStyle}.` : '',
+    presets.wallMaterial ? `Wall/Surface material: ${presets.wallMaterial}.` : '',
+    presets.roofMaterial && type === 'exterior' ? `Roof material: ${presets.roofMaterial}.` : '',
+    presets.timeOfDay ? `Lighting / time of day: ${presets.timeOfDay}.` : '',
+    presets.background && type === 'exterior' ? `Environment and background: ${presets.background}.` : '',
+    presets.cameraAngle ? `Camera angle: ${presets.cameraAngle}.` : '',
+    presets.lightingStyle ? `Lighting style: ${presets.lightingStyle}.` : '',
+    presets.mood ? `Mood/Atmosphere: ${presets.mood}.` : '',
+    'Again: DO NOT change the underlying drawing or architecture. Just apply realistic textures, shadows, and lighting directly over the existing lines.',
+    'Professional architectural visualisation quality. High detail, photorealistic.',
+    prompt ? `Additional instructions: ${prompt}` : '',
+    styleFileUrl ? 'CRITICAL INSTRUCTION: Match the aesthetic, colors, materials, style, and overall mood of the provided style reference image.' : ''].
+    filter(Boolean);
 
     const constructedPrompt = lines.join('\n');
     const isImage = file?.type?.startsWith('image/');
     const params = { prompt: constructedPrompt };
-    
+
     const imageUrls = [];
     if (isImage && fileUrl) imageUrls.push(fileUrl);
     if (styleFileUrl) imageUrls.push(styleFileUrl);
-    
+
     if (imageUrls.length > 0) {
       params.existing_image_urls = imageUrls;
     }
@@ -353,7 +353,7 @@ export default function Render3D() {
     try {
       let maskUrl = null;
       if (hasDrawn && canvasRef.current) {
-        const blob = await new Promise(resolve => canvasRef.current.toBlob(resolve, 'image/png'));
+        const blob = await new Promise((resolve) => canvasRef.current.toBlob(resolve, 'image/png'));
         if (blob) {
           const file = new File([blob], 'mask.png', { type: 'image/png' });
           const uploadRes = await base44.integrations.Core.UploadFile({ file });
@@ -368,7 +368,7 @@ export default function Render3D() {
         prompt: `MAGIC EDIT EXACTLY AS REQUESTED: ${magicEditPrompt}. KEEP THE REST OF THE IMAGE EXACTLY THE SAME. ${maskUrl ? 'The second image is a mask highlighting the specific area to change.' : ''} PHOTOREALISTIC ARCHITECTURAL RENDER.`,
         existing_image_urls: imageUrls
       };
-      
+
       const result = await base44.integrations.Core.GenerateImage(params);
       setRenderedImage(result.url);
       setHasDrawn(false);
@@ -392,18 +392,18 @@ export default function Render3D() {
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a14' }}>
       {/* Header */}
       <div style={{
-        display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px',
-        position: 'sticky', top: 0, zIndex: 10,
-        backgroundColor: '#0a0a14', borderBottom: '1px solid #1e293b'
-      }}>
+          display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px',
+          position: 'sticky', top: 0, zIndex: 10,
+          backgroundColor: '#0a0a14', borderBottom: '1px solid #1e293b'
+        }}>
         <Link to={createPageUrl('Home')}>
           <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl">
             <ArrowLeft size={20} />
           </Button>
         </Link>
         <div>
-          <h1 className="text-white font-semibold text-base">3D Architectural Renderer</h1>
-          <p style={{ color: '#14b8a6', fontSize: '12px' }}>AI-Powered Photorealistic Visualisation</p>
+          <h1 className="text-white font-semibold text-xl">3D Architectural Renderer</h1>
+          <p style={{ color: '#14b8a6', fontSize: '12px' }} className="text-lg">AI-Powered Photorealistic Visualisation</p>
         </div>
       </div>
 
@@ -414,38 +414,38 @@ export default function Render3D() {
           <div>
             <div className="flex flex-wrap justify-between items-center mb-3">
               <h2 className="text-white text-sm font-semibold">1. 3D Building View</h2>
-              <button 
-                onClick={handleCaptureScreen}
-                className="flex items-center text-[10px] font-medium text-teal-400 hover:text-teal-300 bg-teal-400/10 hover:bg-teal-400/20 px-2 py-1 rounded transition-colors"
-              >
+              <button
+                  onClick={handleCaptureScreen}
+                  className="flex items-center text-[10px] font-medium text-teal-400 hover:text-teal-300 bg-teal-400/10 hover:bg-teal-400/20 px-2 py-1 rounded transition-colors">
+                  
                 <Monitor size={12} className="mr-1" /> Screenshot
               </button>
             </div>
             <div
-              onClick={() => fileInputRef.current?.click()}
-              className="rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col justify-center items-center h-[200px]"
-              style={{
-                border: `2px dashed ${fileUrl ? '#14b8a6' : '#334155'}`,
-                backgroundColor: '#0f172a'
-              }}
-            >
-              {isUploading ? (
+                onClick={() => fileInputRef.current?.click()}
+                className="rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col justify-center items-center h-[200px]"
+                style={{
+                  border: `2px dashed ${fileUrl ? '#14b8a6' : '#334155'}`,
+                  backgroundColor: '#0f172a'
+                }}>
+                
+              {isUploading ?
                 <div className="flex flex-col items-center gap-2">
                   <Loader2 size={24} className="animate-spin" style={{ color: '#14b8a6' }} />
                   <p className="text-gray-400 text-xs">Uploading...</p>
-                </div>
-              ) : previewUrl ? (
+                </div> :
+                previewUrl ?
                 <img
                   src={previewUrl}
                   alt="3D view preview"
-                  className="mx-auto rounded-xl object-contain h-full w-full"
-                />
-              ) : file && !previewUrl ? (
+                  className="mx-auto rounded-xl object-contain h-full w-full" /> :
+
+                file && !previewUrl ?
                 <div className="flex flex-col items-center gap-2">
                   <FileText size={24} style={{ color: '#14b8a6' }} />
                   <p className="text-white text-xs font-medium truncate w-full px-2">{file.name}</p>
-                </div>
-              ) : (
+                </div> :
+
                 <div className="flex flex-col items-center gap-2">
                   <Upload size={24} style={{ color: '#475569' }} />
                   <div>
@@ -453,50 +453,50 @@ export default function Render3D() {
                     <p className="text-gray-500 text-[10px] mt-1">Image or PDF</p>
                   </div>
                 </div>
-              )}
+                }
               <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*,.pdf"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={handleFileSelect}
+                  className="hidden" />
+                
             </div>
-            {fileUrl && !isUploading && (
+            {fileUrl && !isUploading &&
               <div className="flex items-center gap-1 mt-2">
                 <CheckCircle size={12} style={{ color: '#14b8a6' }} />
                 <span className="text-[10px]" style={{ color: '#14b8a6' }}>Main view ready</span>
               </div>
-            )}
+              }
           </div>
 
           <div>
             <h2 className="text-white text-sm font-semibold mb-3">2. Style Reference (Opt)</h2>
             <div
-              onClick={() => styleInputRef.current?.click()}
-              className="rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col justify-center items-center h-[200px]"
-              style={{
-                border: `2px dashed ${styleFileUrl ? '#14b8a6' : '#334155'}`,
-                backgroundColor: '#0f172a'
-              }}
-            >
-              {isUploadingStyle ? (
+                onClick={() => styleInputRef.current?.click()}
+                className="rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col justify-center items-center h-[200px]"
+                style={{
+                  border: `2px dashed ${styleFileUrl ? '#14b8a6' : '#334155'}`,
+                  backgroundColor: '#0f172a'
+                }}>
+                
+              {isUploadingStyle ?
                 <div className="flex flex-col items-center gap-2">
                   <Loader2 size={24} className="animate-spin" style={{ color: '#14b8a6' }} />
                   <p className="text-gray-400 text-xs">Uploading...</p>
-                </div>
-              ) : stylePreviewUrl ? (
+                </div> :
+                stylePreviewUrl ?
                 <img
                   src={stylePreviewUrl}
                   alt="Style preview"
-                  className="mx-auto rounded-xl object-contain h-full w-full"
-                />
-              ) : styleFile && !stylePreviewUrl ? (
+                  className="mx-auto rounded-xl object-contain h-full w-full" /> :
+
+                styleFile && !stylePreviewUrl ?
                 <div className="flex flex-col items-center gap-2">
                   <FileText size={24} style={{ color: '#14b8a6' }} />
                   <p className="text-white text-xs font-medium truncate w-full px-2">{styleFile.name}</p>
-                </div>
-              ) : (
+                </div> :
+
                 <div className="flex flex-col items-center gap-2">
                   <Upload size={24} style={{ color: '#475569' }} />
                   <div>
@@ -504,21 +504,21 @@ export default function Render3D() {
                     <p className="text-gray-500 text-[10px] mt-1">Image (e.g. materials)</p>
                   </div>
                 </div>
-              )}
+                }
               <input
-                ref={styleInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleStyleSelect}
-                className="hidden"
-              />
+                  ref={styleInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleStyleSelect}
+                  className="hidden" />
+                
             </div>
-            {styleFileUrl && !isUploadingStyle && (
+            {styleFileUrl && !isUploadingStyle &&
               <div className="flex items-center gap-1 mt-2">
                 <CheckCircle size={12} style={{ color: '#14b8a6' }} />
                 <span className="text-[10px]" style={{ color: '#14b8a6' }}>Style applied</span>
               </div>
-            )}
+              }
           </div>
         </div>
 
@@ -526,74 +526,74 @@ export default function Render3D() {
         <div>
           <div className="flex justify-between items-center mb-3">
             <h2 className="text-white text-sm font-semibold">Rendering Presets</h2>
-            {savedPresetsList.length > 0 && (
-              <Select onValueChange={(id) => applyPreset(savedPresetsList.find(p => p.id === id))}>
+            {savedPresetsList.length > 0 &&
+              <Select onValueChange={(id) => applyPreset(savedPresetsList.find((p) => p.id === id))}>
                 <SelectTrigger className="bg-slate-900 border-slate-700 text-white text-xs h-8 w-[160px]">
                   <Bookmark size={14} className="mr-2 text-teal-400" />
                   <SelectValue placeholder="Load preset..." />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-900 border-slate-700">
-                  {savedPresetsList.map(p => (
-                    <SelectItem key={p.id} value={p.id} className="text-white text-xs cursor-pointer">
+                  {savedPresetsList.map((p) =>
+                  <SelectItem key={p.id} value={p.id} className="text-white text-xs cursor-pointer">
                       {p.name}
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
-            )}
+              }
           </div>
 
           <div className="grid grid-cols-2 gap-3 mb-4">
-            {PRESETS.map(({ key, label, options }) => (
+            {PRESETS.map(({ key, label, options }) =>
               <div key={key}>
                 <label className="block text-xs mb-1.5" style={{ color: '#94a3b8' }}>{label}</label>
-                <Select value={presets[key] || ''} onValueChange={(val) => setPresets(p => ({ ...p, [key]: val }))}>
+                <Select value={presets[key] || ''} onValueChange={(val) => setPresets((p) => ({ ...p, [key]: val }))}>
                   <SelectTrigger className="bg-slate-900 border-slate-700 text-white text-xs h-9 rounded-xl">
                     <SelectValue placeholder="Select..." />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-slate-700">
-                    {options.map(opt => (
-                      <SelectItem key={opt} value={opt} className="text-white text-xs focus:bg-slate-800 focus:text-white cursor-pointer">
+                    {options.map((opt) =>
+                    <SelectItem key={opt} value={opt} className="text-white text-xs focus:bg-slate-800 focus:text-white cursor-pointer">
                         {opt}
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
               </div>
-            ))}
+              )}
           </div>
 
           <div className="mb-4">
             <Button
-              variant="ghost"
-              onClick={() => setShowAdvanced(!showAdvanced)}
-              className="w-full text-xs text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl justify-between h-9"
-            >
+                variant="ghost"
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                className="w-full text-xs text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl justify-between h-9">
+                
               <span>Advanced Options</span>
               {showAdvanced ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </Button>
             
-            {showAdvanced && (
+            {showAdvanced &&
               <div className="grid grid-cols-2 gap-3 mt-3 p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
-                {ADVANCED_PRESETS.map(({ key, label, options }) => (
-                  <div key={key}>
+                {ADVANCED_PRESETS.map(({ key, label, options }) =>
+                <div key={key}>
                     <label className="block text-xs mb-1.5" style={{ color: '#94a3b8' }}>{label}</label>
-                    <Select value={presets[key] || ''} onValueChange={(val) => setPresets(p => ({ ...p, [key]: val }))}>
+                    <Select value={presets[key] || ''} onValueChange={(val) => setPresets((p) => ({ ...p, [key]: val }))}>
                       <SelectTrigger className="bg-slate-900 border-slate-700 text-white text-xs h-9 rounded-xl">
                         <SelectValue placeholder="Select..." />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-900 border-slate-700">
-                        {options.map(opt => (
-                          <SelectItem key={opt} value={opt} className="text-white text-xs focus:bg-slate-800 focus:text-white cursor-pointer">
+                        {options.map((opt) =>
+                      <SelectItem key={opt} value={opt} className="text-white text-xs focus:bg-slate-800 focus:text-white cursor-pointer">
                             {opt}
                           </SelectItem>
-                        ))}
+                      )}
                       </SelectContent>
                     </Select>
                   </div>
-                ))}
+                )}
               </div>
-            )}
+              }
           </div>
         </div>
 
@@ -601,25 +601,25 @@ export default function Render3D() {
         <div>
           <h2 className="text-white text-sm font-semibold mb-3">AI Instructions</h2>
           <Textarea
-            value={prompt}
-            onChange={e => setPrompt(e.target.value)}
-            placeholder="E.g. 'Add lush landscaping and people walking, a water feature at the entrance. Use warm Mediterranean tones with olive trees lining the path...'"
-            className="bg-slate-900 border-slate-700 text-white placeholder:text-slate-600 text-sm rounded-xl min-h-[110px] resize-none mb-3"
-          />
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="E.g. 'Add lush landscaping and people walking, a water feature at the entrance. Use warm Mediterranean tones with olive trees lining the path...'"
+              className="bg-slate-900 border-slate-700 text-white placeholder:text-slate-600 text-sm rounded-xl min-h-[110px] resize-none mb-3" />
+            
           
           <div className="flex gap-2">
-            <Input 
-              placeholder="Preset name (e.g. My Custom Villa)" 
-              value={presetName}
-              onChange={e => setPresetName(e.target.value)}
-              className="bg-slate-900 border-slate-700 text-white text-xs h-9 rounded-xl"
-            />
-            <Button 
-              onClick={handleSavePreset} 
-              disabled={isSavingPreset || !presetName.trim()}
-              variant="outline"
-              className="h-9 text-xs rounded-xl border-slate-700 text-slate-300 hover:text-white shrink-0"
-            >
+            <Input
+                placeholder="Preset name (e.g. My Custom Villa)"
+                value={presetName}
+                onChange={(e) => setPresetName(e.target.value)}
+                className="bg-slate-900 border-slate-700 text-white text-xs h-9 rounded-xl" />
+              
+            <Button
+                onClick={handleSavePreset}
+                disabled={isSavingPreset || !presetName.trim()}
+                variant="outline"
+                className="h-9 text-xs rounded-xl border-slate-700 text-slate-300 hover:text-white shrink-0">
+                
               {isSavingPreset ? <Loader2 size={14} className="animate-spin mr-2" /> : <Save size={14} className="mr-2" />}
               Save Preset
             </Button>
@@ -629,74 +629,74 @@ export default function Render3D() {
         {/* Render Buttons */}
         <div className="flex flex-col sm:flex-row gap-3">
           <Button
-            onClick={() => handleRender('exterior')}
-            disabled={!fileUrl || isRendering}
-            className="sm:flex-1 py-6 text-base font-semibold rounded-xl disabled:opacity-40"
-            style={{ backgroundColor: '#14b8a6', color: 'white' }}
-          >
-            {isRendering && currentRenderType === 'exterior' ? (
+              onClick={() => handleRender('exterior')}
+              disabled={!fileUrl || isRendering}
+              className="sm:flex-1 py-6 text-base font-semibold rounded-xl disabled:opacity-40"
+              style={{ backgroundColor: '#14b8a6', color: 'white' }}>
+              
+            {isRendering && currentRenderType === 'exterior' ?
               <>
                 <Loader2 size={20} className="animate-spin mr-2" />
                 Generating...
-              </>
-            ) : (
+              </> :
+
               <>
                 <Wand2 size={20} className="mr-2" />
                 Exterior Render
               </>
-            )}
+              }
           </Button>
           <Button
-            onClick={() => handleRender('interior')}
-            disabled={!fileUrl || isRendering}
-            className="sm:flex-1 py-6 text-base font-semibold rounded-xl disabled:opacity-40"
-            style={{ backgroundColor: '#8b5cf6', color: 'white' }}
-          >
-            {isRendering && currentRenderType === 'interior' ? (
+              onClick={() => handleRender('interior')}
+              disabled={!fileUrl || isRendering}
+              className="sm:flex-1 py-6 text-base font-semibold rounded-xl disabled:opacity-40"
+              style={{ backgroundColor: '#8b5cf6', color: 'white' }}>
+              
+            {isRendering && currentRenderType === 'interior' ?
               <>
                 <Loader2 size={20} className="animate-spin mr-2" />
                 Generating...
-              </>
-            ) : (
+              </> :
+
               <>
                 <Wand2 size={20} className="mr-2" />
                 Interior Render
               </>
-            )}
+              }
           </Button>
         </div>
 
         {/* Result */}
-        {renderedImage && (
+        {renderedImage &&
           <div>
             <h2 className="text-white text-sm font-semibold mb-3">Your Rendered Design</h2>
             <div className="rounded-2xl overflow-hidden mb-3 relative" style={{ border: '1px solid rgba(20,184,166,0.35)' }}>
-              <img 
-                ref={imageRef} 
-                src={renderedImage} 
-                alt="AI Architectural Render" 
-                className="w-full block" 
+              <img
+                ref={imageRef}
+                src={renderedImage}
+                alt="AI Architectural Render"
+                className="w-full block"
                 onLoad={() => {
                   if (magicEditMode && canvasRef.current && imageRef.current) {
                     canvasRef.current.width = imageRef.current.clientWidth;
                     canvasRef.current.height = imageRef.current.clientHeight;
                   }
-                }}
-              />
-              {magicEditMode && (
-                <canvas
-                  ref={canvasRef}
-                  onMouseDown={startDrawing}
-                  onMouseMove={draw}
-                  onMouseUp={stopDrawing}
-                  onMouseLeave={stopDrawing}
-                  onTouchStart={startDrawing}
-                  onTouchMove={draw}
-                  onTouchEnd={stopDrawing}
-                  className="absolute top-0 left-0 w-full h-full cursor-crosshair"
-                  style={{ touchAction: 'none' }}
-                />
-              )}
+                }} />
+              
+              {magicEditMode &&
+              <canvas
+                ref={canvasRef}
+                onMouseDown={startDrawing}
+                onMouseMove={draw}
+                onMouseUp={stopDrawing}
+                onMouseLeave={stopDrawing}
+                onTouchStart={startDrawing}
+                onTouchMove={draw}
+                onTouchEnd={stopDrawing}
+                className="absolute top-0 left-0 w-full h-full cursor-crosshair"
+                style={{ touchAction: 'none' }} />
+
+              }
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
               <a
@@ -705,8 +705,8 @@ export default function Render3D() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="sm:flex-1"
-                style={{ textDecoration: 'none' }}
-              >
+                style={{ textDecoration: 'none' }}>
+                
                 <Button variant="outline" className="w-full rounded-xl border-teal-600/50 text-teal-400 hover:bg-teal-500/10 hover:text-teal-300">
                   <Download size={15} className="mr-2" />
                   Download
@@ -715,8 +715,8 @@ export default function Render3D() {
               <Button
                 onClick={() => handleRender(currentRenderType || 'exterior')}
                 variant="outline"
-                className="sm:flex-1 rounded-xl border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white"
-              >
+                className="sm:flex-1 rounded-xl border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white">
+                
                 <RefreshCcw size={15} className="mr-2" />
                 Re-render
               </Button>
@@ -724,71 +724,71 @@ export default function Render3D() {
                 fileUrl={renderedImage}
                 fileName="palladio-render.jpg"
                 assetType="render"
-                className="sm:flex-1 rounded-xl border-teal-600/50 text-teal-400 hover:bg-teal-500/10 hover:text-teal-300"
-              />
+                className="sm:flex-1 rounded-xl border-teal-600/50 text-teal-400 hover:bg-teal-500/10 hover:text-teal-300" />
+              
             </div>
             
             <div className="mt-4 p-4 rounded-xl border border-slate-700/50 bg-slate-800/20">
               <Button
                 variant="ghost"
                 onClick={() => setMagicEditMode(!magicEditMode)}
-                className="w-full justify-start h-auto p-0 hover:bg-transparent text-indigo-400 hover:text-indigo-300"
-              >
+                className="w-full justify-start h-auto p-0 hover:bg-transparent text-indigo-400 hover:text-indigo-300">
+                
                 <Brush size={16} className="mr-2" />
                 <span className="font-medium text-sm">Magic Edit</span>
                 {magicEditMode ? <ChevronUp size={14} className="ml-auto" /> : <ChevronDown size={14} className="ml-auto" />}
               </Button>
 
-              {magicEditMode && (
-                <div className="mt-4 space-y-3">
+              {magicEditMode &&
+              <div className="mt-4 space-y-3">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-xs text-amber-400 font-medium flex items-center gap-1.5">
                       <Brush size={14} /> Draw over the image to highlight areas
                     </p>
-                    {hasDrawn && (
-                      <button onClick={clearCanvas} className="text-xs text-slate-400 hover:text-red-400 transition-colors">
+                    {hasDrawn &&
+                  <button onClick={clearCanvas} className="text-xs text-slate-400 hover:text-red-400 transition-colors">
                         Clear Brush
                       </button>
-                    )}
+                  }
                   </div>
                   
                   <div className="flex items-center gap-3 mb-2">
                     <span className="text-xs text-slate-400">Brush Size:</span>
-                    <input 
-                      type="range" 
-                      min="10" 
-                      max="100" 
-                      value={brushSize} 
-                      onChange={(e) => setBrushSize(parseInt(e.target.value))}
-                      className="flex-1 accent-amber-500"
-                    />
+                    <input
+                    type="range"
+                    min="10"
+                    max="100"
+                    value={brushSize}
+                    onChange={(e) => setBrushSize(parseInt(e.target.value))}
+                    className="flex-1 accent-amber-500" />
+                  
                   </div>
 
                   <p className="text-xs text-slate-400 mt-2">Describe what you want to change in the highlighted area.</p>
                   <Textarea
-                    value={magicEditPrompt}
-                    onChange={e => setMagicEditPrompt(e.target.value)}
-                    placeholder="E.g. 'Make the sky darker', 'Change the wood siding to brick', 'Add a person walking on the sidewalk'"
-                    className="bg-slate-900 border-slate-700 text-white text-sm rounded-xl min-h-[80px] resize-none"
-                  />
-                  <Button 
-                    onClick={handleMagicEdit}
-                    disabled={isEditing || !magicEditPrompt.trim()}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl h-10"
-                  >
-                    {isEditing ? (
-                      <><Loader2 size={16} className="animate-spin mr-2" /> Editing...</>
-                    ) : (
-                      <><Wand2 size={16} className="mr-2" /> Apply Magic Edit</>
-                    )}
+                  value={magicEditPrompt}
+                  onChange={(e) => setMagicEditPrompt(e.target.value)}
+                  placeholder="E.g. 'Make the sky darker', 'Change the wood siding to brick', 'Add a person walking on the sidewalk'"
+                  className="bg-slate-900 border-slate-700 text-white text-sm rounded-xl min-h-[80px] resize-none" />
+                
+                  <Button
+                  onClick={handleMagicEdit}
+                  disabled={isEditing || !magicEditPrompt.trim()}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl h-10">
+                  
+                    {isEditing ?
+                  <><Loader2 size={16} className="animate-spin mr-2" /> Editing...</> :
+
+                  <><Wand2 size={16} className="mr-2" /> Apply Magic Edit</>
+                  }
                   </Button>
                 </div>
-              )}
+              }
             </div>
           </div>
-        )}
+          }
       </div>
     </div>
-    </PalladioGate>
-  );
+    </PalladioGate>);
+
 }
