@@ -9,35 +9,46 @@ export default function PalladioGate({ children }) {
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [hasTokens, setHasTokens] = useState(false);
-    const [sessionExpired, setSessionExpired] = useState(false);
 
     useEffect(() => {
+        let isMounted = true;
+
         const checkAccess = async () => {
             try {
                 const user = await base44.auth.me();
                 if (!user) {
-                    setIsAuthenticated(false);
-                    setLoading(false);
+                    if (isMounted) {
+                        setIsAuthenticated(false);
+                        setLoading(false);
+                    }
                     return;
                 }
-                setIsAuthenticated(true);
-                if (user.role === 'admin') {
-                    setHasTokens(true);
+                if (isMounted) {
+                    setIsAuthenticated(true);
+                    if (user.role === 'admin') {
+                        setHasTokens(true);
+                        setLoading(false);
+                        return;
+                    }
+                    const freshUser = await base44.entities.User.get(user.id);
+                    const tokens = freshUser?.tokens !== undefined ? freshUser.tokens : 5;
+                    setHasTokens(tokens > 0);
                     setLoading(false);
-                    return;
                 }
-                const freshUser = await base44.entities.User.get(user.id);
-                const tokens = freshUser?.tokens !== undefined ? freshUser.tokens : 5;
-                setHasTokens(tokens > 0);
-                setLoading(false);
             } catch (e) {
                 console.error('Auth check failed:', e);
-                setIsAuthenticated(false);
-                setSessionExpired(true);
-                setLoading(false);
+                if (isMounted) {
+                    setIsAuthenticated(false);
+                    setLoading(false);
+                }
             }
         };
+        
         checkAccess();
+        
+        return () => {
+            isMounted = false;
+        };
     }, []);
 
     if (loading) return <div className="fixed inset-0 flex items-center justify-center bg-[#0f1117]"><Loader2 className="animate-spin text-cyan-500" size={32} /></div>;
@@ -48,8 +59,8 @@ export default function PalladioGate({ children }) {
                 <div className="w-16 h-16 rounded-2xl bg-slate-800 flex items-center justify-center mb-6">
                     <LogIn size={32} className="text-cyan-400" />
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-2">{sessionExpired ? 'Session Expired' : 'Sign in to continue'}</h2>
-                <p className="text-slate-400 max-w-md mb-8">{sessionExpired ? 'Your login session has expired. Please sign in again to access Palladio AI.' : 'Create an account or sign in to access Palladio AI\'s architecture tools. New users get 10 free AI tokens to get started.'}</p>
+                <h2 className="text-2xl font-bold text-white mb-2">Sign in to continue</h2>
+                <p className="text-slate-400 max-w-md mb-8">Create an account or sign in to access Palladio AI's architecture tools. New users get 10 free AI tokens to get started.</p>
                 <Button onClick={() => base44.auth.redirectToLogin()} className="bg-white text-black hover:bg-slate-200 px-8 py-6 rounded-xl font-semibold text-lg">
                     Sign In / Sign Up
                 </Button>
