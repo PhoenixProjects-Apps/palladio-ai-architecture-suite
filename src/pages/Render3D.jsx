@@ -403,7 +403,7 @@ export default function Render3D() {
         </Link>
         <div>
           <h1 className="text-white font-semibold text-xl">3D Architectural Renderer</h1>
-          <p style={{ color: '#14b8a6', fontSize: '12px' }} className="text-lg">AI-Powered Photorealistic Visualisation</p>
+          <p style={{ color: '#14b8a6', fontSize: '12px' }} className="text-xs">AI-Powered Photorealistic Visualisation</p>
         </div>
       </div>
 
