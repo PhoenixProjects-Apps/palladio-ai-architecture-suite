@@ -266,7 +266,7 @@ INSTRUCTIONS:
                             </CardHeader>
                             <CardContent className="pt-6">
                                 <div className="overflow-x-auto rounded-xl border border-slate-800 mb-6">
-                                    <Table>
+                                    <Table className="min-w-[640px]">
                                         <TableHeader className="bg-slate-800/50">
                                             <TableRow className="border-slate-800">
                                                 <TableHead className="text-slate-300">Category</TableHead>
