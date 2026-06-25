@@ -252,6 +252,11 @@ export default function Render3D() {
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file: selectedFile });
       setFileUrl(file_url);
+    } catch (err) {
+      console.error("Upload error:", err);
+      toast.error("Failed to upload image. Please check your connection and try again.");
+      setFile(null);
+      setPreviewUrl(null);
     } finally {
       setIsUploading(false);
     }
@@ -272,6 +277,11 @@ export default function Render3D() {
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file: selectedFile });
       setStyleFileUrl(file_url);
+    } catch (err) {
+      console.error("Style upload error:", err);
+      toast.error("Failed to upload style reference. Please check your connection and try again.");
+      setStyleFile(null);
+      setStylePreviewUrl(null);
     } finally {
       setIsUploadingStyle(false);
     }
