@@ -1,24 +1,36 @@
-import React, { Suspense, useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect, useRef } from 'react';
 import { Canvas, useLoader } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 function Model({ url, onLoaded }) {
-    const gltf = useLoader(GLTFLoader, url, (loader) => {
-        loader.crossOrigin = 'anonymous';
-    });
+    const gltf = useLoader(GLTFLoader, url);
+    const groupRef = useRef();
     
-    React.useEffect(() => {
-        if (gltf && onLoaded) {
-            onLoaded();
+    useEffect(() => {
+        if (gltf && groupRef.current) {
+            groupRef.current.add(gltf.scene.clone());
+            if (onLoaded) onLoaded();
         }
     }, [gltf, onLoaded]);
     
-    return <primitive object={gltf.scene} scale={[1, 5, 1]} />;
+    return <group ref={groupRef} scale={[1, 5, 1]} />;
 }
 
 export default function GlbViewer({ url, height = '400px' }) {
     const [loading, setLoading] = useState(true);
+    
+    useEffect(() => {
+        setLoading(true);
+    }, [url]);
+    
+    if (!url) {
+        return (
+            <div style={{ width: '100%', height, backgroundColor: '#3a3a5c', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ color: '#cbd5e1', fontSize: '14px', fontFamily: 'sans-serif' }}>No 3D model loaded</span>
+            </div>
+        );
+    }
     
     return (
         <div style={{ width: '100%', height, backgroundColor: '#3a3a5c', borderRadius: '12px', overflow: 'hidden', position: 'relative' }}>
@@ -34,7 +46,7 @@ export default function GlbViewer({ url, height = '400px' }) {
                 <Suspense fallback={null}>
                     <Model url={url} onLoaded={() => setLoading(false)} />
                 </Suspense>
-                <OrbitControls makeDefault enablePan enableZoom enableRotate />
+                <OrbitControls />
             </Canvas>
         </div>
     );
