@@ -163,18 +163,16 @@ export default function Projects() {
                         <button onClick={() => setSelectedProject(null)} className="flex items-center gap-2 text-slate-400 hover:text-white mb-8 transition-colors">
                             <ArrowLeft size={20} /> Back to Projects
                         </button>
-                        
-                        <div className="flex items-center justify-between mb-8">
+                        <div className="flex items-center justify-between mb-3">
                             <h1 className="text-3xl font-bold text-white flex items-center gap-3">
                                 <Folder className="text-amber-500" size={32} />
                                 {selectedProject.name}
                             </h1>
                         </div>
-
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             {/* Assets Section */}
                             <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-                                <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center justify-between mb-3">
                                     <h2 className="text-xl font-semibold flex items-center gap-2">
                                         <File className="text-cyan-400" size={20} /> Project Files
                                     </h2>
