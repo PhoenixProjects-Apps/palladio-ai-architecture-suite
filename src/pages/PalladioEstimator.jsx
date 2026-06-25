@@ -143,12 +143,12 @@ INSTRUCTIONS:
     <div className="min-h-screen bg-[#0f1117] text-white p-6 pb-12">
         <div className="max-w-6xl mx-auto space-y-6">
             <div className="flex flex-col gap-4 border-b border-slate-800 pb-4">
-                <Link to={createPageUrl('Home')}>
-                      <Button variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
-                          <ArrowLeft size={20} />
-                      </Button>
-                </Link>
                     <header className="flex items-center gap-4 border-b border-white/10 mb-1">
+                    <Link to={createPageUrl('Home')}>
+                        <Button variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
+                            <ArrowLeft size={20} />
+                        </Button>
+                    </Link>
                         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg">
                             <Calculator size={20} />
                         </div>
