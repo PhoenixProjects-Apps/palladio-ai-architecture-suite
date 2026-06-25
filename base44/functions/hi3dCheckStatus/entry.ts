@@ -16,12 +16,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'task_id is required' }, { status: 400 });
     }
 
-    const response = await fetch('https://api.hitem3d.ai/open-api/v1/submit-task', {
-      method: 'POST',
+    // FIX: Changed endpoint to 'query-task', method to 'GET', and added task_id to URL
+    const response = await fetch(`https://api.hitem3d.ai/open-api/v1/query-task?task_id=${task_id}`, {
+      method: 'GET',
       headers: {
         'api_key': apiKey,
-      },
-      body: formData,
+      }
+      // FIX: Removed the non-existent formData body entirely
     });
 
     const responseText = await response.text();
