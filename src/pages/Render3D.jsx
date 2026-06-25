@@ -627,11 +627,11 @@ export default function Render3D() {
         </div>
 
         {/* Render Buttons */}
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <Button
             onClick={() => handleRender('exterior')}
             disabled={!fileUrl || isRendering}
-            className="flex-1 py-6 text-base font-semibold rounded-xl disabled:opacity-40"
+            className="sm:flex-1 py-6 text-base font-semibold rounded-xl disabled:opacity-40"
             style={{ backgroundColor: '#14b8a6', color: 'white' }}
           >
             {isRendering && currentRenderType === 'exterior' ? (
@@ -649,7 +649,7 @@ export default function Render3D() {
           <Button
             onClick={() => handleRender('interior')}
             disabled={!fileUrl || isRendering}
-            className="flex-1 py-6 text-base font-semibold rounded-xl disabled:opacity-40"
+            className="sm:flex-1 py-6 text-base font-semibold rounded-xl disabled:opacity-40"
             style={{ backgroundColor: '#8b5cf6', color: 'white' }}
           >
             {isRendering && currentRenderType === 'interior' ? (
