@@ -148,7 +148,7 @@ INSTRUCTIONS:
                                 <ArrowLeft size={20} />
                             </Button>
                         </Link>
-                    <header className="flex items-center gap-4 border-b border-white/10">
+                    <header className="flex items-center gap-4 mb-2 border-b border-white/10">
                         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg">
                             <Calculator size={20} />
                         </div>
