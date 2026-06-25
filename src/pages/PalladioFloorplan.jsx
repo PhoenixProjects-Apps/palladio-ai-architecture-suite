@@ -113,16 +113,16 @@ export default function PalladioFloorplan() {
                     </header>
 
                     {/* Tabs */}
-                    <div className="flex bg-slate-900 rounded-xl p-1 mb-8 w-max">
+                    <div className="flex bg-slate-900 rounded-xl p-1 mb-8 w-full sm:w-max">
                         <button 
                             onClick={() => setTab('text')}
-                            className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${tab === 'text' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
+                            className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${tab === 'text' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
                         >
                             Generate from Text
                         </button>
                         <button 
                             onClick={() => setTab('sketch')}
-                            className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${tab === 'sketch' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
+                            className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${tab === 'sketch' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
                         >
                             Sketch to Floorplan
                         </button>

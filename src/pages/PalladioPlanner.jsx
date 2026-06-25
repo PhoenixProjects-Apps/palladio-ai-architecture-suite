@@ -264,16 +264,16 @@ Return a valid JSON object matching this structure:
                         <h1 className="text-2xl font-bold">Town Planner AI</h1>
                     </header>
 
-                    <div className="flex bg-slate-900 rounded-xl p-1 mb-8 w-max">
+                    <div className="flex bg-slate-900 rounded-xl p-1 mb-8 w-full sm:w-max">
                         <button 
                             onClick={() => setActiveTab('assessment')}
-                            className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'assessment' ? 'bg-rose-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
+                            className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'assessment' ? 'bg-rose-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
                         >
                             Proposal Assessment
                         </button>
                         <button 
                             onClick={() => setActiveTab('document')}
-                            className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'document' ? 'bg-rose-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
+                            className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'document' ? 'bg-rose-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
                         >
                             Document Analysis
                         </button>
