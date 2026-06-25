@@ -1,15 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Mail, CreditCard, LogOut, Loader2, User, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, Mail, CreditCard, LogOut, Loader2, User, ShieldAlert, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 
 export default function UserProfile() {
   const [user, setUser] = useState(null);
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -48,6 +51,32 @@ export default function UserProfile() {
     base44.auth.logout();
   };
 
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file.');
+      return;
+    }
+    try {
+      setUploading(true);
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      await base44.auth.updateMe({ profile_picture: file_url });
+      setUser(prev => ({ ...prev, profile_picture: file_url }));
+      toast.success('Profile picture updated.');
+    } catch (err) {
+      console.error('Upload error', err);
+      toast.error('Failed to upload image. Please try again.');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0f1117] text-white p-6 pb-12">
       <div className="max-w-2xl mx-auto">
@@ -66,8 +95,28 @@ export default function UserProfile() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white/5 border border-white/10 rounded-3xl p-6 sm:p-8 shadow-xl space-y-8">
           
           <div className="flex items-center gap-5">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center text-2xl sm:text-3xl font-bold border border-white/10 shadow-lg">
-              {user?.full_name?.charAt(0) || <User size={32} />}
+            <div className="relative group shrink-0">
+              <button
+                onClick={handleAvatarClick}
+                disabled={uploading}
+                className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center text-2xl sm:text-3xl font-bold border border-white/10 shadow-lg overflow-hidden relative cursor-pointer"
+              >
+                {user?.profile_picture ? (
+                  <img src={user.profile_picture} alt={user?.full_name || 'Profile'} className="w-full h-full object-cover" />
+                ) : (
+                  user?.full_name?.charAt(0) || <User size={32} />
+                )}
+                <span className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  {uploading ? <Loader2 size={24} className="animate-spin" /> : <Camera size={24} />}
+                </span>
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
             </div>
             <div>
               <h2 className="text-xl sm:text-2xl font-semibold">{user?.full_name || 'User'}</h2>

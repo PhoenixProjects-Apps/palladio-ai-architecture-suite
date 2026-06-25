@@ -14,6 +14,10 @@
       "type": "number",
       "description": "The number of AI tokens the user has available.",
       "default": 5
+    },
+    "profile_picture": {
+      "type": "string",
+      "description": "URL of the user's custom profile picture."
     }
   },
   "required": [
