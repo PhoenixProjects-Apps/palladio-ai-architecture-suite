@@ -2,11 +2,14 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.18';
 
 Deno.serve(async (req) => {
     try {
+        const base44 = createClientFromRequest(req);
+        const user = await base44.auth.me();
+        if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
         const payload = await req.json();
         const { event, data } = payload;
         
         if (event.type === 'update') {
-            const base44 = createClientFromRequest(req);
             
             const users = await base44.asServiceRole.entities.User.filter({ email: data.created_by });
             const user = users[0];

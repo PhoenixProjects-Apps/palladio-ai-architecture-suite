@@ -2,11 +2,14 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.18';
 
 Deno.serve(async (req) => {
     try {
+        const base44 = createClientFromRequest(req);
+        const user = await base44.auth.me();
+        if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
         const payload = await req.json();
         const { event, data } = payload;
         
         if (event.type === 'create') {
-            const base44 = createClientFromRequest(req);
             
             // Get project to find the owner
             const project = await base44.asServiceRole.entities.Project.get(data.project_id);
