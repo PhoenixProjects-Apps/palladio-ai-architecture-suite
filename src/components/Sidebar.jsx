@@ -87,9 +87,13 @@ export default function Sidebar() {
     ? [
         { name: `Tokens: ${user.tokens !== undefined ? user.tokens : 5}`, icon: CreditCard, path: 'PalladioPricing', isTokenDisplay: true },
         { name: 'Settings', icon: Settings, path: 'UserProfile' },
+        { name: 'About', icon: Building2, path: 'About' },
+        { name: 'Contact', icon: MessageSquare, path: 'Contact' },
       ]
     : [
         { name: 'Pricing', icon: CreditCard, path: 'PalladioPricing' },
+        { name: 'About', icon: Building2, path: 'About' },
+        { name: 'Contact', icon: MessageSquare, path: 'Contact' },
         { name: 'Sign In', icon: LogIn, action: 'login' },
       ];
 

@@ -39,6 +39,10 @@
     "cancel_at_period_end": {
       "type": "boolean",
       "default": false
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000
     }
   },
   "required": [
