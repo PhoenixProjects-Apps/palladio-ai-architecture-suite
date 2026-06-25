@@ -254,7 +254,7 @@ export default function Render3D() {
       setFileUrl(file_url);
     } catch (err) {
       console.error("Upload error:", err);
-      toast.error("Failed to upload image. Please check your connection and try again.");
+      toast.error("Couldn't read this file. If it's from OneDrive or a phone link, make it available offline first (right-click → 'Always keep on this device'), then try again.");
       setFile(null);
       setPreviewUrl(null);
     } finally {
@@ -279,7 +279,7 @@ export default function Render3D() {
       setStyleFileUrl(file_url);
     } catch (err) {
       console.error("Style upload error:", err);
-      toast.error("Failed to upload style reference. Please check your connection and try again.");
+      toast.error("Couldn't read this file. If it's from OneDrive or a phone link, make it available offline first (right-click → 'Always keep on this device'), then try again.");
       setStyleFile(null);
       setStylePreviewUrl(null);
     } finally {
