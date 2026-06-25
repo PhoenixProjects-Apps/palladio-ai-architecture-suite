@@ -93,8 +93,8 @@ export default function PalladioPricing() {
             <div className="max-w-5xl mx-auto">
                 <header className="mb-12">
                     <Link to={createPageUrl('Home')}>
-                        <Button variant="ghost" className="hover:bg-slate-200 text-slate-600 rounded-full">
-                            <ArrowLeft size={20} className="mr-2" /> Back to Suite
+                        <Button variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
+                            <ArrowLeft size={20} />
                         </Button>
                     </Link>
                 </header>
