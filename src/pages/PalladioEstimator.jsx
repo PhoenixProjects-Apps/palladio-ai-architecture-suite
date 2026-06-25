@@ -143,18 +143,17 @@ INSTRUCTIONS:
     <div className="min-h-screen bg-[#0f1117] text-white p-6 pb-12">
         <div className="max-w-6xl mx-auto space-y-6">
             <div className="flex flex-col gap-4 border-b border-slate-800 pb-4">
-                <div className="flex items-center gap-4">
-                    <Link to={createPageUrl('Home')}>
-                        <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl">
-                            <ArrowLeft size={20} />
-                        </Button>
-                    </Link>
-                    <div>
-                        <h1 className="font-bold flex items-center gap-2 text-xl">AI Cost Estimator
-              </h1>
-                        <p className="text-slate-400 text-sm">Automated takeoffs and material costing.</p>
-                    </div>
-                </div>
+                    <header className="flex items-center gap-4 mb-8 border-b border-white/10 pb-4">
+                        <Link to={createPageUrl('Home')}>
+                            <Button variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
+                                <ArrowLeft size={20} />
+                            </Button>
+                        </Link>
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center shadow-lg">
+                            <ClipboardList size={20} />
+                        </div>
+                        <h1 className="font-bold text-xl">Town Planner AI</h1>
+                    </header>
                 <Link to={createPageUrl('CostDatabase')} className="self-start sm:self-end">
                     <Button variant="outline" className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50">
                         <Database className="w-4 h-4 mr-2" />
