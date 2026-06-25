@@ -103,7 +103,7 @@ export default function Notifications() {
                             Notifications
                         </h1>
                         
-                        <div className="flex gap-3">
+                        <div className="flex flex-wrap gap-3">
                             {notifications.length > 0 && (
                                 <>
                                     <Button variant="outline" onClick={markAllAsRead} className="bg-slate-800 border-slate-700 hover:bg-slate-700 text-white">
