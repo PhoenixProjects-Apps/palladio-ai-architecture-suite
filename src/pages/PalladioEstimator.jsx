@@ -4,11 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Upload, Loader2, Calculator, Database, FileText, DollarSign } from 'lucide-react';
+import { ArrowLeft, Upload, Loader2, Calculator, Database, FileText, DollarSign, Download, ChevronDown, ChevronUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import SaveToProject from '@/components/SaveToProject';
 
 const SITE_DIFFICULTY_RATES = {
   'Level / Standard': 0,
@@ -30,6 +31,7 @@ export default function PalladioEstimator() {
   const [difficulty, setDifficulty] = useState('Level / Standard');
 
   const [result, setResult] = useState(null);
+  const [showDetails, setShowDetails] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -138,6 +140,49 @@ INSTRUCTIONS:
   };
 
   const formatCurrency = (val) => new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(val);
+
+  const buildEstimateText = () => {
+    if (!result) return '';
+    let text = '# Cost Estimate\n\n';
+    text += `**Grand Total:** ${formatCurrency(result.grand_total)}\n\n`;
+    text += '## Line Items\n\n';
+    text += '| Category | Item | Qty | Unit | Rate | Total |\n';
+    text += '|----------|------|-----|------|------|-------|\n';
+    result.line_items.forEach(item => {
+      text += `| ${item.category} | ${item.item_name} | ${item.quantity} | ${item.unit} | ${formatCurrency(item.unit_cost)} | ${formatCurrency(item.total_cost)} |\n`;
+    });
+    text += `\n**Subtotal:** ${formatCurrency(result.subtotal)}\n`;
+    if (result.site_difficulty_markup_cost > 0) {
+      text += `**Site Difficulty Markup (${SITE_DIFFICULTY_RATES[difficulty]}%):** +${formatCurrency(result.site_difficulty_markup_cost)}\n`;
+    }
+    text += `\n## Assumptions\n\n`;
+    result.assumptions.forEach(a => { text += `- ${a}\n`; });
+    return text;
+  };
+
+  const handleDownload = () => {
+    if (!result) return;
+    const rows = [
+      ['Category', 'Item', 'Quantity', 'Unit', 'Unit Cost', 'Total Cost'],
+      ...result.line_items.map(item => [item.category, item.item_name, item.quantity, item.unit, item.unit_cost, item.total_cost]),
+      ['', '', '', '', 'Subtotal', result.subtotal],
+    ];
+    if (result.site_difficulty_markup_cost > 0) {
+      rows.push(['', '', '', '', `Site Difficulty Markup (${SITE_DIFFICULTY_RATES[difficulty]}%)`, result.site_difficulty_markup_cost]);
+    }
+    rows.push(['', '', '', '', 'Grand Total', result.grand_total]);
+    rows.push([]);
+    rows.push(['Assumptions:']);
+    result.assumptions.forEach(a => rows.push([a]));
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'cost-estimate.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="min-h-screen bg-[#0f1117] text-white p-6 pb-12">
@@ -265,12 +310,26 @@ INSTRUCTIONS:
                                 </div>
                             </CardHeader>
                             <CardContent className="pt-6">
-                                <div className="overflow-x-auto rounded-xl border border-slate-800 mb-6">
-                                    <Table className="min-w-[640px]">
+                                <div className="flex flex-wrap gap-2 mb-4">
+                                    <Button variant="outline" size="sm" onClick={() => setShowDetails(!showDetails)} className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50">
+                                        {showDetails ? <><ChevronUp size={16} className="mr-1" /> Hide Details</> : <><ChevronDown size={16} className="mr-1" /> View Details</>}
+                                    </Button>
+                                    <SaveToProject
+                                        textContent={buildEstimateText()}
+                                        fileName="cost-estimate.md"
+                                        assetType="document"
+                                        className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50 h-8 rounded-md px-3 text-xs"
+                                    />
+                                    <Button variant="outline" size="sm" onClick={handleDownload} className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50">
+                                        <Download size={16} className="mr-1" /> Download
+                                    </Button>
+                                </div>
+
+                                <div className="overflow-x-auto rounded-xl border border-slate-800 mb-4">
+                                    <Table className="min-w-[480px]">
                                         <TableHeader className="bg-slate-800/50">
                                             <TableRow className="border-slate-800">
                                                 <TableHead className="text-slate-300">Category</TableHead>
-                                                <TableHead className="text-slate-300">Item</TableHead>
                                                 <TableHead className="text-slate-300 text-right">Qty</TableHead>
                                                 <TableHead className="text-slate-300 text-right">Rate</TableHead>
                                                 <TableHead className="text-slate-300 text-right">Total</TableHead>
@@ -280,19 +339,18 @@ INSTRUCTIONS:
                                             {result.line_items.map((item, i) =>
                       <TableRow key={i} className="border-slate-800">
                                                     <TableCell className="text-slate-400 text-sm">{item.category}</TableCell>
-                                                    <TableCell className="font-medium text-white">{item.item_name}</TableCell>
                                                     <TableCell className="text-right text-slate-300">{item.quantity} {item.unit}</TableCell>
                                                     <TableCell className="text-right text-slate-300">{formatCurrency(item.unit_cost)}</TableCell>
                                                     <TableCell className="text-right text-white font-medium">{formatCurrency(item.total_cost)}</TableCell>
                                                 </TableRow>
                       )}
                                             <TableRow className="border-t-2 border-slate-700 bg-slate-800/20">
-                                                <TableCell colSpan={4} className="text-right font-medium text-slate-300">Subtotal</TableCell>
+                                                <TableCell colSpan={3} className="text-right font-medium text-slate-300">Subtotal</TableCell>
                                                 <TableCell className="text-right font-bold text-white">{formatCurrency(result.subtotal)}</TableCell>
                                             </TableRow>
                                             {result.site_difficulty_markup_cost > 0 &&
                       <TableRow className="border-slate-800 bg-amber-900/10">
-                                                    <TableCell colSpan={4} className="text-right text-amber-400">
+                                                    <TableCell colSpan={3} className="text-right text-amber-400">
                                                         Site Difficulty Markup ({SITE_DIFFICULTY_RATES[difficulty]}%)
                                                     </TableCell>
                                                     <TableCell className="text-right text-amber-400 font-medium">
@@ -300,18 +358,50 @@ INSTRUCTIONS:
                                                     </TableCell>
                                                 </TableRow>
                       }
+                                            <TableRow className="border-t-2 border-slate-700">
+                                                <TableCell colSpan={3} className="text-right font-bold text-white">Grand Total</TableCell>
+                                                <TableCell className="text-right font-bold text-blue-400 text-lg">{formatCurrency(result.grand_total)}</TableCell>
+                                            </TableRow>
                                         </TableBody>
                                     </Table>
                                 </div>
 
-                                <div>
-                                    <h3 className="text-white font-medium mb-3">AI Assumptions & Notes</h3>
-                                    <ul className="list-disc pl-5 space-y-1">
-                                        {result.assumptions.map((a, i) =>
-                    <li key={i} className="text-sm text-slate-400">{a}</li>
-                    )}
-                                    </ul>
-                                </div>
+                                {showDetails && (
+                                    <div className="space-y-4">
+                                        <div className="overflow-x-auto rounded-xl border border-slate-800">
+                                            <Table className="min-w-[640px]">
+                                                <TableHeader className="bg-slate-800/50">
+                                                    <TableRow className="border-slate-800">
+                                                        <TableHead className="text-slate-300">Category</TableHead>
+                                                        <TableHead className="text-slate-300">Item</TableHead>
+                                                        <TableHead className="text-slate-300 text-right">Qty</TableHead>
+                                                        <TableHead className="text-slate-300 text-right">Rate</TableHead>
+                                                        <TableHead className="text-slate-300 text-right">Total</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {result.line_items.map((item, i) =>
+                            <TableRow key={i} className="border-slate-800">
+                                                        <TableCell className="text-slate-400 text-sm">{item.category}</TableCell>
+                                                        <TableCell className="font-medium text-white">{item.item_name}</TableCell>
+                                                        <TableCell className="text-right text-slate-300">{item.quantity} {item.unit}</TableCell>
+                                                        <TableCell className="text-right text-slate-300">{formatCurrency(item.unit_cost)}</TableCell>
+                                                        <TableCell className="text-right text-white font-medium">{formatCurrency(item.total_cost)}</TableCell>
+                                                    </TableRow>
+                          )}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-white font-medium mb-3">AI Assumptions & Notes</h3>
+                                            <ul className="list-disc pl-5 space-y-1">
+                                                {result.assumptions.map((a, i) =>
+                            <li key={i} className="text-sm text-slate-400">{a}</li>
+                            )}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card> :
 
