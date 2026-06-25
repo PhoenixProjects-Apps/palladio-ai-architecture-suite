@@ -12,8 +12,10 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
+    console.log('Received body:', body);
     const task_id = body.task_id;
     if (!task_id) {
+      console.error('task_id missing from body:', body);
       return Response.json({ error: 'task_id is required' }, { status: 400 });
     }
 

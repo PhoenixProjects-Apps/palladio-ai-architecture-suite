@@ -37,11 +37,19 @@ export default function Model3DTab() {
     };
 
     const startPolling = (id) => {
+        if (!id) {
+            console.error('startPolling called with invalid id:', id);
+            toast.error('Invalid task ID');
+            setIsConverting(false);
+            return;
+        }
         let attempts = 0;
         const maxAttempts = 120;
+        console.log('Starting polling with task_id:', id);
         pollRef.current = setInterval(async () => {
             attempts++;
             try {
+                console.log('Polling attempt', attempts, 'with task_id:', id);
                 const res = await base44.functions.invoke('hi3dCheckStatus', { task_id: id });
                 const data = res.data;
                 if (data?.status === 'completed') {
