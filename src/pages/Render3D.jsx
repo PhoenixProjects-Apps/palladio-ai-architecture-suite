@@ -471,13 +471,15 @@ export default function Render3D() {
           </div>
 
           <div>
-            <h2 className="text-white text-sm font-semibold mb-3">2. Style Reference (Opt)</h2>
+            <div className="flex flex-wrap justify-between items-center mb-3">
+              <h2 className="text-white text-sm font-semibold">2. Style Reference (Opt)</h2>
               <button
                   onClick={handleCaptureScreen}
                   className="flex items-center text-[10px] font-medium text-teal-400 hover:text-teal-300 bg-teal-400/10 hover:bg-teal-400/20 px-2 py-1 rounded transition-colors">
                   
                 <Monitor size={12} className="mr-1" /> Screenshot
               </button>
+            </div>
             <div
                 onClick={() => styleInputRef.current?.click()}
                 className="rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col justify-center items-center h-[200px]"
