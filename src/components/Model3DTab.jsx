@@ -51,7 +51,7 @@ export default function Model3DTab() {
         pollRef.current = setInterval(async () => {
             attempts++;
             try {
-                const res = await base44.functions.invoke('archilogicCheckStatus', { floor_id: id });
+                const res = await base44.functions.invoke('tripo3dCheckStatus', { task_id: id });
                 const data = res.data;
                 if (data?.status === 'completed') {
                     clearInterval(pollRef.current);
@@ -89,16 +89,16 @@ export default function Model3DTab() {
         setIsConverting(true);
         setStatus('Initiating conversion...');
         try {
-            const res = await base44.functions.invoke('archilogicConvert', { file_url: imageUrl });
+            const res = await base44.functions.invoke('tripo3dConvert', { file_url: imageUrl });
             if (res.data?.error) {
                 toast.error(res.data.error);
                 setIsConverting(false);
                 setStatus('');
                 return;
             }
-            const id = res.data?.floorId;
+            const id = res.data?.taskId;
             if (!id) {
-                toast.error('No floor ID returned from Archilogic');
+                toast.error('No task ID returned from Tripo3D');
                 setIsConverting(false);
                 setStatus('');
                 return;
