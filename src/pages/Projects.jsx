@@ -307,10 +307,10 @@ export default function Projects() {
                                     onClick={() => openProject(project)}
                                     className="bg-white/5 border border-white/10 rounded-2xl p-3 hover:bg-white/10 transition-all cursor-pointer group relative hover:border-amber-500/30 shadow-lg"
                                 >
+                                    <h3 className="text-lg font-semibold text-white mb-2 truncate">{project.name}</h3>
                                     <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center mb-5">
                                         <Folder className="text-amber-500" size={24} />
                                     </div>
-                                    <h3 className="text-lg font-semibold text-white mb-2 truncate">{project.name}</h3>
                                     <p className="text-xs text-slate-500 font-medium">Created {new Date(project.created_date).toLocaleDateString()}</p>
                                     
                                     <button 
