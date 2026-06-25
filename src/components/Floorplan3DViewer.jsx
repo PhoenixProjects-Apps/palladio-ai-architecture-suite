@@ -119,7 +119,7 @@ export default function Floorplan3DViewer({ layoutData, onClose }) {
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
-    controls.maxPolarAngle = Math.PI / 2 - 0.05;
+    controls.maxPolarAngle = Math.PI / 2 - 0.05; // Prevent camera from going below floor
 
     // Improved Lighting
     const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
@@ -131,7 +131,7 @@ export default function Floorplan3DViewer({ layoutData, onClose }) {
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 2048;
     dirLight.shadow.mapSize.height = 2048;
-    dirLight.shadow.bias = -0.0005; 
+    dirLight.shadow.bias = -0.0005; // Prevents shadow acne
     scene.add(dirLight);
 
     // Initial Materials
@@ -143,13 +143,13 @@ export default function Floorplan3DViewer({ layoutData, onClose }) {
     const baseMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, side: THREE.DoubleSide });
     const baseFloor = new THREE.Mesh(baseGeo, baseMat);
     baseFloor.rotation.x = -Math.PI / 2;
-    baseFloor.position.y = -0.05; 
+    baseFloor.position.y = -0.05; // Dropped slightly further down to prevent z-fighting
     baseFloor.receiveShadow = true;
     baseFloor.name = 'baseFloor';
     scene.add(baseFloor);
     objectsRef.current.push(baseFloor);
 
-    // Bounding Box for Camera AND Extruded Walls
+    // Bounding Box for Camera
     let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
     rooms.forEach(r => {
       minX = Math.min(minX, r.x - r.w / 2);
@@ -157,7 +157,6 @@ export default function Floorplan3DViewer({ layoutData, onClose }) {
       minZ = Math.min(minZ, r.y - r.h / 2);
       maxZ = Math.max(maxZ, r.y + r.h / 2);
     });
-    
     const centerX = (minX + maxX) / 2;
     const centerZ = (minZ + maxZ) / 2;
     const spanX = maxX - minX;
@@ -171,39 +170,6 @@ export default function Floorplan3DViewer({ layoutData, onClose }) {
     const wallThickness = 0.2;
     const wallHeight = 2.8;
 
-    // --- CREATE CONTINUOUS EXTERIOR WALLS ---
-    const outerShape = new THREE.Shape();
-    outerShape.moveTo(minX - wallThickness, minZ - wallThickness);
-    outerShape.lineTo(maxX + wallThickness, minZ - wallThickness);
-    outerShape.lineTo(maxX + wallThickness, maxZ + wallThickness);
-    outerShape.lineTo(minX - wallThickness, maxZ + wallThickness);
-    outerShape.lineTo(minX - wallThickness, minZ - wallThickness);
-
-    const innerHole = new THREE.Path();
-    innerHole.moveTo(minX, minZ);
-    innerHole.lineTo(minX, maxZ); 
-    innerHole.lineTo(maxX, maxZ);
-    innerHole.lineTo(maxX, minZ);
-    innerHole.lineTo(minX, minZ);
-
-    outerShape.holes.push(innerHole);
-
-    const extrudeSettings = {
-      depth: wallHeight,
-      bevelEnabled: false
-    };
-
-    const wallGeometry = new THREE.ExtrudeGeometry(outerShape, extrudeSettings);
-    wallGeometry.rotateX(-Math.PI / 2); 
-
-    const externalWalls = new THREE.Mesh(wallGeometry, wallMatRef.current);
-    externalWalls.position.set(0, 0, 0); 
-    externalWalls.castShadow = true;
-    externalWalls.receiveShadow = true;
-    addEdges(externalWalls, 0xffffff, 0.2); 
-    scene.add(externalWalls);
-
-    // --- POPULATE ROOM FLOORS AND FURNITURE ---
     rooms.forEach((room) => {
       // Room floor
       const fGeo = new THREE.PlaneGeometry(room.w, room.h);
@@ -213,6 +179,24 @@ export default function Floorplan3DViewer({ layoutData, onClose }) {
       fMesh.receiveShadow = true;
       scene.add(fMesh);
       objectsRef.current.push(fMesh);
+
+      // Walls
+      const buildWall = (geo, x, z) => {
+        const wall = new THREE.Mesh(geo, wallMatRef.current);
+        wall.position.set(x, wallHeight / 2, z);
+        wall.castShadow = true;
+        wall.receiveShadow = true;
+        addEdges(wall, 0xffffff, 0.2); // Light edges for definition
+        scene.add(wall);
+      };
+
+      const wNGeo = new THREE.BoxGeometry(room.w + wallThickness * 2, wallHeight, wallThickness);
+      const wEGeo = new THREE.BoxGeometry(wallThickness, wallHeight, room.h);
+
+      buildWall(wNGeo, room.x, room.y - room.h / 2 - wallThickness / 2); // North
+      buildWall(wNGeo, room.x, room.y + room.h / 2 + wallThickness / 2); // South
+      buildWall(wEGeo, room.x + room.w / 2 + wallThickness / 2, room.y); // East
+      buildWall(wEGeo, room.x - room.w / 2 - wallThickness / 2, room.y); // West
 
       // Furniture
       const furnitureId = ROOM_FURNITURE[room.type];
@@ -294,9 +278,9 @@ export default function Floorplan3DViewer({ layoutData, onClose }) {
       renderer.dispose();
       objectsRef.current = [];
     };
-  }, [layoutData, hasRooms]);
+  }, [layoutData, hasRooms]); // Removed active materials from dependency array
 
-  // Dynamic Material Updates
+  // Dynamic Material Updates (No flashing or scene rebuilding!)
   useEffect(() => {
     if (floorMatRef.current) floorMatRef.current.color.setHex(activeFloorMat.color);
   }, [activeFloorMat]);
