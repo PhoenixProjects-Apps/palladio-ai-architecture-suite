@@ -116,7 +116,7 @@ If the document is clearly not an architectural plan, note that in the overview 
                         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-700 flex items-center justify-center shadow-lg">
                             <FileImage size={20} />
                         </div>
-                        <h1 className="font-bold text-2xl">Assess Plans</h1>
+                        <h1 className="font-bold text-xl">Assess Plans</h1>
                     </header>
 
                     {!result ?
