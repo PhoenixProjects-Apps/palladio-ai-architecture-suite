@@ -296,7 +296,7 @@ INSTRUCTIONS:
                     </Card>
                 </div>
 
-                <div className="lg:col-span-2">
+                <div className="lg:col-span-2 min-w-0 overflow-hidden">
                     {result ?
             <Card className="bg-slate-900 border-slate-800">
                             <CardHeader className="flex flex-row items-center justify-between border-b border-slate-800 pb-4">
@@ -326,7 +326,7 @@ INSTRUCTIONS:
                                 </div>
 
                                 <div className="overflow-x-auto rounded-xl border border-slate-800 mb-4">
-                                    <Table className="min-w-[480px]">
+                                    <Table className="min-w-[320px]">
                                         <TableHeader className="bg-slate-800/50">
                                             <TableRow className="border-slate-800">
                                                 <TableHead className="text-slate-300">Category</TableHead>
