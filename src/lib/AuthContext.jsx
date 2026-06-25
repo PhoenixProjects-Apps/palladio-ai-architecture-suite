@@ -41,8 +41,10 @@ export const AuthProvider = ({ children }) => {
         if (appParams.token) {
           await checkUserAuth();
         } else {
+          // No token available - user is not logged in
           setIsLoadingAuth(false);
           setIsAuthenticated(false);
+          setUser(null);
         }
         setIsLoadingPublicSettings(false);
       } catch (appError) {
@@ -100,21 +102,15 @@ export const AuthProvider = ({ children }) => {
       setIsLoadingAuth(false);
       setIsAuthenticated(false);
       setUser(null);
-      
-      // Clear the expired token and redirect to login
-      if (error.status === 401 || error.status === 403 || error?.type === 'user_not_registered') {
-        base44.auth.logout();
-        setAuthError({
-          type: 'auth_required',
-          message: 'Session expired. Please sign in again.'
-        });
-      }
+      // Don't clear token or set error immediately - let PalladioGate handle the login prompt
+      // This prevents aggressive logout on temporary network issues or iframe restrictions
     }
   };
 
   const logout = (shouldRedirect = true) => {
     setUser(null);
     setIsAuthenticated(false);
+    setAuthError(null);
     
     if (shouldRedirect) {
       // Use the SDK's logout method which handles token cleanup and redirect
