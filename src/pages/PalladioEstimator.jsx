@@ -77,8 +77,8 @@ export default function PalladioEstimator() {
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const [state, setState] = useState('NSW');
-  const [city, setCity] = useState('Sydney City');
+  const [state, setState] = useState('QLD');
+  const [city, setCity] = useState('Gold Coast');
   const [storeys, setStoreys] = useState('1');
   const [difficulty, setDifficulty] = useState('Level / Standard');
 
