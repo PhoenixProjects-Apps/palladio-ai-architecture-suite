@@ -102,7 +102,10 @@ export const AuthProvider = ({ children }) => {
       setIsLoadingAuth(false);
       setIsAuthenticated(false);
       setUser(null);
-      // Don't clear token or set error immediately - let PalladioGate handle the login prompt
+      // Clear expired token from localStorage to prevent failed backend calls
+      localStorage.removeItem('base44_access_token');
+      localStorage.removeItem('token');
+      // Don't set error immediately - let PalladioGate handle the login prompt
       // This prevents aggressive logout on temporary network issues or iframe restrictions
     }
   };
