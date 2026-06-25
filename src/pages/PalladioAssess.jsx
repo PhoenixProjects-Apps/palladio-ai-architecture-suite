@@ -107,12 +107,12 @@ If the document is clearly not an architectural plan, note that in the overview 
     <PalladioGate>
             <div className="min-h-screen bg-[#0f1117] text-white p-6">
                 <div className="max-w-3xl mx-auto">
+                    <header className="flex items-center gap-4 mb-8 border-b border-white/10 pb-4">
                     <Link to={createPageUrl('Home')}>
                         <Button variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
                             <ArrowLeft size={20} />
                         </Button>
                     </Link>
-                    <header className="flex items-center gap-4 mb-8 border-b border-white/10 pb-4">
                         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-700 flex items-center justify-center shadow-lg">
                             <FileImage size={20} />
                         </div>
