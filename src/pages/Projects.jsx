@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Folder, Plus, File, MessageSquare, Trash2, ArrowLeft, Upload, Loader2, Cloud } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
