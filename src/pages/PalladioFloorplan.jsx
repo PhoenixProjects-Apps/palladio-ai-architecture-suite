@@ -127,7 +127,7 @@ export default function PalladioFloorplan() {
                 <div className="max-w-5xl mx-auto">
                     <header className="flex items-center gap-4 mb-8 border-b border-white/10 pb-4">
                     <Link to={createPageUrl('Home')}>
-                        <Button variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
+                        <Button variant="ghost" size="20" className="hover:bg-white/10 rounded-full">
                             <ArrowLeft size={20} />
                         </Button>
                     </Link>
