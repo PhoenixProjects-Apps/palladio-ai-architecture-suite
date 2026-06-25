@@ -10,6 +10,7 @@ import ReactMarkdown from 'react-markdown';
 import PalladioGate from '../components/PalladioGate';
 import Floorplan3DViewer from '../components/Floorplan3DViewer';
 import SaveToProject from '../components/SaveToProject';
+import Model3DTab from '../components/Model3DTab';
 import { toast } from 'sonner';
 
 export default function PalladioFloorplan() {
@@ -149,6 +150,12 @@ export default function PalladioFloorplan() {
                             className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${tab === 'sketch' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
                         >
                             Sketch to Floorplan
+                        </button>
+                        <button 
+                            onClick={() => setTab('model3d')}
+                            className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${tab === 'model3d' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
+                        >
+                            3D Model
                         </button>
                     </div>
 
@@ -314,6 +321,10 @@ export default function PalladioFloorplan() {
                                 )}
                             </div>
                         </div>
+                    )}
+
+                    {tab === 'model3d' && (
+                        <Model3DTab />
                     )}
                 </div>
             </div>

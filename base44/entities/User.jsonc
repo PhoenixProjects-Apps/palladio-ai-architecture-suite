@@ -18,6 +18,10 @@
     "profile_picture": {
       "type": "string",
       "description": "URL of the user's custom profile picture."
+    },
+    "model3d_url": {
+      "type": "string",
+      "description": "URL of the user's last generated 3D floor plan model (.gltf/.glb)."
     }
   },
   "required": [
