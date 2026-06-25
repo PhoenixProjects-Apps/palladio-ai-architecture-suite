@@ -109,8 +109,8 @@ If the document is clearly not an architectural plan, note that in the overview 
                 <div className="max-w-3xl mx-auto">
                     <header className="flex items-center gap-4 mb-8 border-b border-white/10 pb-4">
                     <Link to={createPageUrl('Home')}>
-                        <Button variant="ghost" size="icon" className="hover:bg-white/10 rounded-full text-sm">
-                            <ArrowLeft size={24} />
+                        <Button variant="ghost" size="icon" className="hover:bg-white/14 rounded-full">
+                            <ArrowLeft size={20} />
                         </Button>
                     </Link>
                         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-700 flex items-center justify-center shadow-lg">
