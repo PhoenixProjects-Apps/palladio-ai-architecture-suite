@@ -29,6 +29,47 @@ const CITY_OPTIONS = {
   'NT': ['Darwin', 'Regional']
 };
 
+// Average construction cost per sqm by city/region (2025 market data)
+// Source: ASE Estimation, Matrix Estimating, Altus Group, ABS
+const REGIONAL_COST_RATES = {
+  'NSW': {
+    'Sydney City': { low: 3200, high: 4300, avg: 3750 },
+    'Outer Suburbs': { low: 2500, high: 3500, avg: 3000 },
+    'Regional': { low: 1900, high: 2800, avg: 2350 }
+  },
+  'VIC': {
+    'Melbourne City': { low: 2700, high: 3800, avg: 3250 },
+    'Outer Suburbs': { low: 2000, high: 3000, avg: 2500 },
+    'Regional': { low: 1800, high: 2600, avg: 2200 }
+  },
+  'QLD': {
+    'Brisbane': { low: 2400, high: 3500, avg: 2950 },
+    'Gold Coast': { low: 2200, high: 3400, avg: 2800 },
+    'Northern QLD': { low: 1900, high: 3000, avg: 2450 },
+    'Regional': { low: 1700, high: 2700, avg: 2200 }
+  },
+  'WA': {
+    'Perth': { low: 2200, high: 3700, avg: 2950 },
+    'Outer Suburbs': { low: 1900, high: 3000, avg: 2450 },
+    'Regional': { low: 1700, high: 2600, avg: 2150 }
+  },
+  'SA': {
+    'Adelaide': { low: 1900, high: 2900, avg: 2400 },
+    'Regional': { low: 1700, high: 2500, avg: 2100 }
+  },
+  'TAS': {
+    'Hobart': { low: 1900, high: 2900, avg: 2400 },
+    'Regional': { low: 1700, high: 2400, avg: 2050 }
+  },
+  'ACT': {
+    'Canberra': { low: 2400, high: 3800, avg: 3100 }
+  },
+  'NT': {
+    'Darwin': { low: 2600, high: 3800, avg: 3200 },
+    'Regional': { low: 2200, high: 3200, avg: 2700 }
+  }
+};
+
 export default function PalladioEstimator() {
   const [file, setFile] = useState(null);
   const [fileUrl, setFileUrl] = useState(null);
@@ -85,7 +126,9 @@ export default function PalladioEstimator() {
         return;
       }
       const allCosts = await base44.entities.MaterialCost.list();
-      const localCosts = allCosts.filter((c) => c.state === state);
+      const cityCosts = allCosts.filter((c) => c.state === state && c.city === city);
+      const localCosts = cityCosts.length > 0 ? cityCosts : allCosts.filter((c) => c.state === state);
+      const regionalRate = REGIONAL_COST_RATES[state]?.[city] || { low: 1800, high: 4000, avg: 2900 };
 
       const markup = SITE_DIFFICULTY_RATES[difficulty];
 
@@ -96,6 +139,9 @@ Site details:
 - Storeys: ${storeys}
 - Site Difficulty: ${difficulty} (Apply a ${markup}% markup to the subtotal as 'site_difficulty_markup_cost')
 
+Regional baseline construction cost for ${city}, ${state} (2025 market data):
+- Low: $${regionalRate.low}/sqm, High: $${regionalRate.high}/sqm, Average: $${regionalRate.avg}/sqm
+
 Available Cost Database for this region:
 ${JSON.stringify(localCosts)}
 
@@ -103,9 +149,10 @@ INSTRUCTIONS:
 1. Identify all key materials and structural elements needed for this building.
 2. Estimate quantities based on standard Australian building sizes if scale is not clear.
 3. Cross-reference the required materials with the provided cost database. If a material is missing from the database, estimate it based on current Australian market rates.
-4. If Storeys >= 2, you MUST include 'Scaffolding' as a line item.
-5. Calculate the subtotal, the site difficulty markup cost (${markup}% of subtotal), and the grand total.
-6. Provide a list of assumptions made during the takeoff.`;
+4. Calibrate all unit costs to align with the regional baseline cost per sqm for ${city}, ${state}. The total of all line items per sqm of building footprint should fall within the $${regionalRate.low}–$${regionalRate.high}/sqm range. Adjust rates up or down from the database defaults to match local market conditions for this specific city/region.
+5. If Storeys >= 2, you MUST include 'Scaffolding' as a line item.
+6. Calculate the subtotal, the site difficulty markup cost (${markup}% of subtotal), and the grand total.
+7. Provide a list of assumptions made during the takeoff.`;
 
       const responseSchema = {
         type: "object",
