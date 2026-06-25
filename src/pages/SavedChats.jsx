@@ -81,13 +81,23 @@ export default function SavedChats() {
     }
   };
 
-  const handleSaveConvToProject = async (projectId) => {
-    if (!activeConvId) return;
-    const conv = await base44.agents.getConversation(activeConvId);
-    await base44.agents.updateConversation(activeConvId, {
-      metadata: { ...conv.metadata, project_id: projectId }
+  const buildChatMarkdown = () => {
+    if (!messages.length) return '';
+    const activeConv = conversations.find(c => c.id === activeConvId);
+    const title = activeConv?.metadata?.name || 'AI Assistant Chat';
+    const lines = [`# ${title}`, ''];
+    messages.forEach(m => {
+      const role = m.role === 'user' ? 'User' : 'Assistant';
+      lines.push(`**${role}:**`, '', m.content || '', '');
     });
+    return lines.join('\n').trim();
   };
+
+  const chatFileName = (() => {
+    const activeConv = conversations.find(c => c.id === activeConvId);
+    const name = activeConv?.metadata?.name || 'chat';
+    return name.replace(/[^a-z0-9]+/gi, '_').toLowerCase() + '.md';
+  })();
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -160,7 +170,7 @@ export default function SavedChats() {
           <div className="md:hidden p-4 border-b border-slate-800 flex justify-between items-center bg-[#0a0c10]">
             <h2 className="font-semibold text-white">AI Assistant</h2>
             <div className="flex items-center gap-2">
-              <SaveToProject onSave={handleSaveConvToProject} disabled={!activeConvId} variant="outline" size="sm" className="bg-slate-800 border-slate-700 text-slate-300 h-8 text-xs">
+              <SaveToProject textContent={buildChatMarkdown()} fileName={chatFileName} assetType="document" disabled={!activeConvId || !messages.length} variant="outline" size="sm" className="bg-slate-800 border-slate-700 text-slate-300 h-8 text-xs">
                 Save to Project
               </SaveToProject>
               <Button onClick={handleNewChat} variant="outline" size="sm" className="bg-slate-800 border-slate-700">
@@ -171,7 +181,7 @@ export default function SavedChats() {
 
           {/* Desktop Header */}
           <div className="hidden md:flex justify-end items-center p-3 border-b border-slate-800 bg-[#0a0c10]">
-            <SaveToProject onSave={handleSaveConvToProject} disabled={!activeConvId} variant="outline" className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700">
+            <SaveToProject textContent={buildChatMarkdown()} fileName={chatFileName} assetType="document" disabled={!activeConvId || !messages.length} variant="outline" className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700">
               Save to Project
             </SaveToProject>
           </div>
