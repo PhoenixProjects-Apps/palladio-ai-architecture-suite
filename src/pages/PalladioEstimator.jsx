@@ -149,12 +149,13 @@ INSTRUCTIONS:
                             <ArrowLeft size={20} />
                         </Button>
                     </Link>
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${tool.color} flex items-center justify-center shrink-0 shadow-lg`}>
+                    <tool.icon size={26} className="text-white" />
+                    </div>
                     <div>
                         <h1 className="font-bold flex items-center gap-2 text-xl">AI Cost Estimator
-
-
               </h1>
-                        <p className="text-sm text-[#478cfa]">Automated takeoffs and material costing.</p>
+                        <p className="text-slate-400 text-sm">Automated takeoffs and material costing.</p>
                     </div>
                 </div>
                 <Link to={createPageUrl('CostDatabase')} className="self-start sm:self-end">
