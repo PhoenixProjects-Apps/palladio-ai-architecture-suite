@@ -18,6 +18,17 @@ const SITE_DIFFICULTY_RATES = {
   'Extreme / Restricted Access': 30
 };
 
+const CITY_OPTIONS = {
+  'NSW': ['Sydney City', 'Outer Suburbs', 'Regional'],
+  'VIC': ['Melbourne City', 'Outer Suburbs', 'Regional'],
+  'QLD': ['Brisbane', 'Gold Coast', 'Northern QLD', 'Regional'],
+  'WA': ['Perth', 'Outer Suburbs', 'Regional'],
+  'SA': ['Adelaide', 'Regional'],
+  'TAS': ['Hobart', 'Regional'],
+  'ACT': ['Canberra'],
+  'NT': ['Darwin', 'Regional']
+};
+
 export default function PalladioEstimator() {
   const [file, setFile] = useState(null);
   const [fileUrl, setFileUrl] = useState(null);
@@ -26,7 +37,7 @@ export default function PalladioEstimator() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const [state, setState] = useState('NSW');
-  const [city, setCity] = useState('Sydney');
+  const [city, setCity] = useState('Sydney City');
   const [storeys, setStoreys] = useState('1');
   const [difficulty, setDifficulty] = useState('Level / Standard');
 
@@ -216,7 +227,7 @@ INSTRUCTIONS:
                         <CardContent className="space-y-4">
                             <div>
                                 <label className="text-xs text-slate-400 mb-1 block">State</label>
-                                <Select value={state} onValueChange={setState}>
+                                <Select value={state} onValueChange={(s) => { setState(s); setCity(CITY_OPTIONS[s][0]); }}>
                                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white h-10"><SelectValue /></SelectTrigger>
                                     <SelectContent className="bg-slate-800 border-slate-700 text-white">
                                         {['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT'].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
@@ -225,7 +236,12 @@ INSTRUCTIONS:
                             </div>
                             <div>
                                 <label className="text-xs text-slate-400 mb-1 block">City / Region</label>
-                                <Input value={city} onChange={(e) => setCity(e.target.value)} className="bg-slate-800 border-slate-700 text-white h-10" />
+                                <Select value={city} onValueChange={setCity}>
+                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white h-10"><SelectValue /></SelectTrigger>
+                                    <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                                        {CITY_OPTIONS[state].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
                             </div>
                             <div>
                                 <label className="text-xs text-slate-400 mb-1 block">Storeys</label>
