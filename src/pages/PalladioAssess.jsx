@@ -236,12 +236,12 @@ If the document is clearly not an architectural plan, note that in the overview 
                                     textContent={typeof result === 'object' ? `# Plan Assessment: ${result.plan_type || ''}\n\n**Overall Score:** ${result.overall_score}/10\n\n## Overview\n${result.overview}\n\n## Spatial Analysis\n${result.spatial_analysis}\n\n## Design Observations\n${(result.design_observations || []).map(o => `- ${o}`).join('\n')}\n\n## Compliance Flags\n${(result.compliance_flags || []).map(f => `- ${f}`).join('\n')}\n\n## Recommendations\n${(result.recommendations || []).map(r => `- ${r}`).join('\n')}` : String(result)}
                                     fileName="plan-assessment.md"
                                     assetType="document"
-                                    className="w-full sm:flex-1 border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/10 h-12 rounded-xl"
+                                    className="w-full sm:flex-1 rounded-xl border-teal-600/50 text-teal-400 hover:bg-teal-500/10 hover:text-teal-300 h-12"
                                 />
                                 <Button 
                                     onClick={() => { setResult(null); setFile(null); setFileUrl(null); setPreviewUrl(null); }}
                                     variant="outline"
-                                    className="w-full sm:flex-1 border-white/20 text-slate-300 hover:bg-white/10 h-12 rounded-xl"
+                                    className="w-full sm:flex-1 rounded-xl border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white h-12"
                                 >
                                     Analyse Another Plan
                                 </Button>
