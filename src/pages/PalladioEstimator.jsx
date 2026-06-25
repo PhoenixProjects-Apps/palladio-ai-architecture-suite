@@ -4,11 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Upload, Loader2, Calculator, Database, FileText, DollarSign, Download, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Upload, Loader2, Calculator, Database, FileText, DollarSign, Download, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import SaveToProject from '@/components/SaveToProject';
 
 const SITE_DIFFICULTY_RATES = {
@@ -83,7 +84,7 @@ export default function PalladioEstimator() {
   const [difficulty, setDifficulty] = useState('Level / Standard');
 
   const [result, setResult] = useState(null);
-  const [showDetails, setShowDetails] = useState(false);
+  const [showFullEstimate, setShowFullEstimate] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -374,8 +375,8 @@ INSTRUCTIONS:
                             </CardHeader>
                             <CardContent className="pt-6">
                                 <div className="flex flex-wrap gap-2 mb-4">
-                                    <Button variant="outline" size="sm" onClick={() => setShowDetails(!showDetails)} className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50">
-                                        {showDetails ? <><ChevronUp size={16} className="mr-1" /> Hide Details</> : <><ChevronDown size={16} className="mr-1" /> View Details</>}
+                                    <Button variant="outline" size="sm" onClick={() => setShowFullEstimate(true)} className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50">
+                                        <Eye size={16} className="mr-1" /> View Full Estimate
                                     </Button>
                                     <SaveToProject
                                         textContent={buildEstimateText()}
@@ -388,13 +389,12 @@ INSTRUCTIONS:
                                     </Button>
                                 </div>
 
-                                <div className="overflow-x-auto rounded-xl border border-slate-800 mb-4">
-                                    <Table className="min-w-[320px]">
+                                <div className="rounded-xl border border-slate-800 mb-4">
+                                    <Table>
                                         <TableHeader className="bg-slate-800/50">
                                             <TableRow className="border-slate-800">
                                                 <TableHead className="text-slate-300">Category</TableHead>
                                                 <TableHead className="text-slate-300 text-right">Qty</TableHead>
-                                                <TableHead className="text-slate-300 text-right">Rate</TableHead>
                                                 <TableHead className="text-slate-300 text-right">Total</TableHead>
                                             </TableRow>
                                         </TableHeader>
@@ -403,17 +403,16 @@ INSTRUCTIONS:
                       <TableRow key={i} className="border-slate-800">
                                                     <TableCell className="text-slate-400 text-sm">{item.category}</TableCell>
                                                     <TableCell className="text-right text-slate-300">{item.quantity} {item.unit}</TableCell>
-                                                    <TableCell className="text-right text-slate-300">{formatCurrency(item.unit_cost)}</TableCell>
                                                     <TableCell className="text-right text-white font-medium">{formatCurrency(item.total_cost)}</TableCell>
                                                 </TableRow>
                       )}
                                             <TableRow className="border-t-2 border-slate-700 bg-slate-800/20">
-                                                <TableCell colSpan={3} className="text-right font-medium text-slate-300">Subtotal</TableCell>
+                                                <TableCell colSpan={2} className="text-right font-medium text-slate-300">Subtotal</TableCell>
                                                 <TableCell className="text-right font-bold text-white">{formatCurrency(result.subtotal)}</TableCell>
                                             </TableRow>
                                             {result.site_difficulty_markup_cost > 0 &&
                       <TableRow className="border-slate-800 bg-amber-900/10">
-                                                    <TableCell colSpan={3} className="text-right text-amber-400">
+                                                    <TableCell colSpan={2} className="text-right text-amber-400">
                                                         Site Difficulty Markup ({SITE_DIFFICULTY_RATES[difficulty]}%)
                                                     </TableCell>
                                                     <TableCell className="text-right text-amber-400 font-medium">
@@ -422,49 +421,76 @@ INSTRUCTIONS:
                                                 </TableRow>
                       }
                                             <TableRow className="border-t-2 border-slate-700">
-                                                <TableCell colSpan={3} className="text-right font-bold text-white">Grand Total</TableCell>
+                                                <TableCell colSpan={2} className="text-right font-bold text-white">Grand Total</TableCell>
                                                 <TableCell className="text-right font-bold text-blue-400 text-lg">{formatCurrency(result.grand_total)}</TableCell>
                                             </TableRow>
                                         </TableBody>
                                     </Table>
                                 </div>
 
-                                {showDetails && (
-                                    <div className="space-y-4">
-                                        <div className="overflow-x-auto rounded-xl border border-slate-800">
-                                            <Table className="min-w-[640px]">
-                                                <TableHeader className="bg-slate-800/50">
-                                                    <TableRow className="border-slate-800">
-                                                        <TableHead className="text-slate-300">Category</TableHead>
-                                                        <TableHead className="text-slate-300">Item</TableHead>
-                                                        <TableHead className="text-slate-300 text-right">Qty</TableHead>
-                                                        <TableHead className="text-slate-300 text-right">Rate</TableHead>
-                                                        <TableHead className="text-slate-300 text-right">Total</TableHead>
-                                                    </TableRow>
-                                                </TableHeader>
-                                                <TableBody>
-                                                    {result.line_items.map((item, i) =>
+                                <Dialog open={showFullEstimate} onOpenChange={setShowFullEstimate}>
+                                    <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-3xl max-h-[85vh] overflow-y-auto">
+                                        <DialogHeader>
+                                            <DialogTitle className="text-white text-xl">Full Estimate</DialogTitle>
+                                        </DialogHeader>
+                                        <div className="space-y-4">
+                                            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                                                <span className="text-slate-400 text-sm">Grand Total</span>
+                                                <span className="text-2xl font-bold text-blue-400">{formatCurrency(result.grand_total)}</span>
+                                            </div>
+                                            <div className="overflow-x-auto rounded-xl border border-slate-800">
+                                                <Table>
+                                                    <TableHeader className="bg-slate-800/50">
+                                                        <TableRow className="border-slate-800">
+                                                            <TableHead className="text-slate-300">Category</TableHead>
+                                                            <TableHead className="text-slate-300">Item</TableHead>
+                                                            <TableHead className="text-slate-300 text-right">Qty</TableHead>
+                                                            <TableHead className="text-slate-300 text-right">Rate</TableHead>
+                                                            <TableHead className="text-slate-300 text-right">Total</TableHead>
+                                                        </TableRow>
+                                                    </TableHeader>
+                                                    <TableBody>
+                                                        {result.line_items.map((item, i) =>
                             <TableRow key={i} className="border-slate-800">
-                                                        <TableCell className="text-slate-400 text-sm">{item.category}</TableCell>
-                                                        <TableCell className="font-medium text-white">{item.item_name}</TableCell>
-                                                        <TableCell className="text-right text-slate-300">{item.quantity} {item.unit}</TableCell>
-                                                        <TableCell className="text-right text-slate-300">{formatCurrency(item.unit_cost)}</TableCell>
-                                                        <TableCell className="text-right text-white font-medium">{formatCurrency(item.total_cost)}</TableCell>
-                                                    </TableRow>
+                                                            <TableCell className="text-slate-400 text-sm">{item.category}</TableCell>
+                                                            <TableCell className="font-medium text-white">{item.item_name}</TableCell>
+                                                            <TableCell className="text-right text-slate-300">{item.quantity} {item.unit}</TableCell>
+                                                            <TableCell className="text-right text-slate-300">{formatCurrency(item.unit_cost)}</TableCell>
+                                                            <TableCell className="text-right text-white font-medium">{formatCurrency(item.total_cost)}</TableCell>
+                                                        </TableRow>
                           )}
-                                                </TableBody>
-                                            </Table>
-                                        </div>
-                                        <div>
-                                            <h3 className="text-white font-medium mb-3">AI Assumptions & Notes</h3>
-                                            <ul className="list-disc pl-5 space-y-1">
-                                                {result.assumptions.map((a, i) =>
+                                                        <TableRow className="border-t-2 border-slate-700 bg-slate-800/20">
+                                                            <TableCell colSpan={4} className="text-right font-medium text-slate-300">Subtotal</TableCell>
+                                                            <TableCell className="text-right font-bold text-white">{formatCurrency(result.subtotal)}</TableCell>
+                                                        </TableRow>
+                                                        {result.site_difficulty_markup_cost > 0 &&
+                            <TableRow className="border-slate-800 bg-amber-900/10">
+                                                                <TableCell colSpan={4} className="text-right text-amber-400">
+                                                                    Site Difficulty Markup ({SITE_DIFFICULTY_RATES[difficulty]}%)
+                                                                </TableCell>
+                                                                <TableCell className="text-right text-amber-400 font-medium">
+                                                                    +{formatCurrency(result.site_difficulty_markup_cost)}
+                                                                </TableCell>
+                                                            </TableRow>
+                          }
+                                                        <TableRow className="border-t-2 border-slate-700">
+                                                            <TableCell colSpan={4} className="text-right font-bold text-white">Grand Total</TableCell>
+                                                            <TableCell className="text-right font-bold text-blue-400 text-lg">{formatCurrency(result.grand_total)}</TableCell>
+                                                        </TableRow>
+                                                    </TableBody>
+                                                </Table>
+                                            </div>
+                                            <div>
+                                                <h3 className="text-white font-medium mb-3">AI Assumptions & Notes</h3>
+                                                <ul className="list-disc pl-5 space-y-1">
+                                                    {result.assumptions.map((a, i) =>
                             <li key={i} className="text-sm text-slate-400">{a}</li>
                             )}
-                                            </ul>
+                                                </ul>
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    </DialogContent>
+                                </Dialog>
                             </CardContent>
                         </Card> :
 
