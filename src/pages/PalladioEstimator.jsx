@@ -23,12 +23,12 @@ export default function PalladioEstimator() {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  
+
   const [state, setState] = useState('NSW');
   const [city, setCity] = useState('Sydney');
   const [storeys, setStoreys] = useState('1');
   const [difficulty, setDifficulty] = useState('Level / Standard');
-  
+
   const [result, setResult] = useState(null);
   const fileInputRef = useRef(null);
 
@@ -48,7 +48,7 @@ export default function PalladioEstimator() {
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file: selectedFile });
       setFileUrl(file_url);
-    } catch(err) {
+    } catch (err) {
       toast.error('Failed to upload file');
     } finally {
       setIsUploading(false);
@@ -58,19 +58,19 @@ export default function PalladioEstimator() {
   const handleAnalyze = async () => {
     if (!fileUrl) return;
     setIsAnalyzing(true);
-    
+
     try {
       const tokenRes = await base44.functions.invoke('consumeToken', {});
       if (tokenRes.data?.error) {
-          toast.error("You don't have enough AI tokens. Please upgrade your plan.");
-          setIsAnalyzing(false);
-          return;
+        toast.error("You don't have enough AI tokens. Please upgrade your plan.");
+        setIsAnalyzing(false);
+        return;
       }
       const allCosts = await base44.entities.MaterialCost.list();
-      const localCosts = allCosts.filter(c => c.state === state);
-      
+      const localCosts = allCosts.filter((c) => c.state === state);
+
       const markup = SITE_DIFFICULTY_RATES[difficulty];
-      
+
       const prompt = `You are an expert Australian Quantity Surveyor. Analyze the provided architectural floor plan or render.
 Calculate the estimated material quantities and costs. Use square metres (sqm) for areas and millimetres (mm) for lengths.
 Site details:
@@ -90,30 +90,30 @@ INSTRUCTIONS:
 6. Provide a list of assumptions made during the takeoff.`;
 
       const responseSchema = {
-          type: "object",
-          properties: {
-              line_items: {
-                  type: "array",
-                  items: {
-                      type: "object",
-                      properties: {
-                          category: { type: "string" },
-                          item_name: { type: "string" },
-                          quantity: { type: "number" },
-                          unit: { type: "string" },
-                          unit_cost: { type: "number" },
-                          total_cost: { type: "number" }
-                      },
-                      required: ["category", "item_name", "quantity", "unit", "unit_cost", "total_cost"]
-                  }
+        type: "object",
+        properties: {
+          line_items: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                category: { type: "string" },
+                item_name: { type: "string" },
+                quantity: { type: "number" },
+                unit: { type: "string" },
+                unit_cost: { type: "number" },
+                total_cost: { type: "number" }
               },
-              subtotal: { type: "number" },
-              scaffolding_included: { type: "boolean" },
-              site_difficulty_markup_cost: { type: "number" },
-              grand_total: { type: "number" },
-              assumptions: { type: "array", items: { type: "string" } }
+              required: ["category", "item_name", "quantity", "unit", "unit_cost", "total_cost"]
+            }
           },
-          required: ["line_items", "subtotal", "scaffolding_included", "site_difficulty_markup_cost", "grand_total", "assumptions"]
+          subtotal: { type: "number" },
+          scaffolding_included: { type: "boolean" },
+          site_difficulty_markup_cost: { type: "number" },
+          grand_total: { type: "number" },
+          assumptions: { type: "array", items: { type: "string" } }
+        },
+        required: ["line_items", "subtotal", "scaffolding_included", "site_difficulty_markup_cost", "grand_total", "assumptions"]
       };
 
       const res = await base44.integrations.Core.InvokeLLM({
@@ -121,7 +121,7 @@ INSTRUCTIONS:
         file_urls: [fileUrl],
         response_json_schema: responseSchema
       });
-      
+
       setResult(res);
       toast.success("Cost estimate generated successfully");
     } catch (err) {
@@ -145,10 +145,10 @@ INSTRUCTIONS:
                         </Button>
                     </Link>
                     <div>
-                        <h1 className="text-2xl font-bold flex items-center gap-2">
-                            <Calculator className="text-blue-500" />
-                            AI Cost Estimator
-                        </h1>
+                        <h1 className="font-bold flex items-center gap-2 text-xl">AI Cost Estimator
+
+
+              </h1>
                         <p className="text-slate-400 text-sm">Automated takeoffs and material costing.</p>
                     </div>
                 </div>
@@ -172,20 +172,20 @@ INSTRUCTIONS:
                                 <Select value={state} onValueChange={setState}>
                                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white h-10"><SelectValue /></SelectTrigger>
                                     <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                                        {['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                                        {['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT'].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
                             <div>
                                 <label className="text-xs text-slate-400 mb-1 block">City / Region</label>
-                                <Input value={city} onChange={e => setCity(e.target.value)} className="bg-slate-800 border-slate-700 text-white h-10" />
+                                <Input value={city} onChange={(e) => setCity(e.target.value)} className="bg-slate-800 border-slate-700 text-white h-10" />
                             </div>
                             <div>
                                 <label className="text-xs text-slate-400 mb-1 block">Storeys</label>
                                 <Select value={storeys} onValueChange={setStoreys}>
                                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white h-10"><SelectValue /></SelectTrigger>
                                     <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                                        {['1', '2', '3', '4+'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                                        {['1', '2', '3', '4+'].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -194,7 +194,7 @@ INSTRUCTIONS:
                                 <Select value={difficulty} onValueChange={setDifficulty}>
                                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white h-10"><SelectValue /></SelectTrigger>
                                     <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                                        {Object.keys(SITE_DIFFICULTY_RATES).map(s => <SelectItem key={s} value={s}>{s} (+{SITE_DIFFICULTY_RATES[s]}%)</SelectItem>)}
+                                        {Object.keys(SITE_DIFFICULTY_RATES).map((s) => <SelectItem key={s} value={s}>{s} (+{SITE_DIFFICULTY_RATES[s]}%)</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -207,42 +207,42 @@ INSTRUCTIONS:
                         </CardHeader>
                         <CardContent>
                             <div
-                                onClick={() => fileInputRef.current?.click()}
-                                className="rounded-xl p-6 text-center cursor-pointer transition-all flex flex-col justify-center items-center min-h-[160px]"
-                                style={{
-                                    border: `2px dashed ${fileUrl ? '#3b82f6' : '#334155'}`,
-                                    backgroundColor: '#0f172a'
-                                }}
-                            >
-                                {isUploading ? (
-                                    <div className="flex flex-col items-center gap-2">
+                  onClick={() => fileInputRef.current?.click()}
+                  className="rounded-xl p-6 text-center cursor-pointer transition-all flex flex-col justify-center items-center min-h-[160px]"
+                  style={{
+                    border: `2px dashed ${fileUrl ? '#3b82f6' : '#334155'}`,
+                    backgroundColor: '#0f172a'
+                  }}>
+                  
+                                {isUploading ?
+                  <div className="flex flex-col items-center gap-2">
                                         <Loader2 size={24} className="animate-spin text-blue-500" />
                                         <p className="text-gray-400 text-xs">Uploading...</p>
-                                    </div>
-                                ) : previewUrl ? (
-                                    <img src={previewUrl} alt="preview" className="mx-auto rounded-lg object-contain max-h-[140px]" />
-                                ) : file && !previewUrl ? (
-                                    <div className="flex flex-col items-center gap-2">
+                                    </div> :
+                  previewUrl ?
+                  <img src={previewUrl} alt="preview" className="mx-auto rounded-lg object-contain max-h-[140px]" /> :
+                  file && !previewUrl ?
+                  <div className="flex flex-col items-center gap-2">
                                         <FileText size={24} className="text-blue-500" />
                                         <p className="text-white text-xs font-medium truncate w-full px-2">{file.name}</p>
-                                    </div>
-                                ) : (
-                                    <div className="flex flex-col items-center gap-2">
+                                    </div> :
+
+                  <div className="flex flex-col items-center gap-2">
                                         <Upload size={24} className="text-slate-500" />
                                         <div>
                                             <p className="text-white text-sm font-medium">Upload File</p>
                                             <p className="text-slate-500 text-[10px] mt-1">Image or PDF plan</p>
                                         </div>
                                     </div>
-                                )}
+                  }
                                 <input ref={fileInputRef} type="file" accept="image/*,.pdf" onChange={handleFileSelect} className="hidden" />
                             </div>
                             
-                            <Button 
-                                onClick={handleAnalyze} 
-                                disabled={!fileUrl || isAnalyzing} 
-                                className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white h-11"
-                            >
+                            <Button
+                  onClick={handleAnalyze}
+                  disabled={!fileUrl || isAnalyzing}
+                  className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white h-11">
+                  
                                 {isAnalyzing ? <><Loader2 className="animate-spin mr-2" size={18} /> Analyzing...</> : <><Calculator className="mr-2" size={18} /> Generate Estimate</>}
                             </Button>
                         </CardContent>
@@ -250,8 +250,8 @@ INSTRUCTIONS:
                 </div>
 
                 <div className="lg:col-span-2">
-                    {result ? (
-                        <Card className="bg-slate-900 border-slate-800">
+                    {result ?
+            <Card className="bg-slate-900 border-slate-800">
                             <CardHeader className="flex flex-row items-center justify-between border-b border-slate-800 pb-4">
                                 <div>
                                     <CardTitle className="text-white text-xl">Detailed Estimate</CardTitle>
@@ -275,21 +275,21 @@ INSTRUCTIONS:
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {result.line_items.map((item, i) => (
-                                                <TableRow key={i} className="border-slate-800">
+                                            {result.line_items.map((item, i) =>
+                      <TableRow key={i} className="border-slate-800">
                                                     <TableCell className="text-slate-400 text-sm">{item.category}</TableCell>
                                                     <TableCell className="font-medium text-white">{item.item_name}</TableCell>
                                                     <TableCell className="text-right text-slate-300">{item.quantity} {item.unit}</TableCell>
                                                     <TableCell className="text-right text-slate-300">{formatCurrency(item.unit_cost)}</TableCell>
                                                     <TableCell className="text-right text-white font-medium">{formatCurrency(item.total_cost)}</TableCell>
                                                 </TableRow>
-                                            ))}
+                      )}
                                             <TableRow className="border-t-2 border-slate-700 bg-slate-800/20">
                                                 <TableCell colSpan={4} className="text-right font-medium text-slate-300">Subtotal</TableCell>
                                                 <TableCell className="text-right font-bold text-white">{formatCurrency(result.subtotal)}</TableCell>
                                             </TableRow>
-                                            {result.site_difficulty_markup_cost > 0 && (
-                                                <TableRow className="border-slate-800 bg-amber-900/10">
+                                            {result.site_difficulty_markup_cost > 0 &&
+                      <TableRow className="border-slate-800 bg-amber-900/10">
                                                     <TableCell colSpan={4} className="text-right text-amber-400">
                                                         Site Difficulty Markup ({SITE_DIFFICULTY_RATES[difficulty]}%)
                                                     </TableCell>
@@ -297,7 +297,7 @@ INSTRUCTIONS:
                                                         +{formatCurrency(result.site_difficulty_markup_cost)}
                                                     </TableCell>
                                                 </TableRow>
-                                            )}
+                      }
                                         </TableBody>
                                     </Table>
                                 </div>
@@ -305,23 +305,23 @@ INSTRUCTIONS:
                                 <div>
                                     <h3 className="text-white font-medium mb-3">AI Assumptions & Notes</h3>
                                     <ul className="list-disc pl-5 space-y-1">
-                                        {result.assumptions.map((a, i) => (
-                                            <li key={i} className="text-sm text-slate-400">{a}</li>
-                                        ))}
+                                        {result.assumptions.map((a, i) =>
+                    <li key={i} className="text-sm text-slate-400">{a}</li>
+                    )}
                                     </ul>
                                 </div>
                             </CardContent>
-                        </Card>
-                    ) : (
-                        <div className="h-full border-2 border-dashed border-slate-800 rounded-xl flex flex-col items-center justify-center p-12 text-center text-slate-500 min-h-[400px]">
+                        </Card> :
+
+            <div className="h-full border-2 border-dashed border-slate-800 rounded-xl flex flex-col items-center justify-center p-12 text-center text-slate-500 min-h-[400px]">
                             <DollarSign size={48} className="mb-4 opacity-20" />
                             <h3 className="text-lg font-medium text-slate-400 mb-2">No Estimate Generated</h3>
                             <p className="max-w-md mx-auto text-sm">Upload a floor plan or render, set your location and site details, and click Generate Estimate to see the cost breakdown here.</p>
                         </div>
-                    )}
+            }
                 </div>
             </div>
         </div>
-    </div>
-  );
+    </div>);
+
 }
