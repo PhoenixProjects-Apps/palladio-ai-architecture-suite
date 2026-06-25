@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { FileImage, Layers, Building2, MapPin, ClipboardList, User, Calculator, Coins } from 'lucide-react';
+import { FileImage, Layers, Building2, MapPin, ClipboardList, Calculator } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { base44 } from '@/api/base44Client';
 
 const tools = [
   { id: 'assess', title: 'Assess Plans', desc: 'AI-powered assessment and detailed analysis of floorplans.', icon: FileImage, color: 'from-cyan-500 to-cyan-700', page: 'PalladioAssess' },
@@ -15,45 +14,9 @@ const tools = [
 ];
 
 export default function Home() {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    base44.auth.me().then(u => {
-      if (u) setUser(u);
-    });
-    const unsubscribe = base44.entities.User.subscribe((event) => {
-      if (event.type === 'update') {
-        base44.auth.me().then(u => { if (u) setUser(u); });
-      }
-    });
-    return () => unsubscribe();
-  }, []);
-
   return (
     <div className="min-h-screen bg-[#0f1117] text-white p-6 pb-12">
       <div className="max-w-2xl mx-auto">
-        <header className="flex justify-end items-center mb-12">
-          <div className="flex items-center gap-3">
-            <Link to={createPageUrl('PalladioPricing')} className="flex items-center gap-2 text-sm font-semibold text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 px-4 py-2 rounded-full transition border border-amber-500/20">
-              <Coins size={16} />
-              {user ? (user.tokens ?? 0) : '—'}
-            </Link>
-            {user ? (
-              <Link to={createPageUrl('UserProfile')} className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center text-white font-bold hover:opacity-80 transition shadow-lg border border-white/10 overflow-hidden">
-                {user.profile_picture ? (
-                  <img src={user.profile_picture} alt={user.full_name || 'Profile'} className="w-full h-full object-cover" />
-                ) : (
-                  user.full_name?.charAt(0) || <User size={18} />
-                )}
-              </Link>
-            ) : (
-              <button onClick={() => base44.auth.redirectToLogin()} className="text-sm font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full transition">
-                Sign In
-              </button>
-            )}
-          </div>
-        </header>
-
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12 flex flex-col items-center">
           <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69997bf8be3f3bf35cbd8147/e93fde36f_Lumii_20260222_021318181.png" alt="Palladio AI" className="w-64 h-64 md:w-80 md:h-80 object-cover rounded-3xl mb-8 shadow-2xl shadow-white/5" />
           <h1 className="text-4xl font-bold mb-4 tracking-tight">Your AI-Powered Architecture Suite</h1>

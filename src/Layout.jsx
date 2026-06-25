@@ -1,5 +1,6 @@
 import React from 'react';
 import Sidebar from '@/components/Sidebar';
+import UserHeader from '@/components/UserHeader';
 import { Toaster } from 'sonner';
 
 export default function Layout({ children }) {
@@ -26,6 +27,9 @@ export default function Layout({ children }) {
       `}</style>
       <Sidebar />
       <main className="flex-1 overflow-y-auto overflow-x-hidden h-full relative">
+        <div className="flex justify-end items-center p-4">
+          <UserHeader />
+        </div>
         {children}
       </main>
       <Toaster theme="dark" position="bottom-right" />
