@@ -267,6 +267,7 @@ export default function Projects() {
                             <Folder className="text-amber-500" size={32} />
                             Projects
                         </h1>
+                    </div>
                         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                             <DialogTrigger asChild>
                                 <Button className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl">
@@ -292,7 +293,6 @@ export default function Projects() {
                                 </form>
                             </DialogContent>
                         </Dialog>
-                    </div>
 
                     {projects.length === 0 ? (
                         <div className="bg-white/5 border border-white/10 rounded-3xl p-16 text-center">
