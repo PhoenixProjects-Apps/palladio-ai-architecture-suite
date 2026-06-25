@@ -309,9 +309,9 @@ export default function Projects() {
                                 >
                                     <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center mb-5">
                                         <Folder className="text-amber-500" size={24} />
+                                    </div>
                                     <h3 className="text-lg font-semibold text-white mb-2 truncate">{project.name}</h3>
                                     <p className="text-xs text-slate-500 font-medium">Created {new Date(project.created_date).toLocaleDateString()}</p>
-                                    </div>
                                     <button 
                                         onClick={(e) => handleDeleteProject(e, project.id)}
                                         className="absolute top-4 right-4 p-2 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
