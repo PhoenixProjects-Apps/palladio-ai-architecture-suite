@@ -154,7 +154,7 @@ INSTRUCTIONS:
 
 
               </h1>
-                        <p className="text-sm text-[hsl(var(--sidebar-ring))]">Automated takeoffs and material costing.</p>
+                        <p className="text-sm text-[#478cfa]">Automated takeoffs and material costing.</p>
                     </div>
                 </div>
                 <Link to={createPageUrl('CostDatabase')} className="self-start sm:self-end">
