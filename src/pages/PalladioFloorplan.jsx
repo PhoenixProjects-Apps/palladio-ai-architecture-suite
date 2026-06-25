@@ -11,6 +11,7 @@ import PalladioGate from '../components/PalladioGate';
 import Floorplan3DViewer from '../components/Floorplan3DViewer';
 import SaveToProject from '../components/SaveToProject';
 import Model3DTab from '../components/Model3DTab';
+import GlbViewer from '../components/GlbViewer';
 import { useTripo3DConversion } from '../hooks/useTripo3DConversion';
 import { toast } from 'sonner';
 
@@ -244,15 +245,7 @@ export default function PalladioFloorplan() {
                                                     </div>
                                                 ) : (
                                                     <div className="p-4">
-                                                        <model-viewer
-                                                            key={model3DUrl}
-                                                            src={model3DUrl}
-                                                            camera-controls
-                                                            auto-rotate
-                                                            shadow-intensity="1"
-                                                            environment-image="neutral"
-                                                            style={{ width: '100%', height: '400px', display: 'block', backgroundColor: '#3a3a5c' }}
-                                                        />
+                                                        <GlbViewer url={model3DUrl} height="400px" />
                                                         <div className="flex gap-3 mt-4">
                                                             <a href={model3DUrl} download="floorplan-3d.glb" target="_blank" rel="noreferrer" className="flex-1">
                                                                 <Button className="w-full bg-white text-black hover:bg-slate-200 h-11 rounded-xl">

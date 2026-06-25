@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Upload, Loader2, Download, Box } from 'lucide-react';
 import { toast } from 'sonner';
+import GlbViewer from './GlbViewer';
 
 export default function Model3DTab() {
     const [imageFile, setImageFile] = useState(null);
@@ -161,15 +162,7 @@ export default function Model3DTab() {
             <div className="flex flex-col items-center">
                 <div className="w-full bg-white/5 border border-white/10 rounded-3xl overflow-hidden shadow-xl flex-1 min-h-[400px] flex items-center justify-center">
                     {activeModel ? (
-                        <model-viewer
-                            key={activeModel}
-                            src={activeModel}
-                            camera-controls
-                            auto-rotate
-                            shadow-intensity="1"
-                            environment-image="neutral"
-                            style={{ width: '100%', height: '500px', display: 'block', backgroundColor: '#3a3a5c' }}
-                        />
+                        <GlbViewer url={activeModel} height="500px" />
                     ) : (
                         <div className="flex flex-col items-center justify-center text-center p-8">
                             <Box size={48} className="text-slate-600 mb-4" />
