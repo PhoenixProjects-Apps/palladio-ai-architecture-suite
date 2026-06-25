@@ -231,17 +231,17 @@ If the document is clearly not an architectural plan, note that in the overview 
                                     <ReactMarkdown>{result}</ReactMarkdown>
                                 </div>
                             )}
-                            <div className="flex gap-3">
+                            <div className="flex flex-col sm:flex-row gap-3">
                                 <SaveToProject
                                     textContent={typeof result === 'object' ? `# Plan Assessment: ${result.plan_type || ''}\n\n**Overall Score:** ${result.overall_score}/10\n\n## Overview\n${result.overview}\n\n## Spatial Analysis\n${result.spatial_analysis}\n\n## Design Observations\n${(result.design_observations || []).map(o => `- ${o}`).join('\n')}\n\n## Compliance Flags\n${(result.compliance_flags || []).map(f => `- ${f}`).join('\n')}\n\n## Recommendations\n${(result.recommendations || []).map(r => `- ${r}`).join('\n')}` : String(result)}
                                     fileName="plan-assessment.md"
                                     assetType="document"
-                                    className="flex-1 border-white/20 text-white hover:bg-white/10 py-6 rounded-xl text-lg font-medium"
+                                    className="w-full sm:flex-1 border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/10 h-12 rounded-xl"
                                 />
                                 <Button 
                                     onClick={() => { setResult(null); setFile(null); setFileUrl(null); setPreviewUrl(null); }}
                                     variant="outline"
-                                    className="flex-1 border-white/20 text-white hover:bg-white/10 py-6 rounded-xl text-lg font-medium"
+                                    className="w-full sm:flex-1 border-white/20 text-slate-300 hover:bg-white/10 h-12 rounded-xl"
                                 >
                                     Analyse Another Plan
                                 </Button>
