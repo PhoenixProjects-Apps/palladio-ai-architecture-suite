@@ -153,13 +153,13 @@ INSTRUCTIONS:
                             <Calculator size={20} />
                         </div>
                         <h1 className="font-bold text-xl">Cost Estimator</h1>
-                        <Link to={createPageUrl('CostDatabase')} className="self-start sm:self-end">
+                    </header>
+            <Link to={createPageUrl('CostDatabase')} className="self-start sm:self-end">
                     <Button variant="outline" className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50">
-                        <Database className="w-4 h-4 mr-2" />
+                        <Database className="w-4 h-4" />
                         Manage Cost DB
                     </Button>
-                </Link>
-                    </header>
+            </Link>
             </div>
 
             <div className="grid lg:grid-cols-3 gap-6">
