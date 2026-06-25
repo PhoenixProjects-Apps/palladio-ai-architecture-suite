@@ -149,9 +149,6 @@ INSTRUCTIONS:
                             <ArrowLeft size={20} />
                         </Button>
                     </Link>
-                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${tool.color} flex items-center justify-center shrink-0 shadow-lg`}>
-                    <tool.icon size={26} className="text-white" />
-                    </div>
                     <div>
                         <h1 className="font-bold flex items-center gap-2 text-xl">AI Cost Estimator
               </h1>
