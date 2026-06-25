@@ -107,7 +107,8 @@ export default function Model3DTab() {
             startPolling(id);
         } catch (err) {
             console.error(err);
-            toast.error('Conversion failed to start');
+            const errorMsg = err?.response?.data?.error || err?.message || 'Conversion failed to start';
+            toast.error(errorMsg);
             setIsConverting(false);
             setStatus('');
         }

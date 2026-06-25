@@ -16,59 +16,66 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Archilogic credentials not configured' }, { status: 500 });
     }
 
+    // Try API key first, then secret token
     const authHeaders = {
-      'Authorization': `Bearer ${secretKey}`,
-      'X-API-Key': apiKey,
+      'Authorization': apiKey,
+      'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
+    const authHeadersSecret = { ...authHeaders, 'Authorization': `Bearer ${secretKey}` };
 
-    // Check conversion / floor status
-    const statusRes = await fetch(`https://api.archilogic.com/v2/floor/${floor_id}`, {
+    // Verify the floor exists
+    let statusRes = await fetch(`https://api.archilogic.com/v2/floor/${floor_id}`, {
       method: 'GET',
       headers: authHeaders,
     });
+    if (!statusRes.ok) {
+      statusRes = await fetch(`https://api.archilogic.com/v2/floor/${floor_id}`, {
+        method: 'GET',
+        headers: authHeadersSecret,
+      });
+    }
 
     if (!statusRes.ok) {
       const errText = await statusRes.text();
-      console.error('Archilogic status check failed:', statusRes.status, errText);
-      return Response.json({ error: `Status check failed: ${errText}` }, { status: statusRes.status });
+      console.error('Archilogic floor lookup failed:', statusRes.status, errText);
+      return Response.json({ error: `Floor lookup failed: ${errText}` }, { status: statusRes.status });
     }
 
-    const floorData = await statusRes.json();
-    const feature = floorData.features?.[0] || floorData;
-    const status = feature.properties?.conversionStatus || feature.conversionStatus || feature.status || 'processing';
-    console.log('Archilogic floor status for', floor_id, ':', status);
-
-    if (status === 'completed' || status === 'COMPLETED' || status === 'ready' || status === 'Ready') {
-      // Export floor as GLTF to get the 3D model download URL
-      const gltfRes = await fetch(`https://api.archilogic.com/v2/floor/${floor_id}/gltf`, {
+    // Try to export the floor as GLTF — if the floor is still processing, this may fail
+    let gltfRes = await fetch(`https://api.archilogic.com/v2/floor/${floor_id}/gltf`, {
+      method: 'POST',
+      headers: authHeaders,
+    });
+    if (!gltfRes.ok) {
+      gltfRes = await fetch(`https://api.archilogic.com/v2/floor/${floor_id}/gltf`, {
         method: 'POST',
-        headers: { ...authHeaders, 'Content-Type': 'application/json' },
+        headers: authHeadersSecret,
       });
-
-      if (!gltfRes.ok) {
-        const errText = await gltfRes.text();
-        console.error('Archilogic GLTF export failed:', gltfRes.status, errText);
-        return Response.json({ status: 'completed', error: `GLTF export failed: ${errText}` });
-      }
-
-      const gltfData = await gltfRes.json();
-      const modelUrl = gltfData.downloadUrl;
-      console.log('Archilogic GLTF download URL:', modelUrl);
-
-      // Save the URL to the user's database record
-      if (modelUrl) {
-        try {
-          await base44.auth.updateMe({ model3d_url: modelUrl });
-        } catch (e) {
-          console.error('Failed to save model URL to user record:', e);
-        }
-      }
-
-      return Response.json({ status: 'completed', modelUrl });
     }
 
-    return Response.json({ status });
+    if (!gltfRes.ok) {
+      const errText = await gltfRes.text();
+      console.log('GLTF export not ready yet:', gltfRes.status, errText);
+      return Response.json({ status: 'processing' });
+    }
+
+    const gltfData = await gltfRes.json();
+    const modelUrl = gltfData.downloadUrl;
+    console.log('Archilogic GLTF download URL:', modelUrl);
+
+    if (!modelUrl) {
+      return Response.json({ status: 'processing' });
+    }
+
+    // Save the URL to the user's database record
+    try {
+      await base44.asServiceRole.entities.User.update(user.id, { model3d_url: modelUrl });
+    } catch (e) {
+      console.error('Failed to save model URL to user record:', e);
+    }
+
+    return Response.json({ status: 'completed', modelUrl });
   } catch (error) {
     console.error('archilogicCheckStatus error:', error);
     return Response.json({ error: error.message }, { status: 500 });
