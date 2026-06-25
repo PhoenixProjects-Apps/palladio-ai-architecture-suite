@@ -397,7 +397,7 @@ export default function Render3D() {
           backgroundColor: '#0a0a14', borderBottom: '1px solid #1e293b'
         }}>
         <Link to={createPageUrl('Home')}>
-          <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl">
+          <Button variant="ghost" size="icon" className="hover:text-white hover:bg-gray-800 rounded-xl">
             <ArrowLeft size={20} />
           </Button>
         </Link>
