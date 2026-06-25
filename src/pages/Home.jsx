@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { FileImage, Layers, Building2, MapPin, ClipboardList, User, Calculator } from 'lucide-react';
+import { FileImage, Layers, Building2, MapPin, ClipboardList, User, Calculator, Coins } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 
@@ -21,6 +21,12 @@ export default function Home() {
     base44.auth.me().then(u => {
       if (u) setUser(u);
     });
+    const unsubscribe = base44.entities.User.subscribe((event) => {
+      if (event.type === 'update') {
+        base44.auth.me().then(u => { if (u) setUser(u); });
+      }
+    });
+    return () => unsubscribe();
   }, []);
 
   return (
@@ -28,8 +34,9 @@ export default function Home() {
       <div className="max-w-2xl mx-auto">
         <header className="flex justify-end items-center mb-12">
           <div className="flex items-center gap-3">
-            <Link to={createPageUrl('PalladioPricing')} className="text-sm font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full transition">
-              Pricing
+            <Link to={createPageUrl('PalladioPricing')} className="flex items-center gap-2 text-sm font-semibold text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 px-4 py-2 rounded-full transition border border-amber-500/20">
+              <Coins size={16} />
+              {user ? (user.tokens ?? 0) : '—'}
             </Link>
             {user ? (
               <Link to={createPageUrl('UserProfile')} className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center text-white font-bold hover:opacity-80 transition shadow-lg border border-white/10">
