@@ -121,7 +121,7 @@ export default function Sidebar() {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-2 flex flex-col gap-3" style={{ scrollbarWidth: 'none' }}>
+      <div className="flex-1 overflow-y-auto py-2 flex flex-col gap-6" style={{ scrollbarWidth: 'none' }}>
         {menuGroups.map((group, idx) => (
           <div key={idx} className="px-3">
             {!isCollapsed && <div className="px-1 mb-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">{group.title}</div>}
@@ -164,7 +164,7 @@ export default function Sidebar() {
         ))}
       </div>
 
-      <div className="p-3 border-t border-white/5">
+      <div className="p-6 border-t border-white/5">
         <div className="px-1 mb-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Info</div>
         <div className="space-y-1">
         {bottomItems.map((item, idx) => {
