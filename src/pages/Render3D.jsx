@@ -473,7 +473,7 @@ export default function Render3D() {
           <div>
             <div className="flex flex-wrap justify-between items-center mb-3">
               <h2 className="text-white text-sm font-semibold">2. Style Reference (Opt)</h2>
-              <p className="text-cyan-500 text-[10px] mt-1">Upload an image to match the style</p>
+              <p className="text-teal-400 text-[10px] mt-1">Upload an image to match the style</p>
             </div>
             <div
                 onClick={() => styleInputRef.current?.click()}
