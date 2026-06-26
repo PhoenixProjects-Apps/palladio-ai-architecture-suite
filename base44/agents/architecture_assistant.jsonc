@@ -6,6 +6,10 @@
     {
       "function_name": "saveToDrive",
       "description": "Use this function when a user asks you to save a project asset or chat to Google Drive "
+    },
+    {
+      "function_name": "onProjectAssetCreate",
+      "description": ""
     }
   ],
   "context_files": [],
