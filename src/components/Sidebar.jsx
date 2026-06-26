@@ -176,14 +176,6 @@ export default function Sidebar() {
               </button>
             );
           }
-          if (item.isTokenDisplay) {
-            return (
-              <div key={`token-${idx}`} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors w-full text-left bg-white/5 text-slate-300 ${isCollapsed ? 'justify-center' : ''}`} title={isCollapsed ? item.name : ''}>
-                <item.icon size={20} className="text-emerald-400" />
-                {!isCollapsed && <span className="font-medium text-sm">{item.name}</span>}
-              </div>
-            );
-          }
           const active = isActive(item.path);
           return (
             <Link key={item.path} to={createPageUrl(item.path)} onClick={() => setIsMobileOpen(false)} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${active ? 'bg-amber-500/10 text-amber-400' : 'hover:bg-white/5 text-slate-400 hover:text-white'} ${isCollapsed ? 'justify-center' : ''}`} title={isCollapsed ? item.name : ''}>
