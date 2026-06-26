@@ -129,13 +129,17 @@ ${(finalReport.compliance_flags || []).map(f => `- ${f}`).join('\n')}
 ${(finalReport.recommendations || []).map(r => `- ${r}`).join('\n')}
         `.trim();
 
-        await base44.functions.invoke('saveToDrive', {
-          fileUrl: fileUrl,
-          assessmentReport: markdownString,
-          tier: reviewTier
-        });
-        
-        toast.success("Assessment complete and saved successfully!");
+        try {
+          await base44.functions.invoke('saveToDrive', {
+            fileUrl: fileUrl,
+            assessmentReport: markdownString,
+            tier: reviewTier
+          });
+          toast.success("Assessment complete and saved successfully!");
+        } catch (saveErr) {
+          console.error("Failed to save assessment to drive:", saveErr);
+          toast.warning("Assessment complete, but it could not be auto-saved to your projects.");
+        }
       } else {
         throw new Error("Failed to receive structured report payload.");
       }
