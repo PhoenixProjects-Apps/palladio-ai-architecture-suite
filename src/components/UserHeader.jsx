@@ -21,6 +21,9 @@ export default function UserHeader() {
 
   return (
     <div className="flex items-center gap-3">
+    <Button variant="outline" size="icon" onClick={() => setIsMobileOpen(true)} className="bg-[#0a0c10] border-white/10 text-white rounded-xl">
+          <Menu size={20} />
+        </Button>
       <Link to={createPageUrl('PalladioPricing')} className="flex items-center gap-2 text-sm font-semibold text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 px-4 py-2 rounded-full transition border border-amber-500/20">
         <Coins size={16} />
         {user ? (user.tokens ?? 0) : '—'}
