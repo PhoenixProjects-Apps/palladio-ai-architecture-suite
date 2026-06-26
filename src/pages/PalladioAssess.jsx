@@ -18,7 +18,7 @@ export default function PalladioAssess() {
   const [result, setResult] = useState(null);
   const [uploadError, setUploadError] = useState(null);
   
-  // New state to drive the Two-Tiered Agent review
+  // State to handle the Two-Tiered architectural review flow
   const [reviewTier, setReviewTier] = useState('concept'); 
   
   const fileInputRef = useRef(null);
@@ -67,6 +67,7 @@ export default function PalladioAssess() {
     }
     setIsAnalyzing(true);
     try {
+      // Consume token check
       const tokenRes = await base44.functions.invoke('consumeToken', {});
       if (tokenRes.data?.error) {
         toast.error("You don't have enough AI tokens. Please upgrade your plan.");
@@ -74,14 +75,12 @@ export default function PalladioAssess() {
         return;
       }
 
-      // Point directly to your custom Base44 Agent skill setup
-      // Pass the active tier so the agent selects the right instructions block
-      const response = await base44.integrations.Core.InvokeLLM({
-        agent_skill: "architectural-plan-assessor", 
+      // OPTION A: Invoking the Base44 Agent directly so it carries your RAG files, 
+      // core memory rules, and global instruction workflows into the context.
+      const response = await base44.agents.invoke('architectural-plan-assessor', {
+        message: `Please run a plan assessment on this document.`,
         file_urls: [fileUrl],
-        add_context_from_internet: true,
-        // We inject the tier state directly into the agent transaction context
-        additional_context: `Active Assessment Mode: Tier ${reviewTier === 'concept' ? '1 (Concept & Pricing)' : '2 (Construction & Compliance Document Review)'}. Ensure you follow the specific parameters designated for this tier.`,
+        additional_context: `Active Assessment Mode: Tier ${reviewTier === 'concept' ? '1 (Concept & Pricing)' : '2 (Construction & Compliance Document Review)'}. Use the specified structure layout.`,
         response_json_schema: {
           type: "object",
           properties: {
@@ -97,16 +96,19 @@ export default function PalladioAssess() {
         }
       });
       
-      setResult(response);
+      // Access the parsed data object returned from the Agent run
+      const finalReport = response.data || response;
+      setResult(finalReport);
       
-      // Auto-save the artifact via your system's saveToDrive backend function
+      // Triggers your background function tool to automatically sync to drive
       await base44.functions.invoke('saveToDrive', {
         fileUrl: fileUrl,
-        assessmentReport: response,
+        assessmentReport: finalReport,
         tier: reviewTier
       });
 
     } catch (err) {
+      console.error(err);
       setResult("An error occurred during analysis. Please try again.");
     } finally {
       setIsAnalyzing(false);
@@ -134,6 +136,7 @@ export default function PalladioAssess() {
               {/* TIER SELECTION TOGGLE */}
               <div className="bg-white/5 border border-white/10 rounded-2xl p-2 flex gap-2">
                 <button
+                  type="button"
                   onClick={() => setReviewTier('concept')}
                   className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium text-sm transition-all ${reviewTier === 'concept' ? 'bg-cyan-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
                 >
@@ -141,6 +144,7 @@ export default function PalladioAssess() {
                   Tier 1: Concept & Pricing
                 </button>
                 <button
+                  type="button"
                   onClick={() => setReviewTier('construction')}
                   className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium text-sm transition-all ${reviewTier === 'construction' ? 'bg-cyan-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
                 >
@@ -191,7 +195,7 @@ export default function PalladioAssess() {
                 className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-6 text-lg rounded-xl shadow-lg shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isAnalyzing ? (
-                  <><Loader2 size={20} className="animate-spin mr-2" /> Assessing Design Room by Room...</>
+                  <><Loader2 size={20} className="animate-spin mr-2" /> Assessing Design Layout...</>
                 ) : (
                   `Run ${reviewTier === 'concept' ? 'Concept' : 'Construction'} Assessment`
                 )}
@@ -263,6 +267,7 @@ export default function PalladioAssess() {
                   <ReactMarkdown>{result}</ReactMarkdown>
                 </div>
               )}
+              
               <div className="flex flex-col sm:flex-row gap-3">
                 <SaveToProject
                   textContent={typeof result === 'object' ? `# Plan Assessment: ${result.plan_type || ''}\n\n**Overall Score:** ${result.overall_score}/10\n\n## Overview\n${result.overview}\n\n## Spatial Analysis\n${result.spatial_analysis}\n\n## Design Observations\n${(result.design_observations || []).map((o) => `- ${o}`).join('\n')}\n\n## Compliance Flags\n${(result.compliance_flags || []).map((f) => `- ${f}`).join('\n')}\n\n## Recommendations\n${(result.recommendations || []).map((r) => `- ${r}`).join('\n')}` : String(result)}
