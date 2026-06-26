@@ -66,17 +66,17 @@ export default function Sidebar() {
       items: [
         { name: 'Dashboard', icon: Home, path: 'Home' },
         { name: 'Projects', icon: Folder, path: 'Projects' },
-        { name: 'AI Assistant', icon: MessageSquare, path: 'SavedChats' },
       ]
     },
     {
       title: "Tools",
       items: [
-        { name: 'Assess Plans', icon: FileImage, path: 'PalladioAssess' },
+        { name: 'AI Assistant', icon: MessageSquare, path: 'SavedChats' },
         { name: 'Floorplans', icon: Layers, path: 'PalladioFloorplan' },
         { name: '3D Renders', icon: Building2, path: 'Render3D' },
         { name: 'Property Intel', icon: MapPin, path: 'PalladioProperty' },
-        { name: 'Town Planner', icon: ClipboardList, path: 'PalladioPlanner' },
+        { name: 'Town Planning', icon: ClipboardList, path: 'PalladioPlanner' },
+        { name: 'Assess Plans', icon: FileImage, path: 'PalladioAssess' },
         { name: 'SketchPad', icon: PenTool, path: 'ArchiSketch' },
       ]
     }
