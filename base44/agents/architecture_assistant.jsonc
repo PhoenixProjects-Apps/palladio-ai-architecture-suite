@@ -28,7 +28,68 @@
       ]
     }
   ],
-  "context_files": [],
+  "context_files": [
+    {
+      "asset_id": "6a3eee8aefa22234d833ce71",
+      "file_name": "1684.2-2006.pdf",
+      "file_url": "https://media.base44.com/files/public/69a3763d353d50d5469dd9ae/669b113e8_16842-2006.pdf",
+      "file_type": "pdf"
+    },
+    {
+      "asset_id": "6a3eee8c73edbc1683350a3c",
+      "file_name": "City_Plan.txt",
+      "file_url": "https://media.base44.com/files/public/69a3763d353d50d5469dd9ae/aec98c57e_City_Plan.txt",
+      "file_type": "txt"
+    },
+    {
+      "asset_id": "6a3eee92f002cdafbcbedc79",
+      "file_name": "Livable-Housing-Design-Standard-2022-1.3.pdf",
+      "file_url": "https://media.base44.com/files/public/69a3763d353d50d5469dd9ae/9d2679a53_Livable-Housing-Design-Standard-2022-13.pdf",
+      "file_type": "pdf"
+    },
+    {
+      "asset_id": "6a3eee93119f502ce48edb0f",
+      "file_name": "mp-3-1-floating-buildings.pdf",
+      "file_url": "https://media.base44.com/files/public/69a3763d353d50d5469dd9ae/2c58379f7_mp-3-1-floating-buildings.pdf",
+      "file_type": "pdf"
+    },
+    {
+      "asset_id": "6a3ef345f0bbfd7b5666b681",
+      "file_name": "Standard-construction-of-buildings-in-flood-hazard-areas.pdf",
+      "file_url": "https://media.base44.com/files/public/69a3763d353d50d5469dd9ae/c9417bef3_Standard-construction-of-buildings-in-flood-hazard-areas.pdf",
+      "file_type": "pdf"
+    },
+    {
+      "asset_id": "6a3ef3469b6119a619b2c2ed",
+      "file_name": "RIS-Interconnection-of-smoke-alarms.pdf",
+      "file_url": "https://media.base44.com/files/public/69a3763d353d50d5469dd9ae/a5f3d1467_RIS-Interconnection-of-smoke-alarms.pdf",
+      "file_type": "pdf"
+    },
+    {
+      "asset_id": "6a3ef604b6984eb1550d3603",
+      "file_name": "NCC_2025_Volume_Three3.pdf",
+      "file_url": "https://media.base44.com/files/public/69a3763d353d50d5469dd9ae/75a0254a1_NCC_2025_Volume_Three3.pdf",
+      "file_type": "pdf"
+    },
+    {
+      "asset_id": "6a3ef6235fc546d55a1b6883",
+      "file_name": "NCC_2025_Volume_Two2.pdf",
+      "file_url": "https://media.base44.com/files/public/69a3763d353d50d5469dd9ae/2afc7260a_NCC_2025_Volume_Two2.pdf",
+      "file_type": "pdf"
+    },
+    {
+      "asset_id": "6a3ef63a6ae47eef595b809f",
+      "file_name": "qdcmp4-5-pending-LivableDwellingsGradingFloorWastes.pdf",
+      "file_url": "https://media.base44.com/files/public/69a3763d353d50d5469dd9ae/b225c9394_qdcmp4-5-pending-LivableDwellingsGradingFloorWastes.pdf",
+      "file_type": "pdf"
+    },
+    {
+      "asset_id": "6a3ef652adefa59be5dfaab8",
+      "file_name": "nathers-heating-cooling-load-limits-2022.pdf",
+      "file_url": "https://media.base44.com/files/public/69a3763d353d50d5469dd9ae/28a4a9d40_nathers-heating-cooling-load-limits-2022.pdf",
+      "file_type": "pdf"
+    }
+  ],
   "app_user_connector_configs": [],
   "selected_skill_names": [
     "architectural-plan-assessor",
