@@ -25,20 +25,13 @@ export default function AddressAutocomplete({ value, onChange, onSelect }) {
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
         timeoutRef.current = setTimeout(async () => {
             try {
-                const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=8`);
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=8&countrycodes=au`);
                 const data = await res.json();
-                const features = (data.features || []).map(f => {
-                    const p = f.properties || {};
-                    const parts = [
-                        p.name && p.osm_key !== 'highway' ? p.name : null,
-                        [p.housenumber, p.street].filter(Boolean).join(' '),
-                        p.district,
-                        p.city || p.county,
-                        p.state,
-                        [p.postcode, p.country].filter(Boolean).join(' ')
-                    ].filter(Boolean);
-                    return { display_name: parts.join(', '), lat: f.geometry?.coordinates?.[1], lon: f.geometry?.coordinates?.[0] };
-                }).filter(r => r.display_name);
+                const features = (data || []).map(r => ({
+                    display_name: r.display_name,
+                    lat: r.lat,
+                    lon: r.lon
+                })).filter(r => r.display_name);
                 setResults(features);
                 setOpen(true);
             } catch (e) {
