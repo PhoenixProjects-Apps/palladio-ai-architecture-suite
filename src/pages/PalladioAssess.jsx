@@ -18,7 +18,7 @@ export default function PalladioAssess() {
   const [result, setResult] = useState(null);
   const [uploadError, setUploadError] = useState(null);
   
-  // State to handle the Two-Tiered architectural review flow
+  // Tier state tracking: 'concept' vs 'construction'
   const [reviewTier, setReviewTier] = useState('concept'); 
   
   const fileInputRef = useRef(null);
@@ -67,7 +67,7 @@ export default function PalladioAssess() {
     }
     setIsAnalyzing(true);
     try {
-      // Consume token check
+      // Validate token count balance via backend
       const tokenRes = await base44.functions.invoke('consumeToken', {});
       if (tokenRes.data?.error) {
         toast.error("You don't have enough AI tokens. Please upgrade your plan.");
@@ -75,41 +75,30 @@ export default function PalladioAssess() {
         return;
       }
 
-      // OPTION A: Invoking the Base44 Agent directly so it carries your RAG files, 
-      // core memory rules, and global instruction workflows into the context.
-      const response = await base44.agents.invoke('architectural-plan-assessor', {
-        message: `Please run a plan assessment on this document.`,
-        file_urls: [fileUrl],
-        additional_context: `Active Assessment Mode: Tier ${reviewTier === 'concept' ? '1 (Concept & Pricing)' : '2 (Construction & Compliance Document Review)'}. Use the specified structure layout.`,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            plan_type: { type: "string" },
-            overall_score: { type: "number" },
-            overview: { type: "string" },
-            spatial_analysis: { type: "string" },
-            design_observations: { type: "array", items: { type: "string" } },
-            compliance_flags: { type: "array", items: { type: "string" } },
-            recommendations: { type: "array", items: { type: "string" } }
-          },
-          required: ["plan_type", "overall_score", "overview", "spatial_analysis", "design_observations", "compliance_flags", "recommendations"]
-        }
-      });
-      
-      // Access the parsed data object returned from the Agent run
-      const finalReport = response.data || response;
-      setResult(finalReport);
-      
-      // Triggers your background function tool to automatically sync to drive
-      await base44.functions.invoke('saveToDrive', {
+      // Safe, robust execution route passing data directly to your backend cloud runner
+      const response = await base44.functions.invoke('runPlanAssessment', {
         fileUrl: fileUrl,
-        assessmentReport: finalReport,
         tier: reviewTier
       });
+      
+      // Extract the structured JSON block back out of the function result promise
+      if (response.data?.assessmentReport) {
+        setResult(response.data.assessmentReport);
+        
+        // Auto-save trace payload data using your existing drive archiver tool
+        await base44.functions.invoke('saveToDrive', {
+          fileUrl: fileUrl,
+          assessmentReport: response.data.assessmentReport,
+          tier: reviewTier
+        });
+      } else {
+        throw new Error("Failed to receive structured report payload.");
+      }
 
     } catch (err) {
       console.error(err);
       setResult("An error occurred during analysis. Please try again.");
+      toast.error("Analysis failed. Check backend function configuration logs.");
     } finally {
       setIsAnalyzing(false);
     }
@@ -133,7 +122,7 @@ export default function PalladioAssess() {
 
           {!result ? (
             <div className="space-y-6">
-              {/* TIER SELECTION TOGGLE */}
+              {/* TWO TIER STATE CONTROLLER TOGGLE */}
               <div className="bg-white/5 border border-white/10 rounded-2xl p-2 flex gap-2">
                 <button
                   type="button"
@@ -195,7 +184,7 @@ export default function PalladioAssess() {
                 className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-6 text-lg rounded-xl shadow-lg shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isAnalyzing ? (
-                  <><Loader2 size={20} className="animate-spin mr-2" /> Assessing Design Layout...</>
+                  <><Loader2 size={20} className="animate-spin mr-2" /> Auditing Blueprint Components...</>
                 ) : (
                   `Run ${reviewTier === 'concept' ? 'Concept' : 'Construction'} Assessment`
                 )}
