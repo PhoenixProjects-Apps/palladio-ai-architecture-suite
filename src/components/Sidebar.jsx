@@ -130,7 +130,7 @@ export default function Sidebar() {
                 const active = item.path ? isActive(item.path) : false;
                 const linkContent = (
                   <>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-6">
                       <item.icon size={20} className={active ? 'text-amber-500' : ''} />
                       {!isCollapsed && <span className="font-medium text-sm">{item.name}</span>}
                     </div>
