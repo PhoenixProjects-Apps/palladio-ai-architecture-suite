@@ -68,7 +68,8 @@
   "app_user_connector_configs": [],
   "selected_skill_names": [
     "support-escalation",
-    "pricing-and-plans"
+    "pricing-and-plans",
+    "refund-policy"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
