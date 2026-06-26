@@ -83,12 +83,36 @@ export default function PalladioAssess() {
       
       // Extract the structured JSON block back out of the function result promise
       if (response.data?.assessmentReport) {
-        setResult(response.data.assessmentReport);
+        const finalReport = response.data.assessmentReport;
+        setResult(finalReport);
         
-        // Auto-save trace payload data using your existing drive archiver tool
+        // Convert the JSON object into a flat Markdown string before saving
+        // to prevent the 400 Bad Request payload validation error
+        const markdownString = `
+# Plan Assessment: ${finalReport.plan_type || 'Architectural Sheet'}
+**Overall Score:** ${finalReport.overall_score}/10
+**Assessment Tier:** ${reviewTier === 'concept' ? 'Tier 1 (Concept)' : 'Tier 2 (Construction)'}
+
+## Overview
+${finalReport.overview}
+
+## Spatial Analysis
+${finalReport.spatial_analysis}
+
+## Design Observations
+${(finalReport.design_observations || []).map(o => `- ${o}`).join('\n')}
+
+## Compliance Flags
+${(finalReport.compliance_flags || []).map(f => `- ${f}`).join('\n')}
+
+## Recommendations
+${(finalReport.recommendations || []).map(r => `- ${r}`).join('\n')}
+        `.trim();
+
+        // Auto-save the formatted string payload using your drive archiver tool
         await base44.functions.invoke('saveToDrive', {
           fileUrl: fileUrl,
-          assessmentReport: response.data.assessmentReport,
+          assessmentReport: markdownString,
           tier: reviewTier
         });
       } else {
@@ -259,7 +283,11 @@ export default function PalladioAssess() {
               
               <div className="flex flex-col sm:flex-row gap-3">
                 <SaveToProject
-                  textContent={typeof result === 'object' ? `# Plan Assessment: ${result.plan_type || ''}\n\n**Overall Score:** ${result.overall_score}/10\n\n## Overview\n${result.overview}\n\n## Spatial Analysis\n${result.spatial_analysis}\n\n## Design Observations\n${(result.design_observations || []).map((o) => `- ${o}`).join('\n')}\n\n## Compliance Flags\n${(result.compliance_flags || []).map((f) => `- ${f}`).join('\n')}\n\n## Recommendations\n${(result.recommendations || []).map((r) => `- ${r}`).join('\n')}` : String(result)}
+                  textContent={
+                    typeof result === 'object' 
+                      ? `# Plan Assessment: ${result.plan_type || ''}\n\n**Overall Score:** ${result.overall_score}/10\n\n## Overview\n${result.overview}\n\n## Spatial Analysis\n${result.spatial_analysis}\n\n## Design Observations\n${(result.design_observations || []).map((o) => `- ${o}`).join('\n')}\n\n## Compliance Flags\n${(result.compliance_flags || []).map((f) => `- ${f}`).join('\n')}\n\n## Recommendations\n${(result.recommendations || []).map((r) => `- ${r}`).join('\n')}` 
+                      : String(result)
+                  }
                   fileName={`${reviewTier}-assessment.md`}
                   assetType="document"
                   className="w-full sm:flex-1 rounded-xl border-teal-600/50 text-teal-400 hover:bg-teal-500/10 hover:text-teal-300 h-12"
