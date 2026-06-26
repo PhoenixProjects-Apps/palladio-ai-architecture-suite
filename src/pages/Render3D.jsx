@@ -473,12 +473,7 @@ export default function Render3D() {
           <div>
             <div className="flex flex-wrap justify-between items-center mb-3">
               <h2 className="text-white text-sm font-semibold">2. Style Reference (Opt)</h2>
-              <button
-                  onClick={handleCaptureScreen}
-                  className="flex items-center text-[10px] font-medium text-teal-400 hover:text-teal-300 bg-teal-400/10 hover:bg-teal-400/20 px-2 py-1 rounded transition-colors">
-                  
-                <Monitor size={12} className="mr-1" /> Screenshot
-              </button>
+              <p className="text-cyan-500 text-[10px] mt-1">Upload an image to match the style</p>
             </div>
             <div
                 onClick={() => styleInputRef.current?.click()}
