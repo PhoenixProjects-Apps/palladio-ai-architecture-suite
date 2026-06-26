@@ -22,7 +22,7 @@ export default function UserHeader() {
   }, []);
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="md:hidden flex items-center gap-3">
     <Button variant="outline" size="icon" onClick={() => setIsMobileOpen(true)} className=" flex items-left justify-left bg-[#0a0c10] border-white/10 text-white rounded-xl">
           <Menu size={20} />
         </Button>
