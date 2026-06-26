@@ -5,11 +5,11 @@
   "tool_configs": [
     {
       "function_name": "saveToDrive",
-      "description": ""
+      "description": "Call this function immediately after completing an architectural or structural plan assessment report. Use it to automatically save the structured markdown compliance report and amendment lists to the project's permanent asset storage drive."
     },
     {
       "function_name": "onProjectAssetCreate",
-      "description": ""
+      "description": "This function triggers automatically when a user uploads a new file (PDF or Image) to a project. Use this event context to initialize the file analysis pipeline, read the new drawing elements, and determine if a Tier 1 or Tier 2 review flow needs to be executed based on the active project state."
     },
     {
       "entity_name": "Project",
