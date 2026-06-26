@@ -21,6 +21,7 @@ export default function UserHeader() {
 
   return (
     <div className="flex items-center gap-3">
+      <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69997bf8be3f3bf35cbd8147/e93fde36f_Lumii_20260222_021318181.png" alt="Palladio AI" className="w-80 h-80 md:w-96 md:h-96 object-cover rounded-3xl mb-3 shadow-2xl shadow-white/5" />
       <Link to={createPageUrl('PalladioPricing')} className="flex items-center gap-2 text-sm font-semibold text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 px-4 py-2 rounded-full transition border border-amber-500/20">
         <Coins size={16} />
         {user ? (user.tokens ?? 0) : '—'}
