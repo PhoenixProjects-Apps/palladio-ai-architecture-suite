@@ -191,10 +191,6 @@ export default function Sidebar() {
 
   return (
     <>
-      <div className="flex flex-col gap-3">
-      <img src="https://www.image2url.com/r2/default/images/1782439345351-85257dc4-fda3-43f5-9ae4-2f91ee65350a.png" alt="Palladio AI" className="h-9 w-full flex items-right bg-[#0a0c10] border-white/10 text-white rounded-xl" />
-      </div>
-
       <div className={`hidden md:block transition-all duration-300 h-screen sticky top-0 flex-shrink-0 ${isCollapsed ? 'w-[72px]' : 'w-64'}`}>
         <SidebarContent />
       </div>
