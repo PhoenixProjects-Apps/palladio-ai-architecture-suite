@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Home, MessageSquare, Settings, X, Layers, Building2, MapPin, ClipboardList, FileImage, PanelLeftClose, PanelLeftOpen, ShieldAlert, CreditCard, Folder, Bell, PenTool, LogIn } from 'lucide-react';
+import { Home, MessageSquare, Settings, X, Layers, Building2, MapPin, ClipboardList, FileImage, PanelLeftClose, PanelLeftOpen, ShieldAlert, CreditCard, Folder, Bell, PenTool, LogIn, Info, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 
 export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
   const [user, setUser] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const location = useLocation();
@@ -163,27 +164,37 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
         ))}
       </div>
 
-      <div className="p-6 border-t border-white/5">
-        <div className="px-1 mb-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Info</div>
-        <div className="space-y-1">
-        {bottomItems.map((item, idx) => {
-          if (item.action === 'login') {
-            return (
-              <button key="login" onClick={() => base44.auth.redirectToLogin()} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors w-full text-left hover:bg-white/5 text-slate-400 hover:text-white ${isCollapsed ? 'justify-center' : ''}`} title={isCollapsed ? item.name : ''}>
-                <item.icon size={20} />
-                {!isCollapsed && <span className="font-medium text-sm">{item.name}</span>}
-              </button>
-            );
-          }
-          const active = isActive(item.path);
-          return (
-            <Link key={item.path} to={createPageUrl(item.path)} onClick={() => setIsMobileOpen(false)} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${active ? 'bg-amber-500/10 text-amber-400' : 'hover:bg-white/5 text-slate-400 hover:text-white'} ${isCollapsed ? 'justify-center' : ''}`} title={isCollapsed ? item.name : ''}>
-              <item.icon size={20} className={active ? 'text-amber-500' : ''} />
-              {!isCollapsed && <span className="font-medium text-sm">{item.name}</span>}
-            </Link>
-          );
-        })}
-        </div>
+      <div className="border-t border-white/5 relative">
+        <button
+          onClick={() => setShowInfo(!showInfo)}
+          className={`flex items-center gap-3 px-3 py-3 w-full text-left text-slate-400 hover:text-white hover:bg-white/5 transition-colors ${isCollapsed ? 'justify-center' : ''}`}
+          title={isCollapsed ? 'Info' : ''}
+        >
+          <Info size={20} className={showInfo ? 'text-amber-500' : ''} />
+          {!isCollapsed && <span className="font-medium text-sm tracking-wider">INFO</span>}
+          {!isCollapsed && <ChevronUp size={16} className={`ml-auto transition-transform duration-200 ${showInfo ? '' : 'rotate-180'}`} />}
+        </button>
+        {showInfo && (
+          <div className="absolute bottom-full left-0 right-0 bg-[#0a0c10] border-t border-white/5 shadow-2xl shadow-black/50 p-3 space-y-1 max-h-[60vh] overflow-y-auto">
+            {bottomItems.map((item, idx) => {
+              if (item.action === 'login') {
+                return (
+                  <button key="login" onClick={() => { base44.auth.redirectToLogin(); setShowInfo(false); }} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors w-full text-left hover:bg-white/5 text-slate-400 hover:text-white ${isCollapsed ? 'justify-center' : ''}`} title={isCollapsed ? item.name : ''}>
+                    <item.icon size={20} />
+                    {!isCollapsed && <span className="font-medium text-sm">{item.name}</span>}
+                  </button>
+                );
+              }
+              const active = isActive(item.path);
+              return (
+                <Link key={item.path} to={createPageUrl(item.path)} onClick={() => { setIsMobileOpen(false); setShowInfo(false); }} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${active ? 'bg-amber-500/10 text-amber-400' : 'hover:bg-white/5 text-slate-400 hover:text-white'} ${isCollapsed ? 'justify-center' : ''}`} title={isCollapsed ? item.name : ''}>
+                  <item.icon size={20} className={active ? 'text-amber-500' : ''} />
+                  {!isCollapsed && <span className="font-medium text-sm">{item.name}</span>}
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
