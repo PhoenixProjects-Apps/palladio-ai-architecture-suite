@@ -17,10 +17,7 @@ export default function PalladioAssess() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
   const [uploadError, setUploadError] = useState(null);
-  
-  // Tier state tracking: 'concept' vs 'construction'
   const [reviewTier, setReviewTier] = useState('concept'); 
-  
   const fileInputRef = useRef(null);
 
   const handleFileSelect = async (e) => {
@@ -59,15 +56,20 @@ export default function PalladioAssess() {
     }
   };
 
+  // Helper utility to introduce an asynchronous pause/sleep state
+  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
   const handleAnalyze = async () => {
     if (!file) return;
     if (!fileUrl) {
       toast.error("Please wait for the file to finish uploading.");
       return;
     }
+    
     setIsAnalyzing(true);
+    
     try {
-      // Validate token count balance via backend
+      // Consume token check
       const tokenRes = await base44.functions.invoke('consumeToken', {});
       if (tokenRes.data?.error) {
         toast.error("You don't have enough AI tokens. Please upgrade your plan.");
@@ -75,19 +77,48 @@ export default function PalladioAssess() {
         return;
       }
 
-      // Safe, robust execution route passing data directly to your backend cloud runner
-      const response = await base44.functions.invoke('runPlanAssessment', {
-        fileUrl: fileUrl,
-        tier: reviewTier
-      });
-      
-      // Extract the structured JSON block back out of the function result promise
-      if (response.data?.assessmentReport) {
+      // Defensive Layer 1: Short delay to allow the uploaded storage asset to 'settle' globally
+      await delay(1500);
+
+      let response = null;
+      let attempts = 0;
+      const maxRetries = 3;
+      let success = false;
+
+      // Defensive Layer 2: Retry loop with Exponential Backoff
+      while (attempts < maxRetries && !success) {
+        try {
+          attempts++;
+          
+          response = await base44.functions.invoke('runPlanAssessment', {
+            fileUrl: fileUrl,
+            tier: reviewTier
+          });
+
+          // Check if the server explicitly complained about the attachment link
+          const errDetails = response.data?.details || "";
+          if (response.data?.error && (errDetails.includes("Invalid file attachment") || errDetails.includes("400"))) {
+            throw new Error("RETRY_TRIGGER: Attachment propagation delay caught.");
+          }
+
+          success = true; // No errors thrown, we are clear!
+        } catch (loopError) {
+          console.warn(`Analysis attempt ${attempts} failed. Checking file availability...`);
+          
+          if (attempts >= maxRetries) {
+            throw new Error("MAX_RETRIES_REACHED: The storage file is taking too long to authorize.");
+          }
+          
+          // Wait longer on each successive failure (e.g., 2s, then 4s)
+          await delay(attempts * 2000); 
+        }
+      }
+
+      // Process and commit the validated payload data
+      if (response && response.data?.assessmentReport) {
         const finalReport = response.data.assessmentReport;
         setResult(finalReport);
         
-        // Convert the JSON object into a flat Markdown string before saving
-        // to prevent the 400 Bad Request payload validation error
         const markdownString = `
 # Plan Assessment: ${finalReport.plan_type || 'Architectural Sheet'}
 **Overall Score:** ${finalReport.overall_score}/10
@@ -109,20 +140,21 @@ ${(finalReport.compliance_flags || []).map(f => `- ${f}`).join('\n')}
 ${(finalReport.recommendations || []).map(r => `- ${r}`).join('\n')}
         `.trim();
 
-        // Auto-save the formatted string payload using your drive archiver tool
         await base44.functions.invoke('saveToDrive', {
           fileUrl: fileUrl,
           assessmentReport: markdownString,
           tier: reviewTier
         });
+        
+        toast.success("Assessment complete and saved successfully!");
       } else {
         throw new Error("Failed to receive structured report payload.");
       }
 
     } catch (err) {
-      console.error(err);
+      console.error("Final Analysis Failure Chain:", err);
       setResult("An error occurred during analysis. Please try again.");
-      toast.error("Analysis failed. Check backend function configuration logs.");
+      toast.error("The document file could not be read by the AI engine. Please re-upload or try again in a moment.");
     } finally {
       setIsAnalyzing(false);
     }
@@ -146,7 +178,6 @@ ${(finalReport.recommendations || []).map(r => `- ${r}`).join('\n')}
 
           {!result ? (
             <div className="space-y-6">
-              {/* TWO TIER STATE CONTROLLER TOGGLE */}
               <div className="bg-white/5 border border-white/10 rounded-2xl p-2 flex gap-2">
                 <button
                   type="button"
