@@ -12,7 +12,7 @@
       ]
     },
     {
-      "entity_name": "ProjectAsset",
+      "entity_name": "RenderPreset",
       "allowed_operations": [
         "read",
         "create",
@@ -33,5 +33,6 @@
     "include_other_conversation_context": false,
     "instructions": null
   },
+  "allow_anonymous_access": false,
   "name": "architecture_assistant"
 }
