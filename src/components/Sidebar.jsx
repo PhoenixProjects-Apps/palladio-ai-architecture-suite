@@ -138,7 +138,7 @@ export default function Sidebar() {
                       <span className="bg-amber-500 text-[#0a0c10] text-xs font-bold px-2 py-0.5 rounded-full">{item.badge}</span>
                     )}
                     {isCollapsed && item.badge > 0 && (
-                      <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-[#0a0c10]"></div>
+                      <div className="absolute top-1 right-1 w-2.5 h-1 bg-amber-500 rounded-full border-2 border-[#0a0c10]"></div>
                     )}
                   </>
                 );
