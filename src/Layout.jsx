@@ -27,7 +27,7 @@ export default function Layout({ children }) {
       `}</style>
       <Sidebar />
       <main className="flex-1 overflow-y-auto overflow-x-hidden h-full relative">
-        <div className="flex justify-left items-center p-4">
+        <div className="sticky top-0 z-50 flex items-center p-4 bg-[#0f1117] border-b border-white/5">
           <UserHeader />
         </div>
         {children}
