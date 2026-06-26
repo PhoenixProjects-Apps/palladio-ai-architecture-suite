@@ -5,9 +5,8 @@ import { Button } from '@/components/ui/button';
 import { User, Coins, Menu } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
-export default function UserHeader() {
+export default function UserHeader({ setIsMobileOpen }) {
   const [user, setUser] = useState(null);
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   useEffect(() => {
     base44.auth.me().then(u => {

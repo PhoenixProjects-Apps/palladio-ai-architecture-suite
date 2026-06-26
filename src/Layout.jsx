@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Sidebar from '@/components/Sidebar';
 import UserHeader from '@/components/UserHeader';
 import { Toaster } from 'sonner';
 
 export default function Layout({ children }) {
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   return (
     <div className="text-white font-sans flex h-screen overflow-hidden" style={{ backgroundColor: '#0f1117' }}>
       <style>{`
@@ -25,10 +26,10 @@ export default function Layout({ children }) {
         .prose-invert pre code { background: transparent; padding: 0; color: inherit; }
         .prose-invert blockquote { border-left: 4px solid #374151; padding-left: 1rem; color: #9ca3af; font-style: italic; margin: 1rem 0; }
       `}</style>
-      <Sidebar />
+      <Sidebar isMobileOpen={isMobileOpen} setIsMobileOpen={setIsMobileOpen} />
       <main className="flex-1 overflow-y-auto overflow-x-hidden h-full relative">
         <div className="sticky top-0 z-50 flex items-center p-4 bg-[#0f1117] border-b border-white/5">
-          <UserHeader />
+          <UserHeader setIsMobileOpen={setIsMobileOpen} />
         </div>
         {children}
       </main>
