@@ -196,7 +196,7 @@ export default function Sidebar() {
         <Button variant="outline" size="icon" onClick={() => setIsMobileOpen(true)} className="bg-[#0a0c10] border-white/10 text-white rounded-xl">
           <Menu size={20} />
         </Button>
-      <img src="https://www.image2url.com/r2/default/images/1782439345351-85257dc4-fda3-43f5-9ae4-2f91ee65350a.png" alt="Palladio AI" className="h-10 w-full" />
+      <img src="https://www.image2url.com/r2/default/images/1782439345351-85257dc4-fda3-43f5-9ae4-2f91ee65350a.png" alt="Palladio AI" className="h-10 w-full bg-[#0a0c10] border-white/10 text-white rounded-xl" />
       </div>
 
       <div className={`hidden md:block transition-all duration-300 h-screen sticky top-0 flex-shrink-0 ${isCollapsed ? 'w-[72px]' : 'w-64'}`}>
