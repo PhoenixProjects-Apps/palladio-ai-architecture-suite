@@ -20,6 +20,38 @@ export default function PalladioAssess() {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
+  const compressImage = (file) => new Promise((resolve) => {
+    if (!file.type.startsWith('image/')) return resolve(file);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 2000;
+        let { width, height } = img;
+        if (width > MAX || height > MAX) {
+          const scale = MAX / Math.max(width, height);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        canvas.toBlob((blob) => {
+          if (blob && blob.size < file.size) {
+            resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }));
+          } else {
+            resolve(file);
+          }
+        }, 'image/jpeg', 0.85);
+      };
+      img.onerror = () => resolve(file);
+      img.src = e.target.result;
+    };
+    reader.onerror = () => resolve(file);
+    reader.readAsDataURL(file);
+  });
+
   const handleFile = async (selectedFile) => {
     if (!selectedFile) return;
 
@@ -41,14 +73,12 @@ export default function PalladioAssess() {
 
     setIsUploading(true);
     try {
-      const res = await base44.integrations.Core.UploadFile({ file: selectedFile });
+      const uploadFile = await compressImage(selectedFile);
+      const res = await base44.integrations.Core.UploadFile({ file: uploadFile });
       setFileUrl(res.file_url || res.url);
     } catch (err) {
       console.error(err);
-      let errMsg = "Failed to upload file. Please try again.";
-      if (err?.message?.includes("Network Error")) {
-        errMsg = "Network Error: The file might be too large or your connection was interrupted.";
-      }
+      const errMsg = err?.response?.data?.error || err?.message || "Failed to upload file. Please try again.";
       setUploadError(errMsg);
       toast.error(errMsg);
     } finally {
@@ -106,7 +136,8 @@ If the document is clearly not an architectural plan, note that in the overview 
       });
       setResult(response);
     } catch (err) {
-      setResult("An error occurred during analysis. Please try again.");
+      console.error(err);
+      setResult(`An error occurred during analysis: ${err?.message || "Please try again."}`);
     } finally {
       setIsAnalyzing(false);
     }
