@@ -9,23 +9,6 @@ import PalladioGate from '@/components/PalladioGate';
 import SaveToProject from '@/components/SaveToProject';
 import { toast } from 'sonner';
 
-// 1. Browser Capability Guard Layer
-// Validates storage access to prevent crashes inside the sandboxed Base44 preview iframe.
-const verifyBrowserStorageCapability = () => {
-  try {
-    const diagnosticKey = "__storage_validation__";
-    window.localStorage.setItem(diagnosticKey, diagnosticKey);
-    window.localStorage.removeItem(diagnosticKey);
-    return true;
-  } catch (storageException) {
-    console.warn("Local storage write block verified. Third-party session monitors deactivated.");
-    return false;
-  }
-};
-
-// Initialize capability check
-const isStorageAvailable = verifyBrowserStorageCapability();
-
 export default function PalladioAssess() {
   const [file, setFile] = useState(null);
   const [fileUrl, setFileUrl] = useState(null);
@@ -102,28 +85,21 @@ export default function PalladioAssess() {
       const maxRetries = 3;
       let success = false;
 
-      // Exponential backoff loop catching file replication propagation delays
+      // Retry loop to absorb transient file-storage propagation delays
       while (attempts < maxRetries && !success) {
         try {
           attempts++;
-          
           response = await base44.functions.invoke('runPlanAssessment', {
             fileUrl: fileUrl,
             tier: reviewTier
           });
-
-          const errDetails = response.data?.details || "";
-          if (response.data?.error && (errDetails.includes("Invalid file attachment") || errDetails.includes("400"))) {
-            throw new Error("RETRY_TRIGGER: Attachment propagation delay caught.");
-          }
-
           success = true;
         } catch (loopError) {
           console.warn(`Analysis attempt ${attempts} failed. Retrying...`);
           if (attempts >= maxRetries) {
             throw new Error("MAX_RETRIES_REACHED: File storage bucket taking too long to verify.");
           }
-          await delay(attempts * 2000); 
+          await delay(attempts * 2000);
         }
       }
 
@@ -166,12 +142,6 @@ ${(finalReport.recommendations || []).map(r => `- ${r}`).join('\n')}
 
     } catch (err) {
       console.error("Final Analysis Failure Chain:", err);
-      
-      // Handle the built-in Base44 pipeline task cancellation footprints (e.g., hr exception) silently
-      if (err?.message === 'Canceled' || err?.constructor?.name === 'hr' || String(err).includes('Canceled')) {
-        console.log("Analysis engine cycle aborted gracefully by task controller.");
-        return;
-      }
 
       setResult("An error occurred during analysis. Please try again.");
       toast.error("The document file could not be read by the AI engine. Please re-upload or try again.");
