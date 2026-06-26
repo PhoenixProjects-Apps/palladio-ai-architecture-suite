@@ -72,7 +72,9 @@
     "refund-policy",
     "research-assist"
   ],
-  "selected_workspace_skill_ids": [],
+  "selected_workspace_skill_ids": [
+    "6a3ea11f7c03892246a40e45"
+  ],
   "model": "automatic",
   "telegram_greeting": "",
   "line_greeting": "",
