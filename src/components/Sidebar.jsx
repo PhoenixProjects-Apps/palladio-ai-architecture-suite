@@ -77,6 +77,7 @@ export default function Sidebar() {
         { name: 'Property Intel', icon: MapPin, path: 'PalladioProperty' },
         { name: 'Town Planning', icon: ClipboardList, path: 'PalladioPlanner' },
         { name: 'Assess Plans', icon: FileImage, path: 'PalladioAssess' },
+        { name: 'Cost Estimator', icon: CreditCard, path: 'PalladioEstimator' },
         { name: 'SketchPad', icon: PenTool, path: 'ArchiSketch' },
       ]
     }
