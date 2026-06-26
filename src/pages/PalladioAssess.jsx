@@ -159,8 +159,8 @@ If the document is clearly not an architectural plan, note that in the overview 
                                         <p className="text-slate-400 text-sm">Drag and drop, or click to browse (Images, PDF)</p>
                                     </div>
               }
-                                <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*,.pdf" className="hidden" />
-                            </div>
+                          </div>
+                          <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*,.pdf" className="hidden" />
                             
                             {uploadError &&
             <div className="text-red-400 text-sm text-center bg-red-400/10 py-3 rounded-lg border border-red-400/20">
