@@ -17,6 +17,8 @@ export default function PalladioAssess() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
   const [uploadError, setUploadError] = useState(null);
+  
+  // Tier state tracking: 'concept' vs 'construction'
   const [reviewTier, setReviewTier] = useState('concept'); 
   const fileInputRef = useRef(null);
 
@@ -69,7 +71,7 @@ export default function PalladioAssess() {
     setIsAnalyzing(true);
     
     try {
-      // Consume token check
+      // Validate token count balance via backend
       const tokenRes = await base44.functions.invoke('consumeToken', {});
       if (tokenRes.data?.error) {
         toast.error("You don't have enough AI tokens. Please upgrade your plan.");
@@ -119,6 +121,8 @@ export default function PalladioAssess() {
         const finalReport = response.data.assessmentReport;
         setResult(finalReport);
         
+        // Convert the JSON object into a flat Markdown string before saving
+        // to prevent the 400 Bad Request payload validation error on saveToDrive
         const markdownString = `
 # Plan Assessment: ${finalReport.plan_type || 'Architectural Sheet'}
 **Overall Score:** ${finalReport.overall_score}/10
