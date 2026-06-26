@@ -17,10 +17,10 @@ export default function PalladioAssess() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
   const [uploadError, setUploadError] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
-  const handleFileSelect = async (e) => {
-    const selectedFile = e.target.files[0];
+  const handleFile = async (selectedFile) => {
     if (!selectedFile) return;
 
     // Ensure file isn't insanely large (limit to 20MB just to be safe, but 2.5MB is perfectly fine!)
@@ -54,6 +54,15 @@ export default function PalladioAssess() {
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const handleFileSelect = (e) => handleFile(e.target.files[0]);
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const droppedFile = e.dataTransfer.files[0];
+    if (droppedFile) handleFile(droppedFile);
   };
 
   const handleAnalyze = async () => {
@@ -123,7 +132,10 @@ If the document is clearly not an architectural plan, note that in the overview 
           <div className="space-y-6">
                             <div
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-white/10 hover:border-cyan-500/50 rounded-3xl p-12 text-center cursor-pointer transition-colors bg-white/5">
+              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={handleDrop}
+              className={`border-2 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-colors bg-white/5 ${isDragging ? 'border-cyan-500 bg-cyan-500/10' : 'border-white/10 hover:border-cyan-500/50'}`}>
               
                                 {isUploading ?
               <div className="flex flex-col items-center">
