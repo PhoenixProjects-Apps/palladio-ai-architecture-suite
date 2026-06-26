@@ -10,6 +10,22 @@
     {
       "function_name": "onProjectAssetCreate",
       "description": ""
+    },
+    {
+      "entity_name": "Project",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update"
+      ]
+    },
+    {
+      "entity_name": "ProjectAsset",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update"
+      ]
     }
   ],
   "context_files": [],
