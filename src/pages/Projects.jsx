@@ -307,7 +307,7 @@ export default function Projects() {
                                     onClick={() => openProject(project)}
                                     className="bg-white/5 border border-white/10 rounded-2xl p-3 hover:bg-white/10 transition-all cursor-pointer group relative hover:border-amber-500/30 shadow-lg"
                                 >
-                                    <h3 className="text-lg font-semibold text-#efad61 mb-2 truncate">{project.name}</h3>
+                                    <h3 className="text-lg font-semibold text-amber-500 mb-2 truncate">{project.name}</h3>
                                     <p className="text-xs text-slate-500 font-medium">Created {new Date(project.created_date).toLocaleDateString()}</p>
                                     <button 
                                         onClick={(e) => handleDeleteProject(e, project.id)}
