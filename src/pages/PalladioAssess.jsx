@@ -17,8 +17,6 @@ export default function PalladioAssess() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
   const [uploadError, setUploadError] = useState(null);
-  
-  // Tier state tracking: 'concept' vs 'construction'
   const [reviewTier, setReviewTier] = useState('concept'); 
   const fileInputRef = useRef(null);
 
@@ -58,7 +56,6 @@ export default function PalladioAssess() {
     }
   };
 
-  // Helper utility to introduce an asynchronous pause/sleep state
   const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
   const handleAnalyze = async () => {
@@ -71,7 +68,6 @@ export default function PalladioAssess() {
     setIsAnalyzing(true);
     
     try {
-      // Validate token count balance via backend
       const tokenRes = await base44.functions.invoke('consumeToken', {});
       if (tokenRes.data?.error) {
         toast.error("You don't have enough AI tokens. Please upgrade your plan.");
@@ -79,7 +75,7 @@ export default function PalladioAssess() {
         return;
       }
 
-      // Defensive Layer 1: Short delay to allow the uploaded storage asset to 'settle' globally
+      // Settle delay to avoid immediate asset bucket propagation race conditions
       await delay(1500);
 
       let response = null;
@@ -87,7 +83,7 @@ export default function PalladioAssess() {
       const maxRetries = 3;
       let success = false;
 
-      // Defensive Layer 2: Retry loop with Exponential Backoff
+      // Exponential backoff loop catching file replication propagation delays
       while (attempts < maxRetries && !success) {
         try {
           attempts++;
@@ -97,32 +93,26 @@ export default function PalladioAssess() {
             tier: reviewTier
           });
 
-          // Check if the server explicitly complained about the attachment link
           const errDetails = response.data?.details || "";
           if (response.data?.error && (errDetails.includes("Invalid file attachment") || errDetails.includes("400"))) {
             throw new Error("RETRY_TRIGGER: Attachment propagation delay caught.");
           }
 
-          success = true; // No errors thrown, we are clear!
+          success = true;
         } catch (loopError) {
-          console.warn(`Analysis attempt ${attempts} failed. Checking file availability...`);
-          
+          console.warn(`Analysis attempt ${attempts} failed. Retrying...`);
           if (attempts >= maxRetries) {
-            throw new Error("MAX_RETRIES_REACHED: The storage file is taking too long to authorize.");
+            throw new Error("MAX_RETRIES_REACHED: File storage bucket taking too long to verify.");
           }
-          
-          // Wait longer on each successive failure (e.g., 2s, then 4s)
           await delay(attempts * 2000); 
         }
       }
 
-      // Process and commit the validated payload data
       if (response && response.data?.assessmentReport) {
         const finalReport = response.data.assessmentReport;
         setResult(finalReport);
         
-        // Convert the JSON object into a flat Markdown string before saving
-        // to prevent the 400 Bad Request payload validation error on saveToDrive
+        // Flatten the structured response into a Markdown text string
         const markdownString = `
 # Plan Assessment: ${finalReport.plan_type || 'Architectural Sheet'}
 **Overall Score:** ${finalReport.overall_score}/10
@@ -156,17 +146,16 @@ ${(finalReport.recommendations || []).map(r => `- ${r}`).join('\n')}
       }
 
     } catch (err) {
-  console.error("Final Analysis Failure Chain:", err);
-  
-  // Cleanly detect if the error is the built-in Base44 pipeline cancellation event
-  if (err?.message === 'Canceled' || err?.constructor?.name === 'hr' || String(err).includes('Canceled')) {
-    console.log("Analysis cycle was successfully aborted by the internal task controller.");
-    return; // Silent exit: No scary error messages shown to the user
-  }
+      console.error("Final Analysis Failure Chain:", err);
+      
+      // Handle the built-in Base44 pipeline task cancellation footprints (e.g., hr exception) silently
+      if (err?.message === 'Canceled' || err?.constructor?.name === 'hr' || String(err).includes('Canceled')) {
+        console.log("Analysis engine cycle aborted gracefully by task controller.");
+        return;
+      }
 
-  // Handle actual, unexpected system infrastructure crashes
-  setResult("An error occurred during analysis. Please try again.");
-  toast.error("The document file could not be read by the AI engine. Please re-upload or try again.");
+      setResult("An error occurred during analysis. Please try again.");
+      toast.error("The document file could not be read by the AI engine. Please re-upload or try again.");
     } finally {
       setIsAnalyzing(false);
     }
