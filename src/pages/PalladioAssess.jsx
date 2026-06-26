@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Upload, Loader2, FileImage, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Upload, Loader2, FileImage, AlertCircle, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
@@ -17,54 +17,18 @@ export default function PalladioAssess() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
   const [uploadError, setUploadError] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
+  
+  // New state to drive the Two-Tiered Agent review
+  const [reviewTier, setReviewTier] = useState('concept'); 
+  
   const fileInputRef = useRef(null);
 
-  const compressImage = (file) => new Promise((resolve) => {
-    if (!file.type.startsWith('image/')) return resolve(file);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const MAX = 2000;
-        let { width, height } = img;
-        if (width > MAX || height > MAX) {
-          const scale = MAX / Math.max(width, height);
-          width = Math.round(width * scale);
-          height = Math.round(height * scale);
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-        canvas.toBlob((blob) => {
-          if (blob && blob.size < file.size) {
-            resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }));
-          } else {
-            resolve(file);
-          }
-        }, 'image/jpeg', 0.85);
-      };
-      img.onerror = () => resolve(file);
-      img.src = e.target.result;
-    };
-    reader.onerror = () => resolve(file);
-    reader.readAsDataURL(file);
-  });
-
-  const fileToBase64 = (file) => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(',')[1]);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-
-  const handleFile = async (selectedFile) => {
+  const handleFileSelect = async (e) => {
+    const selectedFile = e.target.files[0];
     if (!selectedFile) return;
 
-    // Ensure file isn't insanely large (base64 encoding inflates size ~33%)
-    if (selectedFile.size > 10 * 1024 * 1024) {
-      toast.error("File is too large. Please upload a file smaller than 10MB.");
+    if (selectedFile.size > 20 * 1024 * 1024) {
+      toast.error("File is too large. Please upload a file smaller than 20MB.");
       return;
     }
 
@@ -80,18 +44,14 @@ export default function PalladioAssess() {
 
     setIsUploading(true);
     try {
-      const uploadFile = await compressImage(selectedFile);
-      const fileBase64 = await fileToBase64(uploadFile);
-      const res = await base44.functions.invoke('uploadPlanFile', {
-        fileName: uploadFile.name,
-        fileType: uploadFile.type,
-        fileBase64
-      });
-      if (res.data?.error) throw new Error(res.data.error);
-      setFileUrl(res.data.file_url);
+      const res = await base44.integrations.Core.UploadFile({ file: selectedFile });
+      setFileUrl(res.file_url || res.url);
     } catch (err) {
       console.error(err);
-      const errMsg = err?.message || "Failed to upload file. Please try again.";
+      let errMsg = "Failed to upload file. Please try again.";
+      if (err?.message?.includes("Network Error")) {
+        errMsg = "Network Error: The file might be too large or your connection was interrupted.";
+      }
       setUploadError(errMsg);
       toast.error(errMsg);
     } finally {
@@ -99,19 +59,10 @@ export default function PalladioAssess() {
     }
   };
 
-  const handleFileSelect = (e) => handleFile(e.target.files[0]);
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile) handleFile(droppedFile);
-  };
-
   const handleAnalyze = async () => {
     if (!file) return;
     if (!fileUrl) {
-      toast.error("Please wait for the file to finish uploading or try uploading again.");
+      toast.error("Please wait for the file to finish uploading.");
       return;
     }
     setIsAnalyzing(true);
@@ -123,34 +74,40 @@ export default function PalladioAssess() {
         return;
       }
 
-      const prompt = `You are an expert architect and building surveyor. Analyze this uploaded architectural plan or drawing for compliance with drafting standards and building regulations.
-Please provide a detailed assessment. Evaluate the overall quality to provide a score out of 10.
-Crucially, assess the plans against Australian Standard "AS 1684.2 Residential Timber Framed Construction" and the "National Construction Code (NCC) - Residential" (use your knowledge and web search to recall specifics). 
-Highlight any potential non-compliance, missing details required by these standards, or drafting errors.
-If the document is clearly not an architectural plan, note that in the overview and score it a 0.`;
-
+      // Point directly to your custom Base44 Agent skill setup
+      // Pass the active tier so the agent selects the right instructions block
       const response = await base44.integrations.Core.InvokeLLM({
-        prompt,
+        agent_skill: "plan_documentation_assessor", 
         file_urls: [fileUrl],
         add_context_from_internet: true,
+        // We inject the tier state directly into the agent transaction context
+        additional_context: `Active Assessment Mode: Tier ${reviewTier === 'concept' ? '1 (Concept & Pricing)' : '2 (Construction & Compliance Document Review)'}. Ensure you follow the specific parameters designated for this tier.`,
         response_json_schema: {
           type: "object",
           properties: {
-            plan_type: { type: "string", description: "E.g., Floorplan, Elevation, Site Plan" },
-            overall_score: { type: "number", description: "Score out of 10 based on clarity, design quality, and practicality" },
-            overview: { type: "string", description: "A high-level summary of the document" },
-            spatial_analysis: { type: "string", description: "Analysis of layout, flow, and space utilization" },
-            design_observations: { type: "array", items: { type: "string" }, description: "Key architectural observations" },
-            compliance_flags: { type: "array", items: { type: "string" }, description: "Potential building code or compliance issues" },
-            recommendations: { type: "array", items: { type: "string" }, description: "Suggestions for improvement" }
+            plan_type: { type: "string" },
+            overall_score: { type: "number" },
+            overview: { type: "string" },
+            spatial_analysis: { type: "string" },
+            design_observations: { type: "array", items: { type: "string" } },
+            compliance_flags: { type: "array", items: { type: "string" } },
+            recommendations: { type: "array", items: { type: "string" } }
           },
           required: ["plan_type", "overall_score", "overview", "spatial_analysis", "design_observations", "compliance_flags", "recommendations"]
         }
       });
+      
       setResult(response);
+      
+      // Auto-save the artifact via your system's saveToDrive backend function
+      await base44.functions.invoke('saveToDrive', {
+        fileUrl: fileUrl,
+        assessmentReport: response,
+        tier: reviewTier
+      });
+
     } catch (err) {
-      console.error(err);
-      setResult(`An error occurred during analysis: ${err?.message || "Please try again."}`);
+      setResult("An error occurred during analysis. Please try again.");
     } finally {
       setIsAnalyzing(false);
     }
@@ -158,154 +115,173 @@ If the document is clearly not an architectural plan, note that in the overview 
 
   return (
     <PalladioGate>
-            <div className="min-h-screen bg-[#0f1117] text-white p-6">
-                <div className="max-w-3xl mx-auto">
-                    <header className="flex items-center gap-4 mb-8 border-b border-white/10 pb-4">
-                    <Link to={createPageUrl('Home')}>
-                        <Button variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
-                            <ArrowLeft size={20} />
-                        </Button>
-                    </Link>
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-700 flex items-center justify-center shadow-lg">
-                            <FileImage size={20} />
-                        </div>
-                        <h1 className="font-bold text-xl">Assess Plans</h1>
-                    </header>
-
-                    {!result ?
-          <div className="space-y-6">
-                            <div
-              onClick={() => fileInputRef.current?.click()}
-              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-colors bg-white/5 ${isDragging ? 'border-cyan-500 bg-cyan-500/10' : 'border-white/10 hover:border-cyan-500/50'}`}>
-              
-                                {isUploading ?
-              <div className="flex flex-col items-center">
-                                        <Loader2 size={40} className="animate-spin text-cyan-500 mb-4" />
-                                        <p className="text-slate-400">Uploading document...</p>
-                                    </div> :
-              previewUrl ?
-              <img src={previewUrl} alt="Preview" className="mx-auto max-h-[300px] rounded-xl object-contain shadow-lg" /> :
-              file ?
-              <div className="flex flex-col items-center">
-                                        <FileImage size={48} className="text-cyan-500 mb-4" />
-                                        <p className="text-white font-medium">{file.name}</p>
-                                        <p className="text-slate-400 text-sm mt-1">
-                                            PDF Document ({(file.size / (1024 * 1024)).toFixed(2)} MB)
-                                        </p>
-                                    </div> :
-
-              <div className="flex flex-col items-center">
-                                        <Upload size={48} className="text-slate-500 mb-4" />
-                                        <p className="text-lg font-medium text-white mb-2">Upload floorplans or drawings</p>
-                                        <p className="text-slate-400 text-sm">Drag and drop, or click to browse (Images, PDF)</p>
-                                    </div>
-              }
-                          </div>
-                          <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*,.pdf" className="hidden" />
-                            
-                            {uploadError &&
-            <div className="text-red-400 text-sm text-center bg-red-400/10 py-3 rounded-lg border border-red-400/20">
-                                    <AlertCircle className="inline-block w-4 h-4 mr-2 mb-0.5" />
-                                    {uploadError}
-                                </div>
-            }
-
-                            <Button
-              onClick={handleAnalyze}
-              disabled={!file || isUploading || isAnalyzing}
-              className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-6 text-lg rounded-xl shadow-lg shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
-              
-                                {isAnalyzing ? <><Loader2 size={20} className="animate-spin mr-2" /> Analysing Plan...</> : "Analyse Plan"}
-                            </Button>
-                        </div> :
-
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            {typeof result === 'object' ?
-            <>
-                                    <div className="grid md:grid-cols-3 gap-6">
-                                        <div className="bg-cyan-900/20 border border-cyan-500/30 rounded-2xl p-6 shadow-lg md:col-span-2">
-                                            <h3 className="text-cyan-400 font-semibold mb-2 text-lg">{result.plan_type || 'Plan Assessment'}</h3>
-                                            <p className="text-slate-200 leading-relaxed">{result.overview}</p>
-                                        </div>
-                                        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-lg flex flex-col items-center justify-center text-center">
-                                            <p className="text-slate-400 text-sm mb-2">Overall Score</p>
-                                            <div className="text-5xl font-bold text-cyan-400">{result.overall_score}<span className="text-2xl text-slate-500">/10</span></div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-md">
-                                        <h3 className="text-cyan-400 font-semibold mb-3">Spatial Analysis</h3>
-                                        <p className="text-slate-300 leading-relaxed">{result.spatial_analysis}</p>
-                                    </div>
-
-                                    <div className="grid md:grid-cols-2 gap-6">
-                                        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-md">
-                                            <h3 className="text-cyan-400 font-semibold mb-4">Design Observations</h3>
-                                            <ul className="space-y-3">
-                                                {result.design_observations?.map((obs, i) =>
-                    <li key={i} className="flex gap-3 text-slate-300 text-sm">
-                                                        <span className="text-cyan-500 mt-0.5">•</span>
-                                                        <span>{obs}</span>
-                                                    </li>
-                    )}
-                                            </ul>
-                                        </div>
-                                        
-                                        <div className="space-y-6">
-                                            <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-6 shadow-md">
-                                                <h3 className="text-amber-400 font-semibold mb-4 flex items-center gap-2">
-                                                    <AlertCircle size={18} /> Compliance & Flags
-                                                </h3>
-                                                <ul className="space-y-3">
-                                                    {result.compliance_flags?.map((flag, i) =>
-                      <li key={i} className="flex gap-3 text-amber-200 text-sm">
-                                                            <span className="text-amber-500 mt-0.5">•</span>
-                                                            <span>{flag}</span>
-                                                        </li>
-                      )}
-                                                </ul>
-                                            </div>
-                                            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-6 shadow-md">
-                                                <h3 className="text-emerald-400 font-semibold mb-4">Recommendations</h3>
-                                                <ul className="space-y-3">
-                                                    {result.recommendations?.map((rec, i) =>
-                      <li key={i} className="flex gap-3 text-emerald-200 text-sm">
-                                                            <span className="text-emerald-500 mt-0.5">•</span>
-                                                            <span>{rec}</span>
-                                                        </li>
-                      )}
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </> :
-
-            <div className="bg-white/5 border border-white/10 rounded-3xl p-8 prose prose-invert max-w-none prose-headings:text-cyan-400 prose-a:text-cyan-400 shadow-xl">
-                                    <ReactMarkdown>{result}</ReactMarkdown>
-                                </div>
-            }
-                            <div className="flex flex-col sm:flex-row gap-3">
-                                <SaveToProject
-                textContent={typeof result === 'object' ? `# Plan Assessment: ${result.plan_type || ''}\n\n**Overall Score:** ${result.overall_score}/10\n\n## Overview\n${result.overview}\n\n## Spatial Analysis\n${result.spatial_analysis}\n\n## Design Observations\n${(result.design_observations || []).map((o) => `- ${o}`).join('\n')}\n\n## Compliance Flags\n${(result.compliance_flags || []).map((f) => `- ${f}`).join('\n')}\n\n## Recommendations\n${(result.recommendations || []).map((r) => `- ${r}`).join('\n')}` : String(result)}
-                fileName="plan-assessment.md"
-                assetType="document"
-                className="w-full sm:flex-1 rounded-xl border-teal-600/50 text-teal-400 hover:bg-teal-500/10 hover:text-teal-300 h-12" />
-              
-                                <Button
-                onClick={() => {setResult(null);setFile(null);setFileUrl(null);setPreviewUrl(null);}}
-                variant="outline"
-                className="w-full sm:flex-1 rounded-xl border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white h-12">
-                
-                                    Analyse Another Plan
-                                </Button>
-                            </div>
-                        </div>
-          }
-                </div>
+      <div className="min-h-screen bg-[#0f1117] text-white p-6">
+        <div className="max-w-3xl mx-auto">
+          <header className="flex items-center gap-4 mb-8 border-b border-white/10 pb-4">
+            <Link to={createPageUrl('Home')}>
+              <Button variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
+                <ArrowLeft size={20} />
+              </Button>
+            </Link>
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-700 flex items-center justify-center shadow-lg">
+              <FileImage size={20} />
             </div>
-        </PalladioGate>);
+            <h1 className="font-bold text-xl">Assess Plans</h1>
+          </header>
 
+          {!result ? (
+            <div className="space-y-6">
+              {/* TIER SELECTION TOGGLE */}
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-2 flex gap-2">
+                <button
+                  onClick={() => setReviewTier('concept')}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium text-sm transition-all ${reviewTier === 'concept' ? 'bg-cyan-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+                >
+                  <Layers size={16} />
+                  Tier 1: Concept & Pricing
+                </button>
+                <button
+                  onClick={() => setReviewTier('construction')}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium text-sm transition-all ${reviewTier === 'construction' ? 'bg-cyan-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+                >
+                  <AlertCircle size={16} />
+                  Tier 2: Construction Audit
+                </button>
+              </div>
+
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed border-white/10 hover:border-cyan-500/50 rounded-3xl p-12 text-center cursor-pointer transition-colors bg-white/5"
+              >
+                {isUploading ? (
+                  <div className="flex flex-col items-center">
+                    <Loader2 size={40} className="animate-spin text-cyan-500 mb-4" />
+                    <p className="text-slate-400">Uploading document...</p>
+                  </div>
+                ) : previewUrl ? (
+                  <img src={previewUrl} alt="Preview" className="mx-auto max-h-[300px] rounded-xl object-contain shadow-lg" />
+                ) : file ? (
+                  <div className="flex flex-col items-center">
+                    <FileImage size={48} className="text-cyan-500 mb-4" />
+                    <p className="text-white font-medium">{file.name}</p>
+                    <p className="text-slate-400 text-sm mt-1">
+                      PDF Document ({(file.size / (1024 * 1024)).toFixed(2)} MB)
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center">
+                    <Upload size={48} className="text-slate-500 mb-4" />
+                    <p className="text-lg font-medium text-white mb-2">Upload floorplans or drawings</p>
+                    <p className="text-slate-400 text-sm">Drag and drop, or click to browse (Images, PDF)</p>
+                  </div>
+                )}
+                <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*,.pdf" className="hidden" />
+              </div>
+
+              {uploadError && (
+                <div className="text-red-400 text-sm text-center bg-red-400/10 py-3 rounded-lg border border-red-400/20">
+                  <AlertCircle className="inline-block w-4 h-4 mr-2 mb-0.5" />
+                  {uploadError}
+                </div>
+              )}
+
+              <Button
+                onClick={handleAnalyze}
+                disabled={!file || isUploading || isAnalyzing}
+                className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-6 text-lg rounded-xl shadow-lg shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isAnalyzing ? (
+                  <><Loader2 size={20} className="animate-spin mr-2" /> Assessing Design Room by Room...</>
+                ) : (
+                  `Run ${reviewTier === 'concept' ? 'Concept' : 'Construction'} Assessment`
+                )}
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {typeof result === 'object' ? (
+                <>
+                  <div className="grid md:grid-cols-3 gap-6">
+                    <div className="bg-cyan-900/20 border border-cyan-500/30 rounded-2xl p-6 shadow-lg md:col-span-2">
+                      <h3 className="text-cyan-400 font-semibold mb-2 text-lg">{result.plan_type || 'Plan Assessment'}</h3>
+                      <p className="text-slate-200 leading-relaxed">{result.overview}</p>
+                    </div>
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-lg flex flex-col items-center justify-center text-center">
+                      <p className="text-slate-400 text-sm mb-2">Overall Score</p>
+                      <div className="text-5xl font-bold text-cyan-400">{result.overall_score}<span className="text-2xl text-slate-500">/10</span></div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-md">
+                    <h3 className="text-cyan-400 font-semibold mb-3">Spatial Analysis</h3>
+                    <p className="text-slate-300 leading-relaxed">{result.spatial_analysis}</p>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-md">
+                      <h3 className="text-cyan-400 font-semibold mb-4">Design Observations</h3>
+                      <ul className="space-y-3">
+                        {result.design_observations?.map((obs, i) => (
+                          <li key={i} className="flex gap-3 text-slate-300 text-sm">
+                            <span className="text-cyan-500 mt-0.5">•</span>
+                            <span>{obs}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-6 shadow-md">
+                        <h3 className="text-amber-400 font-semibold mb-4 flex items-center gap-2">
+                          <AlertCircle size={18} /> Compliance & Flags
+                        </h3>
+                        <ul className="space-y-3">
+                          {result.compliance_flags?.map((flag, i) => (
+                            <li key={i} className="flex gap-3 text-amber-200 text-sm">
+                              <span className="text-amber-500 mt-0.5">•</span>
+                              <span>{flag}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-6 shadow-md">
+                        <h3 className="text-emerald-400 font-semibold mb-4">Recommendations</h3>
+                        <ul className="space-y-3">
+                          {result.recommendations?.map((rec, i) => (
+                            <li key={i} className="flex gap-3 text-emerald-200 text-sm">
+                              <span className="text-emerald-500 mt-0.5">•</span>
+                              <span>{rec}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="bg-white/5 border border-white/10 rounded-3xl p-8 prose prose-invert max-w-none prose-headings:text-cyan-400 prose-a:text-cyan-400 shadow-xl">
+                  <ReactMarkdown>{result}</ReactMarkdown>
+                </div>
+              )}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <SaveToProject
+                  textContent={typeof result === 'object' ? `# Plan Assessment: ${result.plan_type || ''}\n\n**Overall Score:** ${result.overall_score}/10\n\n## Overview\n${result.overview}\n\n## Spatial Analysis\n${result.spatial_analysis}\n\n## Design Observations\n${(result.design_observations || []).map((o) => `- ${o}`).join('\n')}\n\n## Compliance Flags\n${(result.compliance_flags || []).map((f) => `- ${f}`).join('\n')}\n\n## Recommendations\n${(result.recommendations || []).map((r) => `- ${r}`).join('\n')}` : String(result)}
+                  fileName={`${reviewTier}-assessment.md`}
+                  assetType="document"
+                  className="w-full sm:flex-1 rounded-xl border-teal-600/50 text-teal-400 hover:bg-teal-500/10 hover:text-teal-300 h-12"
+                />
+                <Button
+                  onClick={() => { setResult(null); setFile(null); setFileUrl(null); setPreviewUrl(null); }}
+                  variant="outline"
+                  className="w-full sm:flex-1 rounded-xl border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white h-12"
+                >
+                  Analyse Another Plan
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </PalladioGate>
+  );
 }
