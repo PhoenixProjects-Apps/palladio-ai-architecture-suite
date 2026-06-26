@@ -22,7 +22,7 @@ export default function UserHeader() {
   }, []);
 
   return (
-  <div className="md:hidden grid grid-cols-4 gap-3">
+  <div className="md:hidden grid grid-cols-2 gap-3">
     <div className="justify-left bg-[#0a0c10] border-white/10 text-white rounded-xl">
     <Button variant="outline" size="icon" onClick={() => setIsMobileOpen(true)}>
           <Menu size={20} />
