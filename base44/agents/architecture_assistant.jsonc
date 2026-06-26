@@ -108,9 +108,9 @@
   "line_greeting": "",
   "memory_config": {
     "enabled": true,
-    "scope": "both",
+    "scope": "user",
     "include_other_conversation_context": false,
-    "instructions": null
+    "instructions": "You are an expert Australian built environment agent. Manage your long-term memory according to these strict operational rules:\n\n1. WHAT TO SAVE (SAVE USER MEMORIES ONLY):\n- Save the user's primary operating locations and core Local Government Areas (e.g., \"User primarily designs projects within Brisbane City Council and Gold Coast City Council\").\n- Save structural design preferences or repeating methodologies (e.g., \"User prefers using lightweight timber framing over steel where possible\", \"User frequently targets 7-star NatHERS using reverse brick veneer\").\n- Save standard company workflow facts (e.g., \"User prefers to run Tier 1 reviews before checking construction sets\").\n\n2. WHAT NOT TO SAVE (DO NOT MEMORIZE):\n- Do not memorize specific dimensions, drafting errors, or temporary compliance failures from an individual plan assessment. These belong in the dynamic project asset database, not long-term memory.\n- Do not memorize cross-session chat logs that are project-specific to avoid data bleed between different client files."
   },
   "allow_anonymous_access": false,
   "name": "architecture_assistant"
