@@ -192,7 +192,7 @@ export default function Sidebar() {
 
   return (
     <>
-      <div className="md:hidden flex items-center gap-3 z-50">
+      <div className="md:hidden fixed z-50">
         <Button variant="outline" size="icon" onClick={() => setIsMobileOpen(true)} className="bg-[#0a0c10] border-white/10 text-white rounded-xl">
           <Menu size={20} />
         </Button>
