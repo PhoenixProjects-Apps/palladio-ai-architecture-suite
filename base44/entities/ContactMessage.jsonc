@@ -1,0 +1,46 @@
+{
+  "name": "ContactMessage",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "read"
+      ],
+      "default": "new"
+    }
+  },
+  "required": [
+    "name",
+    "email",
+    "message"
+  ],
+  "rls": {
+    "create": null,
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

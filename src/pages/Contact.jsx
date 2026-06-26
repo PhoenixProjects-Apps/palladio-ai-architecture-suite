@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { base44 } from '@/api/base44Client';
 
 export default function Contact() {
     const [formData, setFormData] = useState({
@@ -19,15 +20,13 @@ export default function Contact() {
         setIsSubmitting(true);
         
         try {
-            await fetch('mailto:hello@palladio.ai', {
-                method: 'POST',
-                body: JSON.stringify(formData)
-            });
+            const res = await base44.functions.invoke('sendContactEmail', formData);
+            if (res.data?.error) throw new Error(res.data.error);
             
             toast.success('Message sent! We\'ll get back to you soon.');
             setFormData({ name: '', email: '', message: '' });
         } catch (error) {
-            window.location.href = `mailto:hello@palladio.ai?subject=Contact from ${formData.name}&body=${encodeURIComponent(formData.message + '\n\nFrom: ' + formData.email)}`;
+            toast.error(error.message || 'Failed to send message. Please try again.');
         } finally {
             setIsSubmitting(false);
         }
@@ -47,8 +46,8 @@ export default function Contact() {
                     <div className="space-y-4 pt-4">
                         <div className="flex items-center gap-3">
                             <Mail className="text-violet-400" size={20} />
-                            <a href="mailto:hello@palladio.ai" className="text-slate-300 hover:text-violet-400 transition-colors">
-                                hello@palladio.ai
+                            <a href="mailto:admin@palladio-ai.app" className="text-slate-300 hover:text-violet-400 transition-colors">
+                                admin@palladio-ai.app
                             </a>
                         </div>
                         
