@@ -156,9 +156,17 @@ ${(finalReport.recommendations || []).map(r => `- ${r}`).join('\n')}
       }
 
     } catch (err) {
-      console.error("Final Analysis Failure Chain:", err);
-      setResult("An error occurred during analysis. Please try again.");
-      toast.error("The document file could not be read by the AI engine. Please re-upload or try again in a moment.");
+  console.error("Final Analysis Failure Chain:", err);
+  
+  // Cleanly detect if the error is the built-in Base44 pipeline cancellation event
+  if (err?.message === 'Canceled' || err?.constructor?.name === 'hr' || String(err).includes('Canceled')) {
+    console.log("Analysis cycle was successfully aborted by the internal task controller.");
+    return; // Silent exit: No scary error messages shown to the user
+  }
+
+  // Handle actual, unexpected system infrastructure crashes
+  setResult("An error occurred during analysis. Please try again.");
+  toast.error("The document file could not be read by the AI engine. Please re-upload or try again.");
     } finally {
       setIsAnalyzing(false);
     }
