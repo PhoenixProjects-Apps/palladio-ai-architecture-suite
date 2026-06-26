@@ -52,12 +52,19 @@ export default function PalladioAssess() {
     reader.readAsDataURL(file);
   });
 
+  const fileToBase64 = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
   const handleFile = async (selectedFile) => {
     if (!selectedFile) return;
 
-    // Ensure file isn't insanely large (limit to 20MB just to be safe, but 2.5MB is perfectly fine!)
-    if (selectedFile.size > 20 * 1024 * 1024) {
-      toast.error("File is too large. Please upload a file smaller than 20MB.");
+    // Ensure file isn't insanely large (base64 encoding inflates size ~33%)
+    if (selectedFile.size > 10 * 1024 * 1024) {
+      toast.error("File is too large. Please upload a file smaller than 10MB.");
       return;
     }
 
@@ -74,11 +81,17 @@ export default function PalladioAssess() {
     setIsUploading(true);
     try {
       const uploadFile = await compressImage(selectedFile);
-      const res = await base44.integrations.Core.UploadFile({ file: uploadFile });
-      setFileUrl(res.file_url || res.url);
+      const fileBase64 = await fileToBase64(uploadFile);
+      const res = await base44.functions.invoke('uploadPlanFile', {
+        fileName: uploadFile.name,
+        fileType: uploadFile.type,
+        fileBase64
+      });
+      if (res.data?.error) throw new Error(res.data.error);
+      setFileUrl(res.data.file_url);
     } catch (err) {
       console.error(err);
-      const errMsg = err?.response?.data?.error || err?.message || "Failed to upload file. Please try again.";
+      const errMsg = err?.message || "Failed to upload file. Please try again.";
       setUploadError(errMsg);
       toast.error(errMsg);
     } finally {
