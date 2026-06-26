@@ -166,16 +166,6 @@ export default function Sidebar() {
 
       <div className="p-3 border-t border-white/5">
         <div className="px-3 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Info</div>
-        <div className="space-y-1 mb-3">
-          <Link to="/about" onClick={() => setIsMobileOpen(false)} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors hover:bg-white/5 text-slate-400 hover:text-white ${isCollapsed ? 'justify-center' : ''}`} title={isCollapsed ? 'About' : ''}>
-            <Building2 size={20} />
-            {!isCollapsed && <span className="font-medium text-sm">About</span>}
-          </Link>
-          <Link to="/contact" onClick={() => setIsMobileOpen(false)} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors hover:bg-white/5 text-slate-400 hover:text-white ${isCollapsed ? 'justify-center' : ''}`} title={isCollapsed ? 'Contact' : ''}>
-            <MessageSquare size={20} />
-            {!isCollapsed && <span className="font-medium text-sm">Contact</span>}
-          </Link>
-        </div>
         <div className="space-y-1">
         {bottomItems.map((item, idx) => {
           if (item.action === 'login') {
