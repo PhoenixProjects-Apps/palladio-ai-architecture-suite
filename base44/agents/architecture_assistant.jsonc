@@ -18,6 +18,30 @@
         "create",
         "update"
       ]
+    },
+    {
+      "entity_name": "MaterialCost",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update"
+      ]
+    },
+    {
+      "entity_name": "Subscription",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update"
+      ]
+    },
+    {
+      "entity_name": "ProjectAsset",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update"
+      ]
     }
   ],
   "context_files": [],
