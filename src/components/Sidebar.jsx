@@ -175,7 +175,7 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
           {!isCollapsed && <ChevronUp size={16} className={`ml-auto transition-transform duration-200 ${showInfo ? '' : 'rotate-180'}`} />}
         </button>
         {showInfo && (
-          <div className="absolute bottom-full left-0 right-0 bg-[#0a0c10] border-t border-white/5 shadow-2xl shadow-black/50 p-3 space-y-1 max-h-[60vh] overflow-y-auto">
+          <div className="absolute bottom-full left-0 right-0 bg-[#15181f] border-t border-white/10 shadow-2xl shadow-black/50 p-3 space-y-1 max-h-[60vh] overflow-y-auto">
             {bottomItems.map((item, idx) => {
               if (item.action === 'login') {
                 return (
