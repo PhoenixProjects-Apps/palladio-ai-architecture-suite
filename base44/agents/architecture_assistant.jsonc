@@ -4,62 +4,6 @@
   "whatsapp_greeting": "Hello! I'm your Palladio AI Assistant. How can I help you with your property or architectural plans today?",
   "tool_configs": [
     {
-      "entity_name": "Project",
-      "allowed_operations": [
-        "read",
-        "create",
-        "update"
-      ]
-    },
-    {
-      "entity_name": "RenderPreset",
-      "allowed_operations": [
-        "read",
-        "create",
-        "update"
-      ]
-    },
-    {
-      "entity_name": "MaterialCost",
-      "allowed_operations": [
-        "create",
-        "read",
-        "update"
-      ]
-    },
-    {
-      "entity_name": "Subscription",
-      "allowed_operations": [
-        "create",
-        "read",
-        "update"
-      ]
-    },
-    {
-      "entity_name": "ProjectAsset",
-      "allowed_operations": [
-        "create",
-        "read",
-        "update"
-      ]
-    },
-    {
-      "entity_name": "Notification",
-      "allowed_operations": [
-        "create",
-        "read",
-        "update"
-      ]
-    },
-    {
-      "entity_name": "ContactMessage",
-      "allowed_operations": [
-        "create",
-        "read",
-        "update"
-      ]
-    },
-    {
       "function_name": "saveToDrive",
       "description": "Use this function when a user asks you to save a project asset or chat to Google Drive "
     }
