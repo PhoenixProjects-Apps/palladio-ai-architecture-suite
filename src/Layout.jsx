@@ -26,7 +26,7 @@ export default function Layout({ children }) {
         .prose-invert blockquote { border-left: 4px solid #374151; padding-left: 1rem; color: #9ca3af; font-style: italic; margin: 1rem 0; }
       `}</style>
       <Sidebar />
-      <main className="flex-1 overflow-y-auto overflow-x-hidden h-full relative">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden h-full justify-left">
         <div className="flex justify-end items-center p-4">
           <UserHeader />
         </div>
