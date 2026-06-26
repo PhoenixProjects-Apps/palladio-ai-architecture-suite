@@ -7,6 +7,7 @@ import { base44 } from '@/api/base44Client';
 
 export default function UserHeader() {
   const [user, setUser] = useState(null);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   useEffect(() => {
     base44.auth.me().then(u => {
