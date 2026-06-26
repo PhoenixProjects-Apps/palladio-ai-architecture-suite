@@ -66,7 +66,6 @@ export default function Sidebar() {
       items: [
         { name: 'Dashboard', icon: Home, path: 'Home' },
         { name: 'Projects', icon: Folder, path: 'Projects' },
-        { name: 'Notifications', icon: Bell, path: 'Notifications', badge: unreadCount },
         { name: 'AI Assistant', icon: MessageSquare, path: 'SavedChats' },
       ]
     },
@@ -87,6 +86,7 @@ export default function Sidebar() {
     ? [
         { name: `Tokens: ${user.tokens !== undefined ? user.tokens : 5}`, icon: CreditCard, path: 'PalladioPricing', isTokenDisplay: true },
         { name: 'Settings', icon: Settings, path: 'UserProfile' },
+        { name: 'Notifications', icon: Bell, path: 'Notifications', badge: unreadCount },
         { name: 'About', icon: Building2, path: 'About' },
         { name: 'Contact', icon: MessageSquare, path: 'Contact' },
       ]
