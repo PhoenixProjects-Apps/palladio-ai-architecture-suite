@@ -21,7 +21,6 @@ export default function UserHeader() {
 
   return (
     <div className="flex items-center gap-3">
-      <img src="https://www.image2url.com/r2/default/images/1782439345351-85257dc4-fda3-43f5-9ae4-2f91ee65350a.png" alt="Palladio AI" className="h-10 w-full" />
       <Link to={createPageUrl('PalladioPricing')} className="flex items-center gap-2 text-sm font-semibold text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 px-4 py-2 rounded-full transition border border-amber-500/20">
         <Coins size={16} />
         {user ? (user.tokens ?? 0) : '—'}
