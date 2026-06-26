@@ -77,7 +77,7 @@ export default function PalladioAssess() {
       // Point directly to your custom Base44 Agent skill setup
       // Pass the active tier so the agent selects the right instructions block
       const response = await base44.integrations.Core.InvokeLLM({
-        agent_skill: "plan_documentation_assessor", 
+        agent_skill: "architectural-plan-assessor", 
         file_urls: [fileUrl],
         add_context_from_internet: true,
         // We inject the tier state directly into the agent transaction context
