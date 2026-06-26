@@ -27,7 +27,7 @@ export default function UserHeader() {
     <Button variant="outline" size="icon" onClick={() => setIsMobileOpen(true)}>
           <Menu size={20} />
         </Button>
-      <img src="https://www.image2url.com/r2/default/images/1782439345351-85257dc4-fda3-43f5-9ae4-2f91ee65350a.png" alt="Palladio AI"/>
+      <img src="https://www.image2url.com/r2/default/images/1782439345351-85257dc4-fda3-43f5-9ae4-2f91ee65350a.png" alt="Palladio AI" className="justify-right h-10"/>
     </div>
     <div className="justify-centre">
       <Link to={createPageUrl('PalladioPricing')} className="justify-centre w-10 h-10 gap-2 text-sm font-semibold text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 px-4 py-2 rounded-full transition border border-amber-500/20">
@@ -37,7 +37,7 @@ export default function UserHeader() {
       {user ? (
         <Link to={createPageUrl('UserProfile')} className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 justify-right text-white font-bold hover:opacity-80 transition shadow-lg border border-white/10 overflow-hidden">
       {user.profile_picture ? (
-            <img src={user.profile_picture} alt={user.full_name || 'Profile'} className="w-full h-full object-cover" />
+            <img src={user.profile_picture} alt={user.full_name || 'Profile'} className="w-10 h-10 object-cover" />
           ) : (
             user.full_name?.charAt(0) || <User size={18} />
           )}
