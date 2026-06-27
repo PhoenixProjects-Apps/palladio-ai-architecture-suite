@@ -1,0 +1,50 @@
+{
+  "name": "AgentBible",
+  "type": "object",
+  "properties": {
+    "category": {
+      "type": "string",
+      "enum": [
+        "compliance_insight",
+        "standard_interpretation",
+        "site_pattern",
+        "recurring_issue",
+        "design_heuristic",
+        "other"
+      ],
+      "default": "compliance_insight"
+    },
+    "title": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string",
+      "maxLength": 5000
+    },
+    "tags": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "default": "plan_assessment"
+    }
+  },
+  "required": [
+    "title",
+    "content"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}
