@@ -15,10 +15,15 @@ export default function SavedChats() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const scrollRef = useRef(null);
 
   useEffect(() => {
     loadConversations();
+  }, []);
+
+  useEffect(() => {
+    base44.auth.me().then(u => setIsAdmin(u?.role === 'admin')).catch(() => {});
   }, []);
 
   const loadConversations = async () => {
@@ -198,7 +203,7 @@ export default function SavedChats() {
               </div>
             )}
             {messages.map((m, i) => (
-              <MessageBubble key={i} message={m} />
+              <MessageBubble key={i} message={m} showToolCalls={isAdmin} />
             ))}
           </div>
 

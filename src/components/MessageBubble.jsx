@@ -94,7 +94,7 @@ const FunctionDisplay = ({ toolCall }) => {
     );
 };
 
-export default function MessageBubble({ message }) {
+export default function MessageBubble({ message, showToolCalls = false }) {
     const isUser = message.role === 'user';
     
     return (
@@ -157,7 +157,7 @@ export default function MessageBubble({ message }) {
                     </div>
                 )}
 
-                {message.tool_calls?.length > 0 && (
+                {showToolCalls && message.tool_calls?.length > 0 && (
                     <div className="space-y-1 mt-2">
                         {message.tool_calls.map((toolCall, idx) => (
                             <FunctionDisplay key={idx} toolCall={toolCall} />
