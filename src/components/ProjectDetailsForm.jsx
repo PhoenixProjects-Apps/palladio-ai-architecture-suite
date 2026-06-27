@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Loader2, FileText } from 'lucide-react';
+import { Loader2, FileText, Plus, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import AddressAutocomplete from '@/components/AddressAutocomplete';
 import { base44 } from '@/api/base44Client';
@@ -8,8 +9,24 @@ import { toast } from 'sonner';
 
 export default function ProjectDetailsForm({ value, onChange }) {
   const [lookingUp, setLookingUp] = useState(false);
+  const [creating, setCreating] = useState(false);
 
   const set = (k, v) => onChange({ [k]: v });
+
+  const handleCreateProject = async () => {
+    if (!value.projectName.trim() || creating) return;
+    setCreating(true);
+    try {
+      const proj = await base44.entities.Project.create({ name: value.projectName.trim() });
+      onChange({ projectId: proj.id });
+      toast.success('Project created — assessment will auto-save to it.');
+    } catch (e) {
+      console.error(e);
+      toast.error('Could not create project');
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const handleAddressSelect = async (addr) => {
     onChange({ address: addr, lotNo: '', rpNo: '', siteArea: '', councilOverlays: '' });
@@ -64,7 +81,21 @@ Return exactly what you find from official sources. Use an empty string for any 
       <div className="grid sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <label className="text-xs text-slate-400">Project Name</label>
-          <Input value={value.projectName} onChange={(e) => set('projectName', e.target.value)} placeholder="e.g. Altola St Extension" className={fieldClass} />
+          <div className="flex gap-2">
+            <Input value={value.projectName} onChange={(e) => onChange({ projectName: e.target.value, projectId: null })} placeholder="e.g. Altola St Extension" className={fieldClass} />
+            {value.projectName.trim() && (
+              <Button
+                type="button"
+                onClick={handleCreateProject}
+                disabled={creating || !!value.projectId}
+                className="bg-amber-600 hover:bg-amber-700 text-white shrink-0 px-3 h-11"
+                title={value.projectId ? 'Project created' : 'Create a new project with this name'}
+              >
+                {creating ? <Loader2 size={18} className="animate-spin" /> : value.projectId ? <Check size={18} /> : <Plus size={18} />}
+              </Button>
+            )}
+          </div>
+          {value.projectId && <p className="text-xs text-emerald-400">Project created — assessment will auto-save to it.</p>}
         </div>
         <div className="space-y-1.5">
           <label className="text-xs text-slate-400">Client Name</label>

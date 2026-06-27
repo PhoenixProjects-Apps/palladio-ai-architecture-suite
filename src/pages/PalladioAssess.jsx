@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Upload, Loader2, FileImage, AlertCircle, Layers, Building, User, MapPin } from 'lucide-react';
+import { ArrowLeft, Upload, Loader2, FileImage, AlertCircle, Layers, Building, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
@@ -9,6 +9,7 @@ import PalladioGate from '@/components/PalladioGate';
 import SaveToProject from '@/components/SaveToProject';
 import AgentThoughtProcess from '@/components/AgentThoughtProcess';
 import ProjectDetailsForm from '@/components/ProjectDetailsForm';
+import { exportAssessmentToPdf } from '@/lib/exportPdf';
 import { toast } from 'sonner';
 
 function extractJson(text) {
@@ -47,8 +48,9 @@ export default function PalladioAssess() {
   const [uploadError, setUploadError] = useState(null);
   const [messages, setMessages] = useState([]);
   const [conversationId, setConversationId] = useState(null);
+  const [exporting, setExporting] = useState(false);
   const [projectDetails, setProjectDetails] = useState({
-    projectName: '', clientName: '', address: '', lotNo: '', rpNo: '', siteArea: '', councilOverlays: ''
+    projectName: '', clientName: '', address: '', lotNo: '', rpNo: '', siteArea: '', councilOverlays: '', projectId: null
   });
 
   // Tier state tracking: 'concept' vs 'construction'
@@ -179,16 +181,24 @@ export default function PalladioAssess() {
         ? `# Plan Assessment: ${finalResult.plan_type || 'Architectural Sheet'}\n**Overall Score:** ${finalResult.overall_score}/10\n**Assessment Tier:** ${reviewTier === 'concept' ? 'Tier 1 (Concept)' : 'Tier 2 (Construction)'}\n\n${piSection}## Overview\n${finalResult.overview}\n\n## Spatial Analysis\n${finalResult.spatial_analysis}\n\n## Design Observations\n${(finalResult.design_observations || []).map((o) => `- ${o}`).join('\n')}\n\n## Compliance Flags\n${(finalResult.compliance_flags || []).map((f) => `- ${f}`).join('\n')}\n\n## Recommendations\n${(finalResult.recommendations || []).map((r) => `- ${r}`).join('\n')}`
         : String(finalResult);
 
-      try {
-        await base44.functions.invoke('saveToDrive', {
-          fileUrl: fileUrl,
-          assessmentReport: markdownString,
-          tier: reviewTier
-        });
-        toast.success("Assessment complete and saved successfully!");
-      } catch (saveErr) {
-        console.error("Failed to save assessment to drive:", saveErr);
-        toast.warning("Assessment complete, but it could not be auto-saved to your projects.");
+      if (projectDetails.projectId) {
+        try {
+          const blob = new Blob([markdownString], { type: 'text/markdown' });
+          const file = new File([blob], `${reviewTier}-assessment.md`, { type: 'text/markdown' });
+          const up = await base44.integrations.Core.UploadFile({ file });
+          await base44.entities.ProjectAsset.create({
+            project_id: projectDetails.projectId,
+            file_url: up.file_url,
+            file_name: `${reviewTier}-assessment.md`,
+            asset_type: 'document'
+          });
+          toast.success("Assessment complete and saved to your project!");
+        } catch (saveErr) {
+          console.error("Failed to auto-save assessment:", saveErr);
+          toast.warning("Assessment complete, but it could not be auto-saved. Use Save to Project below.");
+        }
+      } else {
+        toast.success("Assessment complete! Save to Project or Download PDF below.");
       }
 
     } catch (err) {
@@ -197,6 +207,19 @@ export default function PalladioAssess() {
       toast.error("The assessment could not be completed. Please try again.");
     } finally {
       setIsAnalyzing(false);
+    }
+  };
+
+  const handleExportPdf = async () => {
+    if (typeof result !== 'object') { toast.error('Nothing to export'); return; }
+    setExporting(true);
+    try {
+      exportAssessmentToPdf(result, reviewTier);
+    } catch (e) {
+      console.error(e);
+      toast.error('Could not generate PDF');
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -395,6 +418,14 @@ export default function PalladioAssess() {
                   assetType="document"
                   className="w-full sm:flex-1 rounded-xl border-teal-600/50 text-teal-400 hover:bg-teal-500/10 hover:text-teal-300 h-12"
                 />
+                <Button
+                  onClick={handleExportPdf}
+                  disabled={exporting}
+                  className="w-full sm:flex-1 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white h-12"
+                >
+                  {exporting ? <Loader2 size={16} className="animate-spin mr-2" /> : <Download size={16} className="mr-2" />}
+                  Download PDF
+                </Button>
                 <Button
                   onClick={() => { setResult(null); setFile(null); setFileUrl(null); setPreviewUrl(null); setMessages([]); setConversationId(null); }}
                   variant="outline"
