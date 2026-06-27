@@ -12,6 +12,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoadingPublicSettings, setIsLoadingPublicSettings] = useState(true);
   const [authError, setAuthError] = useState(null);
   const [appPublicSettings, setAppPublicSettings] = useState(null); // Contains only { id, public_settings }
+  const [credits, setCredits] = useState(null);
 
   useEffect(() => {
     checkAppState();
@@ -45,6 +46,7 @@ export const AuthProvider = ({ children }) => {
           setIsLoadingAuth(false);
           setIsAuthenticated(false);
           setUser(null);
+          setCredits(null);
         }
         setIsLoadingPublicSettings(false);
       } catch (appError) {
@@ -89,6 +91,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const refreshCredits = async () => {
+    try {
+      const res = await base44.functions.invoke('firestoreCredits', { action: 'get' });
+      if (res.data && res.data.tokens !== undefined) setCredits(res.data.tokens);
+    } catch (e) {
+      console.error('Refresh credits failed:', e);
+    }
+  };
+
   const checkUserAuth = async () => {
     try {
       setIsLoadingAuth(true);
@@ -97,6 +108,14 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
       setAuthError(null);
       setIsLoadingAuth(false);
+      setCredits(null);
+      // Firestore is the source of truth for credits — ensure the user doc exists and load the balance.
+      try {
+        const res = await base44.functions.invoke('firestoreCredits', { action: 'init' });
+        if (res.data && res.data.tokens !== undefined) setCredits(res.data.tokens);
+      } catch (e) {
+        console.error('Firestore credits init failed:', e);
+      }
     } catch (error) {
       console.error('User auth check failed:', error);
       setIsLoadingAuth(false);
@@ -114,6 +133,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setIsAuthenticated(false);
     setAuthError(null);
+    setCredits(null);
     
     if (shouldRedirect) {
       // Use the SDK's logout method which handles token cleanup and redirect
@@ -139,7 +159,10 @@ export const AuthProvider = ({ children }) => {
       appPublicSettings,
       logout,
       navigateToLogin,
-      checkAppState
+      checkAppState,
+      credits,
+      setCredits,
+      refreshCredits
     }}>
       {children}
     </AuthContext.Provider>

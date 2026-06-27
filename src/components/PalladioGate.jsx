@@ -30,8 +30,8 @@ export default function PalladioGate({ children }) {
                         setLoading(false);
                         return;
                     }
-                    const freshUser = await base44.entities.User.get(user.id);
-                    const tokens = freshUser?.tokens !== undefined ? freshUser.tokens : 5;
+                    const creditsRes = await base44.functions.invoke('firestoreCredits', { action: 'get' });
+                    const tokens = creditsRes.data?.tokens ?? 0;
                     setHasTokens(tokens > 0);
                     setLoading(false);
                 }

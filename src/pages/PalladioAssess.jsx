@@ -4,6 +4,7 @@ import { createPageUrl } from '@/utils';
 import { ArrowLeft, Upload, Loader2, FileImage, AlertCircle, Layers, Building, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import ReactMarkdown from 'react-markdown';
 import PalladioGate from '@/components/PalladioGate';
 import SaveToProject from '@/components/SaveToProject';
@@ -39,6 +40,7 @@ function buildProjectInfoCard(pi) {
 }
 
 export default function PalladioAssess() {
+  const { setCredits } = useAuth();
   const [file, setFile] = useState(null);
   const [fileUrl, setFileUrl] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -114,6 +116,7 @@ export default function PalladioAssess() {
         setIsAnalyzing(false);
         return;
       }
+      if (tokenRes.data?.tokens !== undefined) setCredits(tokenRes.data.tokens);
 
       // Settle delay to avoid immediate asset bucket propagation race conditions
       await delay(1500);

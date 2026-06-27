@@ -1,45 +1,70 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.24';
+import admin from 'npm:firebase-admin@12.7.0';
+
+const COLLECTION = 'user';
+
+let _db = null;
+function getDb() {
+  if (_db) return _db;
+  const serviceAccount = JSON.parse(Deno.env.get("FIREBASE_SERVICE_ACCOUNT"));
+  if (!admin.apps.length) {
+    admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+  }
+  _db = admin.firestore();
+  return _db;
+}
 
 Deno.serve(async (req) => {
+  try {
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+    let amount = 1;
     try {
-        const base44 = createClientFromRequest(req);
-        const user = await base44.auth.me();
-        
-        if (!user) {
-            return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      const body = await req.json();
+      if (body && typeof body.amount === 'number' && body.amount > 0) {
+        amount = body.amount;
+      }
+    } catch (_) {}
+
+    const email = String(user.email || '').toLowerCase();
+    if (!email) return Response.json({ error: 'No email on account' }, { status: 400 });
+
+    const db = getDb();
+    const ref = db.collection(COLLECTION).doc(email);
+
+    let newBalance;
+    try {
+      newBalance = await db.runTransaction(async (t) => {
+        const snap = await t.get(ref);
+        const current = snap.exists ? (snap.data().tokens ?? 0) : 0;
+        if (current < amount) {
+          const err = new Error('INSUFFICIENT');
+          err.code = 'INSUFFICIENT';
+          err.available = current;
+          err.required = amount;
+          throw err;
         }
-        
-        // Parse the request body to get the token amount (default: 1)
-        let amount = 1;
-        try {
-            const body = await req.json();
-            if (body && typeof body.amount === 'number' && body.amount > 0) {
-                amount = body.amount;
-            }
-        } catch (e) {
-            // No body or invalid JSON — default to 1 token
-        }
-        
-        // Fetch the user to get the latest token balance
-        const currentUser = await base44.asServiceRole.entities.User.get(user.id);
-        const currentTokens = currentUser.tokens !== undefined ? currentUser.tokens : 5;
-        
-        if (currentTokens < amount) {
-            return Response.json({ 
-                error: `Insufficient tokens. This action requires ${amount} token(s), but you have ${currentTokens}.`, 
-                success: false,
-                required: amount,
-                available: currentTokens
-            }, { status: 403 });
-        }
-        
-        const newBalance = currentTokens - amount;
-        await base44.asServiceRole.entities.User.update(user.id, {
-            tokens: newBalance
-        });
-        
-        return Response.json({ success: true, tokens: newBalance, consumed: amount });
-    } catch (error) {
-        return Response.json({ error: error.message }, { status: 500 });
+        const nb = current - amount;
+        t.set(ref, { tokens: nb, updated_date: new Date().toISOString() }, { merge: true });
+        return nb;
+      });
+    } catch (err) {
+      if (err.code === 'INSUFFICIENT') {
+        return Response.json({
+          error: `Insufficient tokens. This action requires ${err.required} token(s), but you have ${err.available}.`,
+          success: false,
+          required: err.required,
+          available: err.available
+        }, { status: 403 });
+      }
+      throw err;
     }
+
+    return Response.json({ success: true, tokens: newBalance, consumed: amount });
+  } catch (error) {
+    console.error('consumeToken error:', error);
+    return Response.json({ error: error.message }, { status: 500 });
+  }
 });

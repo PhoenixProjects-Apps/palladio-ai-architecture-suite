@@ -1,7 +1,27 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.18';
 import Stripe from 'npm:stripe@14.14.0';
+import admin from 'npm:firebase-admin@12.7.0';
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
+
+const COLLECTION = 'user';
+let _db = null;
+function getDb() {
+  if (_db) return _db;
+  const serviceAccount = JSON.parse(Deno.env.get("FIREBASE_SERVICE_ACCOUNT"));
+  if (!admin.apps.length) admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+  _db = admin.firestore();
+  return _db;
+}
+async function grantCredits(email, amount) {
+  if (!email) return;
+  const ref = getDb().collection(COLLECTION).doc(String(email).toLowerCase());
+  await ref.set({
+    email,
+    tokens: admin.firestore.FieldValue.increment(amount),
+    updated_date: new Date().toISOString()
+  }, { merge: true });
+}
 
 Deno.serve(async (req) => {
     const signature = req.headers.get("stripe-signature");
@@ -31,13 +51,8 @@ Deno.serve(async (req) => {
             // One-time token pack purchase — grant tokens, no subscription record
             if (purchaseType === 'token_pack') {
                 const tokenAmount = parseInt(session.metadata?.token_amount || '100', 10);
-                const users = await base44.asServiceRole.entities.User.filter({ email: customerEmail });
-                if (users.length > 0) {
-                    const u = users[0];
-                    const currentTokens = u.tokens !== undefined ? u.tokens : 5;
-                    await base44.asServiceRole.entities.User.update(u.id, { tokens: currentTokens + tokenAmount });
-                    console.log(`Granted ${tokenAmount} tokens to ${customerEmail} via token pack purchase`);
-                }
+                await grantCredits(customerEmail, tokenAmount);
+                console.log(`Granted ${tokenAmount} tokens to ${customerEmail} via token pack purchase`);
                 return new Response(JSON.stringify({ received: true }), { status: 200 });
             }
             
@@ -61,12 +76,7 @@ Deno.serve(async (req) => {
             }
 
             // Grant 100 tokens on new subscription checkout
-            const users = await base44.asServiceRole.entities.User.filter({ email: customerEmail });
-            if (users.length > 0) {
-                const u = users[0];
-                const currentTokens = u.tokens !== undefined ? u.tokens : 5;
-                await base44.asServiceRole.entities.User.update(u.id, { tokens: currentTokens + 100 });
-            }
+            await grantCredits(customerEmail, 100);
         }
         
         if (event.type === 'invoice.paid') {
@@ -75,12 +85,7 @@ Deno.serve(async (req) => {
             if (invoice.billing_reason === 'subscription_cycle') {
                 const customerEmail = invoice.customer_email;
                 if (customerEmail) {
-                    const users = await base44.asServiceRole.entities.User.filter({ email: customerEmail });
-                    if (users.length > 0) {
-                        const u = users[0];
-                        const currentTokens = u.tokens !== undefined ? u.tokens : 5;
-                        await base44.asServiceRole.entities.User.update(u.id, { tokens: currentTokens + 100 });
-                    }
+                    await grantCredits(customerEmail, 100);
                 }
             }
         }

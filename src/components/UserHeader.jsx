@@ -1,24 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { User, Coins, Menu } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function UserHeader({ setIsMobileOpen }) {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    base44.auth.me().then(u => {
-      if (u) setUser(u);
-    });
-    const unsubscribe = base44.entities.User.subscribe((event) => {
-      if (event.type === 'update') {
-        base44.auth.me().then(u => { if (u) setUser(u); });
-      }
-    });
-    return () => unsubscribe();
-  }, []);
+  const { user, credits } = useAuth();
 
   return (
     <div className="flex items-center justify-between gap-3 w-full">
@@ -31,7 +20,7 @@ export default function UserHeader({ setIsMobileOpen }) {
       <div className="flex items-center gap-3">
         <Link to={createPageUrl('PalladioPricing')} className="flex items-center gap-2 text-sm font-semibold text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 px-4 py-2 rounded-full transition border border-amber-500/20">
           <Coins size={16} />
-          {user ? (user.tokens ?? 0) : '—'}
+          {user ? (credits ?? 0) : '—'}
         </Link>
         {user ? (
           <Link to={createPageUrl('UserProfile')} className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center text-white font-bold hover:opacity-80 transition shadow-lg border border-white/10 overflow-hidden">
