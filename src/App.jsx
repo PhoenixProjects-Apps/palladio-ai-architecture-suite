@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import AgentBible from './pages/AgentBible';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -61,6 +62,7 @@ const AuthenticatedApp = () => {
       ))}
       <Route path="/about" element={<LayoutWrapper currentPageName="About"><About /></LayoutWrapper>} />
       <Route path="/contact" element={<LayoutWrapper currentPageName="Contact"><Contact /></LayoutWrapper>} />
+      <Route path="/AgentBible" element={<LayoutWrapper currentPageName="AgentBible"><AgentBible /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

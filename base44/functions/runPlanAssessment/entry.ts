@@ -2,35 +2,6 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 const AGENT_NAME = 'architecture_assistant';
 
-// Determine whether the agent has finished: the last message is an assistant
-// message with non-empty content and no tool calls still pending/running.
-function isAgentDone(messages) {
-  if (!messages || !messages.length) return false;
-  const last = messages[messages.length - 1];
-  if (!last || last.role !== 'assistant') return false;
-  const content = typeof last.content === 'string' ? last.content.trim() : '';
-  if (!content) return false;
-  const toolCalls = last.tool_calls || [];
-  const pending = toolCalls.some((tc) =>
-    ['pending', 'running', 'in_progress'].includes(tc && tc.status)
-  );
-  return !pending;
-}
-
-// Extract a JSON object from the agent's text response (tolerates code fences
-// and surrounding prose). Returns null if no valid JSON object is found.
-function extractJson(text) {
-  if (!text) return null;
-  let s = String(text).trim().replace(/```json/gi, '').replace(/```/g, '').trim();
-  try { return JSON.parse(s); } catch (_) {}
-  const start = s.indexOf('{');
-  const end = s.lastIndexOf('}');
-  if (start !== -1 && end !== -1 && end > start) {
-    try { return JSON.parse(s.slice(start, end + 1)); } catch (_) {}
-  }
-  return null;
-}
-
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -38,11 +9,8 @@ Deno.serve(async (req) => {
     let user;
     try {
       user = await base44.auth.me();
-    } catch (authError) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" }
-      });
+    } catch (_) {
+      user = null;
     }
     if (!user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -52,21 +20,47 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json().catch(() => ({}));
-    const fileUrl = body?.fileUrl;
-    const tier = body?.tier;
+    const action = body?.action || 'run';
 
-    if (!fileUrl) {
-      return new Response(JSON.stringify({ error: "Missing required fileUrl parameter." }), {
-        status: 400,
+    // Fast: create an empty agent conversation and return its id so the frontend
+    // can subscribe to it BEFORE the assessment is triggered (live thought process).
+    if (action === 'create') {
+      const tier = body?.tier || 'concept';
+      const conversation = await base44.agents.createConversation({
+        agent_name: AGENT_NAME,
+        metadata: {
+          source: 'palladio_assess',
+          tier,
+          user_id: user.id
+        }
+      });
+      return new Response(JSON.stringify({
+        conversation_id: conversation.id
+      }), {
+        status: 200,
         headers: { "Content-Type": "application/json" }
       });
     }
 
-    const tierLabel = tier === 'construction'
-      ? 'Tier 2 (Construction & Compliance Documentation Review)'
-      : 'Tier 1 (Concept & Pricing Review)';
+    // Trigger: add the assessment message to an existing conversation. The agent
+    // processes asynchronously; the frontend watches via its subscription.
+    if (action === 'run') {
+      const conversation_id = body?.conversation_id;
+      const fileUrl = body?.fileUrl;
+      const tier = body?.tier;
 
-    const instruction = `Please perform a ${tierLabel} assessment on the attached architectural plan, strictly following your architectural-plan-assessor skill framework for that tier.
+      if (!conversation_id || !fileUrl) {
+        return new Response(JSON.stringify({ error: "Missing conversation_id or fileUrl" }), {
+          status: 400,
+          headers: { "Content-Type": "application/json" }
+        });
+      }
+
+      const tierLabel = tier === 'construction'
+        ? 'Tier 2 (Construction & Compliance Documentation Review)'
+        : 'Tier 1 (Concept & Pricing Review)';
+
+      const instruction = `Please perform a ${tierLabel} assessment on the attached architectural plan, strictly following your architectural-plan-assessor skill framework for that tier.
 
 Before analysing, consult your AgentBible for any relevant past compliance insights, recurring issues, or standard interpretations that apply to this plan type and tier, and use them to inform your review.
 
@@ -86,66 +80,28 @@ Return your final assessment STRICTLY as a JSON object with no markdown formatti
 }
 If the attached file is clearly not a development layout or architectural sheet drawing, set overall_score to 0.`;
 
-    // Route the assessment through the architecture_assistant agent so it can
-    // use its NCC/AS context files, skills, memory, and the AgentBible.
-    const conversation = await base44.agents.createConversation({
-      agent_name: AGENT_NAME,
-      metadata: {
-        source: 'palladio_assess',
-        tier: tier || 'concept',
-        user_id: user.id
+      const conversation = await base44.agents.getConversation(conversation_id);
+      if (!conversation) {
+        return new Response(JSON.stringify({ error: "Conversation not found" }), {
+          status: 404,
+          headers: { "Content-Type": "application/json" }
+        });
       }
-    });
 
-    await base44.agents.addMessage(conversation, {
-      role: 'user',
-      content: instruction,
-      file_urls: [fileUrl]
-    });
+      await base44.agents.addMessage(conversation, {
+        role: 'user',
+        content: instruction,
+        file_urls: [fileUrl]
+      });
 
-    // Poll for the agent's final response (addMessage returns immediately; the
-    // agent processes asynchronously, so we poll the stored conversation).
-    const pollIntervalMs = 3000;
-    const maxWaitMs = 120000;
-    const startedAt = Date.now();
-    let finalConversation = null;
-    let done = false;
-
-    while (Date.now() - startedAt < maxWaitMs && !done) {
-      await new Promise((r) => setTimeout(r, pollIntervalMs));
-      try {
-        const conv = await base44.agents.getConversation(conversation.id);
-        finalConversation = conv;
-        if (isAgentDone(conv?.messages)) done = true;
-      } catch (_) {
-        // transient poll errors — keep polling
-      }
-    }
-
-    const messages = finalConversation?.messages || [];
-    const lastAssistant = [...messages].reverse().find(
-      (m) => m.role === 'assistant' && typeof m.content === 'string' && m.content.trim()
-    );
-    const rawContent = lastAssistant?.content || '';
-
-    if (!rawContent) {
-      return new Response(JSON.stringify({
-        error: "The agent did not produce a response in time. Please try again.",
-        conversation_id: conversation.id
-      }), {
-        status: 504,
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
         headers: { "Content-Type": "application/json" }
       });
     }
 
-    const parsed = extractJson(rawContent);
-    const assessmentReport = parsed || rawContent; // fall back to raw markdown string
-
-    return new Response(JSON.stringify({
-      assessmentReport,
-      conversation_id: conversation.id
-    }), {
-      status: 200,
+    return new Response(JSON.stringify({ error: "Unknown action" }), {
+      status: 400,
       headers: { "Content-Type": "application/json" }
     });
 

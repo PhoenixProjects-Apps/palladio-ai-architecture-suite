@@ -7,7 +7,20 @@ import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
 import PalladioGate from '@/components/PalladioGate';
 import SaveToProject from '@/components/SaveToProject';
+import AgentThoughtProcess from '@/components/AgentThoughtProcess';
 import { toast } from 'sonner';
+
+function extractJson(text) {
+  if (!text) return null;
+  let s = String(text).trim().replace(/```json/gi, '').replace(/```/g, '').trim();
+  try { return JSON.parse(s); } catch (_) {}
+  const start = s.indexOf('{');
+  const end = s.lastIndexOf('}');
+  if (start !== -1 && end !== -1 && end > start) {
+    try { return JSON.parse(s.slice(start, end + 1)); } catch (_) {}
+  }
+  return null;
+}
 
 export default function PalladioAssess() {
   const [file, setFile] = useState(null);
@@ -17,9 +30,11 @@ export default function PalladioAssess() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
   const [uploadError, setUploadError] = useState(null);
-  
+  const [messages, setMessages] = useState([]);
+  const [conversationId, setConversationId] = useState(null);
+
   // Tier state tracking: 'concept' vs 'construction'
-  const [reviewTier, setReviewTier] = useState('concept'); 
+  const [reviewTier, setReviewTier] = useState('concept');
   const fileInputRef = useRef(null);
 
   const handleFileSelect = async (e) => {
@@ -66,9 +81,12 @@ export default function PalladioAssess() {
       toast.error("Please wait for the file to finish uploading.");
       return;
     }
-    
+
     setIsAnalyzing(true);
-    
+    setMessages([]);
+    setResult(null);
+    setConversationId(null);
+
     try {
       const tokenRes = await base44.functions.invoke('consumeToken', {});
       if (tokenRes.data?.error) {
@@ -80,75 +98,87 @@ export default function PalladioAssess() {
       // Settle delay to avoid immediate asset bucket propagation race conditions
       await delay(1500);
 
-      let response = null;
-      let attempts = 0;
-      const maxRetries = 3;
-      let success = false;
+      // Create the agent conversation (returns quickly), then subscribe for the
+      // live thought process before triggering the assessment.
+      const createRes = await base44.functions.invoke('runPlanAssessment', {
+        action: 'create',
+        tier: reviewTier
+      });
 
-      // Retry loop to absorb transient file-storage propagation delays
-      while (attempts < maxRetries && !success) {
-        try {
-          attempts++;
-          response = await base44.functions.invoke('runPlanAssessment', {
-            fileUrl: fileUrl,
-            tier: reviewTier
-          });
-          success = true;
-        } catch (loopError) {
-          console.warn(`Analysis attempt ${attempts} failed. Retrying...`);
-          if (attempts >= maxRetries) {
-            throw new Error("MAX_RETRIES_REACHED: File storage bucket taking too long to verify.");
-          }
-          await delay(attempts * 2000);
-        }
+      const convId = createRes.data?.conversation_id;
+      if (!convId) {
+        throw new Error("Failed to start agent assessment.");
       }
+      setConversationId(convId);
 
-      if (response && response.data?.assessmentReport) {
-        const finalReport = response.data.assessmentReport;
-        setResult(finalReport);
-        
-        // Flatten the structured response into a clean Markdown text string
-        const markdownString = `
-# Plan Assessment: ${finalReport.plan_type || 'Architectural Sheet'}
-**Overall Score:** ${finalReport.overall_score}/10
-**Assessment Tier:** ${reviewTier === 'concept' ? 'Tier 1 (Concept)' : 'Tier 2 (Construction)'}
+      // Subscribe to the agent conversation to render the live thought process
+      // and detect when the agent has produced its final assessment.
+      const finalReport = await new Promise((resolve, reject) => {
+        let resolved = false;
+        let unsubscribe = null;
 
-## Overview
-${finalReport.overview}
+        const timeout = setTimeout(() => {
+          if (unsubscribe) unsubscribe();
+          if (!resolved) {
+            resolved = true;
+            reject(new Error("TIMEOUT: The agent did not finish in time."));
+          }
+        }, 180000);
 
-## Spatial Analysis
-${finalReport.spatial_analysis}
+        const handleMsgs = (msgs) => {
+          setMessages(msgs);
+          if (resolved) return;
+          const last = msgs[msgs.length - 1];
+          if (!last || last.role !== 'assistant') return;
+          const content = typeof last.content === 'string' ? last.content.trim() : '';
+          if (!content) return;
+          const pending = (last.tool_calls || []).some((tc) =>
+            ['pending', 'running', 'in_progress'].includes(tc.status)
+          );
+          if (pending) return;
+          resolved = true;
+          clearTimeout(timeout);
+          if (unsubscribe) unsubscribe();
+          resolve(content);
+        };
 
-## Design Observations
-${(finalReport.design_observations || []).map(o => `- ${o}`).join('\n')}
+        unsubscribe = base44.agents.subscribeToConversation(convId, (data) => {
+          handleMsgs(data?.messages || []);
+        });
 
-## Compliance Flags
-${(finalReport.compliance_flags || []).map(f => `- ${f}`).join('\n')}
+        // Trigger the assessment (fire-and-forget); the subscription above
+        // receives the agent's live updates and final result.
+        base44.functions.invoke('runPlanAssessment', {
+          action: 'run',
+          conversation_id: convId,
+          fileUrl: fileUrl,
+          tier: reviewTier
+        }).catch((e) => console.error('Assessment trigger failed:', e));
+      });
 
-## Recommendations
-${(finalReport.recommendations || []).map(r => `- ${r}`).join('\n')}
-        `.trim();
+      const finalResult = extractJson(finalReport) || finalReport;
+      setResult(finalResult);
 
-        try {
-          await base44.functions.invoke('saveToDrive', {
-            fileUrl: fileUrl,
-            assessmentReport: markdownString,
-            tier: reviewTier
-          });
-          toast.success("Assessment complete and saved successfully!");
-        } catch (saveErr) {
-          console.error("Failed to save assessment to drive:", saveErr);
-          toast.warning("Assessment complete, but it could not be auto-saved to your projects.");
-        }
-      } else {
-        throw new Error("Failed to receive structured report payload.");
+      const markdownString = typeof finalResult === 'object'
+        ? `# Plan Assessment: ${finalResult.plan_type || 'Architectural Sheet'}\n**Overall Score:** ${finalResult.overall_score}/10\n**Assessment Tier:** ${reviewTier === 'concept' ? 'Tier 1 (Concept)' : 'Tier 2 (Construction)'}\n\n## Overview\n${finalResult.overview}\n\n## Spatial Analysis\n${finalResult.spatial_analysis}\n\n## Design Observations\n${(finalResult.design_observations || []).map((o) => `- ${o}`).join('\n')}\n\n## Compliance Flags\n${(finalResult.compliance_flags || []).map((f) => `- ${f}`).join('\n')}\n\n## Recommendations\n${(finalResult.recommendations || []).map((r) => `- ${r}`).join('\n')}`
+        : String(finalResult);
+
+      try {
+        await base44.functions.invoke('saveToDrive', {
+          fileUrl: fileUrl,
+          assessmentReport: markdownString,
+          tier: reviewTier
+        });
+        toast.success("Assessment complete and saved successfully!");
+      } catch (saveErr) {
+        console.error("Failed to save assessment to drive:", saveErr);
+        toast.warning("Assessment complete, but it could not be auto-saved to your projects.");
       }
 
     } catch (err) {
       console.error("Final Analysis Failure Chain:", err);
-
       setResult("An error occurred during analysis. Please try again.");
-      toast.error("The document file could not be read by the AI engine. Please re-upload or try again.");
+      toast.error("The assessment could not be completed. Please try again.");
     } finally {
       setIsAnalyzing(false);
     }
@@ -171,75 +201,81 @@ ${(finalReport.recommendations || []).map(r => `- ${r}`).join('\n')}
           </header>
 
           {!result ? (
-            <div className="space-y-6">
-              {/* TWO TIER STATE CONTROLLER TOGGLE */}
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-2 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setReviewTier('concept')}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium text-sm transition-all ${reviewTier === 'concept' ? 'bg-cyan-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
-                >
-                  <Layers size={16} />
-                  Tier 1: Concept & Pricing
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setReviewTier('construction')}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium text-sm transition-all ${reviewTier === 'construction' ? 'bg-cyan-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
-                >
-                  <AlertCircle size={16} />
-                  Tier 2: Construction Audit
-                </button>
+            isAnalyzing ? (
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-md">
+                <AgentThoughtProcess messages={messages} />
               </div>
-
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-white/10 hover:border-cyan-500/50 rounded-3xl p-12 text-center cursor-pointer transition-colors bg-white/5"
-              >
-                {isUploading ? (
-                  <div className="flex flex-col items-center">
-                    <Loader2 size={40} className="animate-spin text-cyan-500 mb-4" />
-                    <p className="text-slate-400">Uploading document...</p>
-                  </div>
-                ) : previewUrl ? (
-                  <img src={previewUrl} alt="Preview" className="mx-auto max-h-[300px] rounded-xl object-contain shadow-lg" />
-                ) : file ? (
-                  <div className="flex flex-col items-center">
-                    <FileImage size={48} className="text-cyan-500 mb-4" />
-                    <p className="text-white font-medium">{file.name}</p>
-                    <p className="text-slate-400 text-sm mt-1">
-                      PDF Document ({(file.size / (1024 * 1024)).toFixed(2)} MB)
-                    </p>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center">
-                    <Upload size={48} className="text-slate-500 mb-4" />
-                    <p className="text-lg font-medium text-white mb-2">Upload floorplans or drawings</p>
-                    <p className="text-slate-400 text-sm">Drag and drop, or click to browse (Images, PDF)</p>
-                  </div>
-                )}
-                <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*,.pdf" className="hidden" />
-              </div>
-
-              {uploadError && (
-                <div className="text-red-400 text-sm text-center bg-red-400/10 py-3 rounded-lg border border-red-400/20">
-                  <AlertCircle className="inline-block w-4 h-4 mr-2 mb-0.5" />
-                  {uploadError}
+            ) : (
+              <div className="space-y-6">
+                {/* TWO TIER STATE CONTROLLER TOGGLE */}
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-2 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setReviewTier('concept')}
+                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium text-sm transition-all ${reviewTier === 'concept' ? 'bg-cyan-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+                  >
+                    <Layers size={16} />
+                    Tier 1: Concept & Pricing
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setReviewTier('construction')}
+                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium text-sm transition-all ${reviewTier === 'construction' ? 'bg-cyan-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+                  >
+                    <AlertCircle size={16} />
+                    Tier 2: Construction Audit
+                  </button>
                 </div>
-              )}
 
-              <Button
-                onClick={handleAnalyze}
-                disabled={!file || isUploading || isAnalyzing}
-                className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-6 text-lg rounded-xl shadow-lg shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isAnalyzing ? (
-                  <><Loader2 size={20} className="animate-spin mr-2" /> Auditing Blueprint Components...</>
-                ) : (
-                  `Run ${reviewTier === 'concept' ? 'Concept' : 'Construction'} Assessment`
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-white/10 hover:border-cyan-500/50 rounded-3xl p-12 text-center cursor-pointer transition-colors bg-white/5"
+                >
+                  {isUploading ? (
+                    <div className="flex flex-col items-center">
+                      <Loader2 size={40} className="animate-spin text-cyan-500 mb-4" />
+                      <p className="text-slate-400">Uploading document...</p>
+                    </div>
+                  ) : previewUrl ? (
+                    <img src={previewUrl} alt="Preview" className="mx-auto max-h-[300px] rounded-xl object-contain shadow-lg" />
+                  ) : file ? (
+                    <div className="flex flex-col items-center">
+                      <FileImage size={48} className="text-cyan-500 mb-4" />
+                      <p className="text-white font-medium">{file.name}</p>
+                      <p className="text-slate-400 text-sm mt-1">
+                        PDF Document ({(file.size / (1024 * 1024)).toFixed(2)} MB)
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center">
+                      <Upload size={48} className="text-slate-500 mb-4" />
+                      <p className="text-lg font-medium text-white mb-2">Upload floorplans or drawings</p>
+                      <p className="text-slate-400 text-sm">Drag and drop, or click to browse (Images, PDF)</p>
+                    </div>
+                  )}
+                  <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*,.pdf" className="hidden" />
+                </div>
+
+                {uploadError && (
+                  <div className="text-red-400 text-sm text-center bg-red-400/10 py-3 rounded-lg border border-red-400/20">
+                    <AlertCircle className="inline-block w-4 h-4 mr-2 mb-0.5" />
+                    {uploadError}
+                  </div>
                 )}
-              </Button>
-            </div>
+
+                <Button
+                  onClick={handleAnalyze}
+                  disabled={!file || isUploading || isAnalyzing}
+                  className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-6 text-lg rounded-xl shadow-lg shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isAnalyzing ? (
+                    <><Loader2 size={20} className="animate-spin mr-2" /> Auditing Blueprint Components...</>
+                  ) : (
+                    `Run ${reviewTier === 'concept' ? 'Concept' : 'Construction'} Assessment`
+                  )}
+                </Button>
+              </div>
+            )
           ) : (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               {typeof result === 'object' ? (
@@ -306,12 +342,12 @@ ${(finalReport.recommendations || []).map(r => `- ${r}`).join('\n')}
                   <ReactMarkdown>{result}</ReactMarkdown>
                 </div>
               )}
-              
+
               <div className="flex flex-col sm:flex-row gap-3">
                 <SaveToProject
                   textContent={
-                    typeof result === 'object' 
-                      ? `# Plan Assessment: ${result.plan_type || ''}\n\n**Overall Score:** ${result.overall_score}/10\n\n## Overview\n${result.overview}\n\n## Spatial Analysis\n${result.spatial_analysis}\n\n## Design Observations\n${(result.design_observations || []).map((o) => `- ${o}`).join('\n')}\n\n## Compliance Flags\n${(result.compliance_flags || []).map((f) => `- ${f}`).join('\n')}\n\n## Recommendations\n${(result.recommendations || []).map((r) => `- ${r}`).join('\n')}` 
+                    typeof result === 'object'
+                      ? `# Plan Assessment: ${result.plan_type || ''}\n\n**Overall Score:** ${result.overall_score}/10\n\n## Overview\n${result.overview}\n\n## Spatial Analysis\n${result.spatial_analysis}\n\n## Design Observations\n${(result.design_observations || []).map((o) => `- ${o}`).join('\n')}\n\n## Compliance Flags\n${(result.compliance_flags || []).map((f) => `- ${f}`).join('\n')}\n\n## Recommendations\n${(result.recommendations || []).map((r) => `- ${r}`).join('\n')}`
                       : String(result)
                   }
                   fileName={`${reviewTier}-assessment.md`}
@@ -319,7 +355,7 @@ ${(finalReport.recommendations || []).map(r => `- ${r}`).join('\n')}
                   className="w-full sm:flex-1 rounded-xl border-teal-600/50 text-teal-400 hover:bg-teal-500/10 hover:text-teal-300 h-12"
                 />
                 <Button
-                  onClick={() => { setResult(null); setFile(null); setFileUrl(null); setPreviewUrl(null); }}
+                  onClick={() => { setResult(null); setFile(null); setFileUrl(null); setPreviewUrl(null); setMessages([]); setConversationId(null); }}
                   variant="outline"
                   className="w-full sm:flex-1 rounded-xl border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white h-12"
                 >

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Home, MessageSquare, Settings, X, Layers, Building2, MapPin, ClipboardList, FileImage, PanelLeftClose, PanelLeftOpen, ShieldAlert, CreditCard, Folder, Bell, PenTool, LogIn, Info, ChevronUp } from 'lucide-react';
+import { Home, MessageSquare, Settings, X, Layers, Building2, MapPin, ClipboardList, FileImage, PanelLeftClose, PanelLeftOpen, ShieldAlert, CreditCard, Folder, Bell, PenTool, LogIn, Info, ChevronUp, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 
@@ -98,6 +98,7 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
       ];
 
   if (user?.role === 'admin') {
+    bottomItems.unshift({ name: 'Agent Bible', icon: BookOpen, path: 'AgentBible' });
     bottomItems.unshift({ name: 'Admin', icon: ShieldAlert, path: 'Admin' });
   }
 
