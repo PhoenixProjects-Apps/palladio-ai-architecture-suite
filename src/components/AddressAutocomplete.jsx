@@ -27,11 +27,18 @@ export default function AddressAutocomplete({ value, onChange, onSelect }) {
             try {
                 const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=8&countrycodes=au`);
                 const data = await res.json();
-                const features = (data || []).map(r => ({
-                    display_name: r.display_name,
-                    lat: r.lat,
-                    lon: r.lon
-                })).filter(r => r.display_name);
+                // Nominatim drops the house number when the exact number isn't
+                // mapped in OSM (it falls back to a street-level match). Preserve
+                // the leading number the user typed so it isn't lost from the
+                // suggestion.
+                const typedNumber = (query.match(/^\s*(\d+[A-Za-z]?)/) || [])[1];
+                const features = (data || []).map(r => {
+                    let display_name = r.display_name;
+                    if (!r.address?.house_number && typedNumber) {
+                        display_name = `${typedNumber}, ${r.display_name}`;
+                    }
+                    return { display_name, lat: r.lat, lon: r.lon };
+                }).filter(r => r.display_name);
                 setResults(features);
                 setOpen(true);
             } catch (e) {
