@@ -11,20 +11,25 @@ export default function Contact() {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
-        message: ''
+        message: '',
+        website: '' // honeypot — must stay empty
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [formLoadedAt] = useState(Date.now());
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
         
         try {
-            const res = await base44.functions.invoke('sendContactEmail', formData);
+            const res = await base44.functions.invoke('sendContactEmail', {
+                ...formData,
+                _t: formLoadedAt
+            });
             if (res.data?.error) throw new Error(res.data.error);
             
             toast.success('Message sent! We\'ll get back to you soon.');
-            setFormData({ name: '', email: '', message: '' });
+            setFormData({ name: '', email: '', message: '', website: '' });
         } catch (error) {
             toast.error(error.message || 'Failed to send message. Please try again.');
         } finally {
@@ -91,6 +96,17 @@ export default function Contact() {
                                 placeholder="How can we help?"
                                 className="bg-slate-900 border-white/10 text-white min-h-[120px]"
                                 required
+                            />
+                        </div>
+                        {/* Honeypot field — hidden from real users, bots tend to fill it */}
+                        <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
+                            <label className="text-sm font-medium text-slate-400 mb-2 block">Website</label>
+                            <Input
+                                type="text"
+                                value={formData.website}
+                                onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                                tabIndex={-1}
+                                autoComplete="off"
                             />
                         </div>
                         <Button

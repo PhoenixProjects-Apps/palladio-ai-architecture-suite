@@ -46,7 +46,22 @@ Deno.serve(async (req) => {
 
     const base44 = createClientFromRequest(req);
     const body = await req.json();
-    const { name, email, message } = body || {};
+    const { name, email, message, _hp, _t } = body || {};
+
+    // Honeypot: a real (hidden) field that humans never fill — bots usually do.
+    if (_hp && String(_hp).trim() !== '') {
+      return Response.json({ error: 'Submission rejected.' }, { status: 400 });
+    }
+    // Timing check: reject submissions made too fast (< 2s) to be human-typed,
+    // or stale/replayed (> 1h after the form rendered).
+    const submittedAt = Number(_t);
+    if (!Number.isFinite(submittedAt)) {
+      return Response.json({ error: 'Invalid submission.' }, { status: 400 });
+    }
+    const elapsed = Date.now() - submittedAt;
+    if (elapsed < 2000 || elapsed > 60 * 60 * 1000) {
+      return Response.json({ error: 'Submission rejected.' }, { status: 400 });
+    }
 
     if (!name || !email || !message) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
