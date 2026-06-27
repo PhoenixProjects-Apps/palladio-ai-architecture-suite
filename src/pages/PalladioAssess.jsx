@@ -1,13 +1,14 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Upload, Loader2, FileImage, AlertCircle, Layers } from 'lucide-react';
+import { ArrowLeft, Upload, Loader2, FileImage, AlertCircle, Layers, Building, User, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
 import PalladioGate from '@/components/PalladioGate';
 import SaveToProject from '@/components/SaveToProject';
 import AgentThoughtProcess from '@/components/AgentThoughtProcess';
+import ProjectDetailsForm from '@/components/ProjectDetailsForm';
 import { toast } from 'sonner';
 
 function extractJson(text) {
@@ -22,6 +23,20 @@ function extractJson(text) {
   return null;
 }
 
+function buildProjectInfoCard(pi) {
+  if (!pi) return null;
+  const rows = [
+    pi.project_name && { label: 'Project', value: pi.project_name },
+    pi.client_name && { label: 'Client', value: pi.client_name },
+    pi.address && { label: 'Address', value: pi.address },
+    pi.lot_no && { label: 'Lot No.', value: pi.lot_no },
+    pi.rp_no && { label: 'RP No.', value: pi.rp_no },
+    pi.site_area && { label: 'Site Area', value: pi.site_area },
+    pi.council_overlays && { label: 'Council Overlays', value: pi.council_overlays },
+  ].filter(Boolean);
+  return rows.length ? rows : null;
+}
+
 export default function PalladioAssess() {
   const [file, setFile] = useState(null);
   const [fileUrl, setFileUrl] = useState(null);
@@ -32,6 +47,9 @@ export default function PalladioAssess() {
   const [uploadError, setUploadError] = useState(null);
   const [messages, setMessages] = useState([]);
   const [conversationId, setConversationId] = useState(null);
+  const [projectDetails, setProjectDetails] = useState({
+    projectName: '', clientName: '', address: '', lotNo: '', rpNo: '', siteArea: '', councilOverlays: ''
+  });
 
   // Tier state tracking: 'concept' vs 'construction'
   const [reviewTier, setReviewTier] = useState('concept');
@@ -111,56 +129,54 @@ export default function PalladioAssess() {
       }
       setConversationId(convId);
 
-      // Subscribe to the agent conversation to render the live thought process
-      // and detect when the agent has produced its final assessment.
-      const finalReport = await new Promise((resolve, reject) => {
-        let resolved = false;
-        let unsubscribe = null;
+      // Subscribe to render the live thought process while the agent works.
+      const unsubscribe = base44.agents.subscribeToConversation(convId, (data) => {
+        setMessages(data?.messages || []);
+      });
 
-        const timeout = setTimeout(() => {
-          if (unsubscribe) unsubscribe();
-          if (!resolved) {
-            resolved = true;
-            reject(new Error("TIMEOUT: The agent did not finish in time."));
-          }
-        }, 180000);
-
-        const handleMsgs = (msgs) => {
-          setMessages(msgs);
-          if (resolved) return;
-          const last = msgs[msgs.length - 1];
-          if (!last || last.role !== 'assistant') return;
-          const content = typeof last.content === 'string' ? last.content.trim() : '';
-          if (!content) return;
-          const pending = (last.tool_calls || []).some((tc) =>
-            ['pending', 'running', 'in_progress'].includes(tc.status)
-          );
-          if (pending) return;
-          resolved = true;
-          clearTimeout(timeout);
-          if (unsubscribe) unsubscribe();
-          resolve(content);
-        };
-
-        unsubscribe = base44.agents.subscribeToConversation(convId, (data) => {
-          handleMsgs(data?.messages || []);
-        });
-
-        // Trigger the assessment (fire-and-forget); the subscription above
-        // receives the agent's live updates and final result.
-        base44.functions.invoke('runPlanAssessment', {
+      // Trigger the assessment and await completion. The backend blocks until
+      // the agent has fully finished, so we then fetch the complete result.
+      let runOk = false;
+      try {
+        const runRes = await base44.functions.invoke('runPlanAssessment', {
           action: 'run',
           conversation_id: convId,
           fileUrl: fileUrl,
-          tier: reviewTier
-        }).catch((e) => console.error('Assessment trigger failed:', e));
-      });
+          tier: reviewTier,
+          projectDetails
+        });
+        runOk = !runRes.data?.error;
+      } catch (runErr) {
+        console.error('Assessment trigger failed:', runErr);
+      }
+      if (unsubscribe) unsubscribe();
 
-      const finalResult = extractJson(finalReport) || finalReport;
+      if (!runOk) {
+        throw new Error("The agent did not complete the assessment.");
+      }
+
+      // Fetch the full conversation and parse the agent's final assessment.
+      const conv = await base44.agents.getConversation(convId);
+      const msgs = conv?.messages || [];
+      setMessages(msgs);
+      const lastAssistant = [...msgs].reverse().find(
+        (m) => m.role === 'assistant' && typeof m.content === 'string' && m.content.trim()
+      );
+      const rawContent = lastAssistant?.content || '';
+      if (!rawContent) {
+        throw new Error("No assessment was returned by the agent.");
+      }
+
+      const finalResult = extractJson(rawContent) || rawContent;
       setResult(finalResult);
 
+      const pi = finalResult.project_info || {};
+      const piRows = buildProjectInfoCard(pi);
+      const piSection = piRows
+        ? `## Project Information\n${piRows.map((r) => `- **${r.label}:** ${r.value}`).join('\n')}\n\n`
+        : '';
       const markdownString = typeof finalResult === 'object'
-        ? `# Plan Assessment: ${finalResult.plan_type || 'Architectural Sheet'}\n**Overall Score:** ${finalResult.overall_score}/10\n**Assessment Tier:** ${reviewTier === 'concept' ? 'Tier 1 (Concept)' : 'Tier 2 (Construction)'}\n\n## Overview\n${finalResult.overview}\n\n## Spatial Analysis\n${finalResult.spatial_analysis}\n\n## Design Observations\n${(finalResult.design_observations || []).map((o) => `- ${o}`).join('\n')}\n\n## Compliance Flags\n${(finalResult.compliance_flags || []).map((f) => `- ${f}`).join('\n')}\n\n## Recommendations\n${(finalResult.recommendations || []).map((r) => `- ${r}`).join('\n')}`
+        ? `# Plan Assessment: ${finalResult.plan_type || 'Architectural Sheet'}\n**Overall Score:** ${finalResult.overall_score}/10\n**Assessment Tier:** ${reviewTier === 'concept' ? 'Tier 1 (Concept)' : 'Tier 2 (Construction)'}\n\n${piSection}## Overview\n${finalResult.overview}\n\n## Spatial Analysis\n${finalResult.spatial_analysis}\n\n## Design Observations\n${(finalResult.design_observations || []).map((o) => `- ${o}`).join('\n')}\n\n## Compliance Flags\n${(finalResult.compliance_flags || []).map((f) => `- ${f}`).join('\n')}\n\n## Recommendations\n${(finalResult.recommendations || []).map((r) => `- ${r}`).join('\n')}`
         : String(finalResult);
 
       try {
@@ -183,6 +199,9 @@ export default function PalladioAssess() {
       setIsAnalyzing(false);
     }
   };
+
+  const formValid = projectDetails.projectName.trim() && projectDetails.clientName.trim() && projectDetails.address.trim();
+  const piRows = result && typeof result === 'object' ? buildProjectInfoCard(result.project_info) : null;
 
   return (
     <PalladioGate>
@@ -207,6 +226,11 @@ export default function PalladioAssess() {
               </div>
             ) : (
               <div className="space-y-6">
+                <ProjectDetailsForm
+                  value={projectDetails}
+                  onChange={(patch) => setProjectDetails((prev) => ({ ...prev, ...patch }))}
+                />
+
                 {/* TWO TIER STATE CONTROLLER TOGGLE */}
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-2 flex gap-2">
                   <button
@@ -265,7 +289,7 @@ export default function PalladioAssess() {
 
                 <Button
                   onClick={handleAnalyze}
-                  disabled={!file || isUploading || isAnalyzing}
+                  disabled={!file || isUploading || isAnalyzing || !formValid}
                   className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-6 text-lg rounded-xl shadow-lg shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isAnalyzing ? (
@@ -274,12 +298,29 @@ export default function PalladioAssess() {
                     `Run ${reviewTier === 'concept' ? 'Concept' : 'Construction'} Assessment`
                   )}
                 </Button>
+                {!formValid && file && (
+                  <p className="text-xs text-slate-500 text-center -mt-3">Fill in the project details above to enable the assessment.</p>
+                )}
               </div>
             )
           ) : (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               {typeof result === 'object' ? (
                 <>
+                  {piRows && (
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-md">
+                      <h3 className="text-cyan-400 font-semibold mb-3 flex items-center gap-2"><Building size={18} /> Project Information</h3>
+                      <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                        {piRows.map((r, i) => (
+                          <div key={i} className="flex gap-2">
+                            <span className="text-slate-500 min-w-[120px]">{r.label}</span>
+                            <span className="text-slate-200">{r.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="grid md:grid-cols-3 gap-6">
                     <div className="bg-cyan-900/20 border border-cyan-500/30 rounded-2xl p-6 shadow-lg md:col-span-2">
                       <h3 className="text-cyan-400 font-semibold mb-2 text-lg">{result.plan_type || 'Plan Assessment'}</h3>
@@ -347,7 +388,7 @@ export default function PalladioAssess() {
                 <SaveToProject
                   textContent={
                     typeof result === 'object'
-                      ? `# Plan Assessment: ${result.plan_type || ''}\n\n**Overall Score:** ${result.overall_score}/10\n\n## Overview\n${result.overview}\n\n## Spatial Analysis\n${result.spatial_analysis}\n\n## Design Observations\n${(result.design_observations || []).map((o) => `- ${o}`).join('\n')}\n\n## Compliance Flags\n${(result.compliance_flags || []).map((f) => `- ${f}`).join('\n')}\n\n## Recommendations\n${(result.recommendations || []).map((r) => `- ${r}`).join('\n')}`
+                      ? `# Plan Assessment: ${result.plan_type || ''}\n\n**Overall Score:** ${result.overall_score}/10\n\n${piRows ? `## Project Information\n${piRows.map((r) => `- **${r.label}:** ${r.value}`).join('\n')}\n\n` : ''}## Overview\n${result.overview}\n\n## Spatial Analysis\n${result.spatial_analysis}\n\n## Design Observations\n${(result.design_observations || []).map((o) => `- ${o}`).join('\n')}\n\n## Compliance Flags\n${(result.compliance_flags || []).map((f) => `- ${f}`).join('\n')}\n\n## Recommendations\n${(result.recommendations || []).map((r) => `- ${r}`).join('\n')}`
                       : String(result)
                   }
                   fileName={`${reviewTier}-assessment.md`}

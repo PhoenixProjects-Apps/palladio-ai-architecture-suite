@@ -60,7 +60,20 @@ Deno.serve(async (req) => {
         ? 'Tier 2 (Construction & Compliance Documentation Review)'
         : 'Tier 1 (Concept & Pricing Review)';
 
-      const instruction = `Please perform a ${tierLabel} assessment on the attached architectural plan, strictly following your architectural-plan-assessor skill framework for that tier.
+      const pd = body?.projectDetails || {};
+      const pdLines = [];
+      if (pd.projectName) pdLines.push(`- Project Name: ${pd.projectName}`);
+      if (pd.clientName) pdLines.push(`- Client Name: ${pd.clientName}`);
+      if (pd.address) pdLines.push(`- Site Address: ${pd.address}`);
+      if (pd.lotNo) pdLines.push(`- Lot No.: ${pd.lotNo}`);
+      if (pd.rpNo) pdLines.push(`- RP No.: ${pd.rpNo}`);
+      if (pd.siteArea) pdLines.push(`- Site Area: ${pd.siteArea}`);
+      if (pd.councilOverlays) pdLines.push(`- Council Overlays: ${pd.councilOverlays}`);
+      const projectContext = pdLines.length
+        ? `\n\nProject context — use and reference these details in your assessment, and package them in the project_info field of your output:\n${pdLines.join('\n')}`
+        : '';
+
+      const instruction = `Please perform a ${tierLabel} assessment on the attached architectural plan, strictly following your architectural-plan-assessor skill framework for that tier.${projectContext}
 
 Before analysing, consult your AgentBible for any relevant past compliance insights, recurring issues, or standard interpretations that apply to this plan type and tier, and use them to inform your review.
 
@@ -70,6 +83,7 @@ Do NOT call saveToDrive for this assessment — the calling system handles persi
 
 Return your final assessment STRICTLY as a JSON object with no markdown formatting, backticks, or prose outside the JSON. Use these exact keys:
 {
+  "project_info": { "project_name": "...", "client_name": "...", "address": "...", "lot_no": "...", "rp_no": "...", "site_area": "...", "council_overlays": "..." },
   "plan_type": "string matching the drawing classification",
   "overall_score": <integer 0-10>,
   "overview": "high-level overview text",
