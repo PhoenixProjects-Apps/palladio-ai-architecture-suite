@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, Send, Plus, Loader2, RefreshCcw, Trash2 } from 'lucide-react';
+import { MessageSquare, Send, Plus, Loader2, Trash2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import MessageBubble from '@/components/MessageBubble';
 import { Button } from '@/components/ui/button';
@@ -8,10 +8,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import PalladioGate from '@/components/PalladioGate';
 import SaveToProject from '@/components/SaveToProject';
+import { toast } from 'sonner';
 
 export default function SavedChats() {
   const [conversations, setConversations] = useState([]);
-  const [activeConvId, setActiveConvId] = useState(null);
+  const [activeChat, setActiveChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -20,24 +21,21 @@ export default function SavedChats() {
 
   useEffect(() => {
     loadConversations();
-  }, []);
-
-  useEffect(() => {
     base44.auth.me().then(u => setIsAdmin(u?.role === 'admin')).catch(() => {});
   }, []);
 
   const loadConversations = async () => {
     try {
-      const convos = await base44.agents.listConversations({ agent_name: "architecture_assistant" });
+      const convos = await base44.entities.SuperagentChat.list('-updated_date', 50);
       setConversations(convos || []);
-      
+
       const searchParams = new URLSearchParams(window.location.search);
       const urlConvId = searchParams.get('convId');
 
       if (urlConvId && convos.find(c => c.id === urlConvId)) {
-        selectConversation(urlConvId);
-      } else if (convos.length > 0 && !activeConvId) {
-        selectConversation(convos[0].id);
+        selectConversation(convos.find(c => c.id === urlConvId));
+      } else if (convos.length > 0 && !activeChat) {
+        selectConversation(convos[0]);
       } else if (convos.length === 0) {
         handleNewChat();
       }
@@ -46,20 +44,10 @@ export default function SavedChats() {
     }
   };
 
-  const selectConversation = async (id) => {
-    setActiveConvId(id);
-    const conv = await base44.agents.getConversation(id);
-    setMessages(conv.messages || []);
+  const selectConversation = (chat) => {
+    setActiveChat(chat);
+    setMessages(chat.messages || []);
   };
-
-  useEffect(() => {
-    if (!activeConvId) return;
-    const unsubscribe = base44.agents.subscribeToConversation(activeConvId, (data) => {
-      setMessages(data.messages || []);
-      scrollToBottom();
-    });
-    return () => unsubscribe();
-  }, [activeConvId]);
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -72,24 +60,39 @@ export default function SavedChats() {
   const handleNewChat = async () => {
     setIsLoading(true);
     try {
-      const conv = await base44.agents.createConversation({
-        agent_name: "architecture_assistant",
-        metadata: { name: "New Discussion", description: "Architecture Assistant Chat" }
+      const chat = await base44.entities.SuperagentChat.create({
+        title: "New Discussion",
+        session_id: "",
+        messages: []
       });
-      setActiveConvId(conv.id);
-      setMessages(conv.messages || []);
+      setActiveChat(chat);
+      setMessages([]);
       await loadConversations();
     } catch (e) {
       console.error(e);
+      toast.error("Could not start a new chat.");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleDeleteChat = async (id) => {
+    try {
+      await base44.entities.SuperagentChat.delete(id);
+      if (activeChat?.id === id) {
+        setActiveChat(null);
+        setMessages([]);
+      }
+      await loadConversations();
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not delete chat.");
+    }
+  };
+
   const buildChatMarkdown = () => {
     if (!messages.length) return '';
-    const activeConv = conversations.find(c => c.id === activeConvId);
-    const title = activeConv?.metadata?.name || 'AI Assistant Chat';
+    const title = activeChat?.title || 'AI Assistant Chat';
     const lines = [`# ${title}`, ''];
     messages.forEach(m => {
       const role = m.role === 'user' ? 'User' : 'Assistant';
@@ -99,33 +102,55 @@ export default function SavedChats() {
   };
 
   const chatFileName = (() => {
-    const activeConv = conversations.find(c => c.id === activeConvId);
-    const name = activeConv?.metadata?.name || 'chat';
+    const name = activeChat?.title || 'chat';
     return name.replace(/[^a-z0-9]+/gi, '_').toLowerCase() + '.md';
   })();
 
   const handleSend = async (e) => {
     e.preventDefault();
-    if (!input.trim() || !activeConvId) return;
+    if (!input.trim() || !activeChat || isLoading) return;
     const text = input;
     setInput('');
     setIsLoading(true);
-    
+
+    const userMsg = { role: 'user', content: text };
+    const pendingMessages = [...messages, userMsg];
+    setMessages(pendingMessages);
+    scrollToBottom();
+
     try {
-      const conv = await base44.agents.getConversation(activeConvId);
-      if (messages.length <= 1 && typeof base44.agents.updateConversation === 'function') {
-        try {
-          await base44.agents.updateConversation(activeConvId, {
-            metadata: { ...conv.metadata, name: text.substring(0, 30) + (text.length > 30 ? '...' : '') }
-          });
-          loadConversations();
-        } catch (err) {
-          console.warn('Could not update conversation name', err);
-        }
+      const res = await base44.functions.invoke('superagentInvoke', {
+        input: text,
+        sessionId: activeChat.session_id || ""
+      });
+
+      const output = res.data?.output;
+      const newSessionId = res.data?.session_id || activeChat.session_id || "";
+
+      if (res.data?.error || !output) {
+        throw new Error(res.data?.error || "No response from superagent.");
       }
-      await base44.agents.addMessage(conv, { role: "user", content: text });
+
+      const assistantMsg = { role: 'assistant', content: output };
+      const updatedMessages = [...pendingMessages, assistantMsg];
+      setMessages(updatedMessages);
+
+      const shouldRename = !activeChat.title || activeChat.title === "New Discussion";
+      const newTitle = shouldRename
+        ? (text.substring(0, 30) + (text.length > 30 ? '...' : ''))
+        : activeChat.title;
+
+      await base44.entities.SuperagentChat.update(activeChat.id, {
+        messages: updatedMessages,
+        session_id: newSessionId,
+        title: newTitle
+      });
+
+      setActiveChat({ ...activeChat, session_id: newSessionId, title: newTitle, messages: updatedMessages });
+      await loadConversations();
     } catch (e) {
       console.error(e);
+      toast.error(e.message || "Failed to get a response.");
     } finally {
       setIsLoading(false);
     }
@@ -134,7 +159,7 @@ export default function SavedChats() {
   return (
     <PalladioGate>
       <div className="flex h-screen bg-[#0f1117] text-slate-200">
-        
+
         {/* Sidebar */}
         <div className="w-80 border-r border-slate-800 bg-[#0a0c10] flex flex-col hidden md:flex">
           <div className="p-4 border-b border-slate-800 flex justify-between items-center">
@@ -149,18 +174,26 @@ export default function SavedChats() {
           <ScrollArea className="flex-1">
             <div className="p-3 space-y-1">
               {conversations.map(c => (
-                <button
+                <div
                   key={c.id}
-                  onClick={() => selectConversation(c.id)}
                   className={cn(
-                    "w-full text-left px-4 py-3 rounded-xl text-sm transition-all duration-200 truncate",
-                    activeConvId === c.id 
-                      ? "bg-indigo-600/20 text-indigo-300 border border-indigo-500/30" 
+                    "group w-full flex items-center text-left px-4 py-3 rounded-xl text-sm transition-all duration-200 truncate",
+                    activeChat?.id === c.id
+                      ? "bg-indigo-600/20 text-indigo-300 border border-indigo-500/30"
                       : "text-slate-400 hover:bg-slate-800 hover:text-slate-200 border border-transparent"
                   )}
                 >
-                  {c.metadata?.name || "New Discussion"}
-                </button>
+                  <button onClick={() => selectConversation(c)} className="flex-1 truncate text-left">
+                    {c.title || "New Discussion"}
+                  </button>
+                  <button
+                    onClick={() => handleDeleteChat(c.id)}
+                    className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 ml-2 shrink-0"
+                    title="Delete chat"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               ))}
               {conversations.length === 0 && (
                 <p className="text-slate-500 text-sm text-center py-8">No chats yet</p>
@@ -175,7 +208,7 @@ export default function SavedChats() {
           <div className="md:hidden p-4 border-b border-slate-800 flex justify-between items-center bg-[#0a0c10]">
             <h2 className="font-semibold text-white">AI Assistant</h2>
             <div className="flex items-center gap-2">
-              <SaveToProject textContent={buildChatMarkdown()} fileName={chatFileName} assetType="document" disabled={!activeConvId || !messages.length} variant="outline" size="sm" className="bg-slate-800 border-slate-700 text-slate-300 h-8 text-xs">
+              <SaveToProject textContent={buildChatMarkdown()} fileName={chatFileName} assetType="document" disabled={!activeChat || !messages.length} variant="outline" size="sm" className="bg-slate-800 border-slate-700 text-slate-300 h-8 text-xs">
                 Save to Project
               </SaveToProject>
               <Button onClick={handleNewChat} variant="outline" size="sm" className="bg-slate-800 border-slate-700">
@@ -186,12 +219,12 @@ export default function SavedChats() {
 
           {/* Desktop Header */}
           <div className="hidden md:flex justify-end items-center p-3 border-b border-slate-800 bg-[#0a0c10]">
-            <SaveToProject textContent={buildChatMarkdown()} fileName={chatFileName} assetType="document" disabled={!activeConvId || !messages.length} variant="outline" className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700">
+            <SaveToProject textContent={buildChatMarkdown()} fileName={chatFileName} assetType="document" disabled={!activeChat || !messages.length} variant="outline" className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700">
               Save to Project
             </SaveToProject>
           </div>
 
-          <div 
+          <div
             ref={scrollRef}
             className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 pb-32"
           >
@@ -209,7 +242,7 @@ export default function SavedChats() {
 
           <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#0f1117] via-[#0f1117] to-transparent pt-12">
             <div className="max-w-3xl mx-auto">
-              <form 
+              <form
                 onSubmit={handleSend}
                 className="relative flex items-center bg-slate-800/80 border border-slate-700 rounded-2xl overflow-hidden shadow-xl backdrop-blur-md focus-within:border-indigo-500/50 focus-within:ring-1 focus-within:ring-indigo-500/50 transition-all"
               >
@@ -220,9 +253,9 @@ export default function SavedChats() {
                   className="flex-1 border-0 bg-transparent text-slate-200 placeholder:text-slate-500 h-14 px-5 focus-visible:ring-0 text-base"
                   disabled={isLoading}
                 />
-                <Button 
-                  type="submit" 
-                  disabled={!input.trim() || isLoading || !activeConvId}
+                <Button
+                  type="submit"
+                  disabled={!input.trim() || isLoading || !activeChat}
                   size="icon"
                   className="mr-2 h-10 w-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md transition-all shrink-0"
                 >

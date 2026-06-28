@@ -1,7 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
-const AGENT_NAME = 'architecture_assistant';
-
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -13,73 +11,46 @@ Deno.serve(async (req) => {
       user = null;
     }
     if (!user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" }
-      });
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await req.json().catch(() => ({}));
     const action = body?.action || 'run';
-
-    // Fast: create an empty agent conversation and return its id so the frontend
-    // can subscribe to it BEFORE the assessment is triggered (live thought process).
-    if (action === 'create') {
-      const tier = body?.tier || 'concept';
-      const conversation = await base44.agents.createConversation({
-        agent_name: AGENT_NAME,
-        metadata: {
-          source: 'palladio_assess',
-          tier,
-          user_id: user.id
-        }
-      });
-      return new Response(JSON.stringify({
-        conversation_id: conversation.id
-      }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" }
-      });
+    if (action !== 'run') {
+      return Response.json({ error: "Unknown action" }, { status: 400 });
     }
 
-    // Trigger: add the assessment message to an existing conversation. The agent
-    // processes asynchronously; the frontend watches via its subscription.
-    if (action === 'run') {
-      const conversation_id = body?.conversation_id;
-      const fileUrl = body?.fileUrl;
-      const tier = body?.tier;
+    const fileUrl = body?.fileUrl;
+    const tier = body?.tier;
+    if (!fileUrl) {
+      return Response.json({ error: "Missing fileUrl" }, { status: 400 });
+    }
 
-      if (!conversation_id || !fileUrl) {
-        return new Response(JSON.stringify({ error: "Missing conversation_id or fileUrl" }), {
-          status: 400,
-          headers: { "Content-Type": "application/json" }
-        });
-      }
+    const apiKey = Deno.env.get("SUPERAGENT_API_KEY");
+    const agentId = Deno.env.get("SUPERAGENT_AGENT_ID");
+    if (!apiKey || !agentId) {
+      console.error("Superagent secrets missing");
+      return Response.json({ error: "Superagent not configured" }, { status: 500 });
+    }
 
-      const tierLabel = tier === 'construction'
-        ? 'Tier 2 (Construction & Compliance Documentation Review)'
-        : 'Tier 1 (Concept & Pricing Review)';
+    const tierLabel = tier === 'construction'
+      ? 'Tier 2 (Construction & Compliance Documentation Review)'
+      : 'Tier 1 (Concept & Pricing Review)';
 
-      const pd = body?.projectDetails || {};
-      const pdLines = [];
-      if (pd.projectName) pdLines.push(`- Project Name: ${pd.projectName}`);
-      if (pd.clientName) pdLines.push(`- Client Name: ${pd.clientName}`);
-      if (pd.address) pdLines.push(`- Site Address: ${pd.address}`);
-      if (pd.lotNo) pdLines.push(`- Lot No.: ${pd.lotNo}`);
-      if (pd.rpNo) pdLines.push(`- RP No.: ${pd.rpNo}`);
-      if (pd.siteArea) pdLines.push(`- Site Area: ${pd.siteArea}`);
-      if (pd.councilOverlays) pdLines.push(`- Council Overlays: ${pd.councilOverlays}`);
-      const projectContext = pdLines.length
-        ? `\n\nProject context — use and reference these details in your assessment, and package them in the project_info field of your output:\n${pdLines.join('\n')}`
-        : '';
+    const pd = body?.projectDetails || {};
+    const pdLines = [];
+    if (pd.projectName) pdLines.push(`- Project Name: ${pd.projectName}`);
+    if (pd.clientName) pdLines.push(`- Client Name: ${pd.clientName}`);
+    if (pd.address) pdLines.push(`- Site Address: ${pd.address}`);
+    if (pd.lotNo) pdLines.push(`- Lot No.: ${pd.lotNo}`);
+    if (pd.rpNo) pdLines.push(`- RP No.: ${pd.rpNo}`);
+    if (pd.siteArea) pdLines.push(`- Site Area: ${pd.siteArea}`);
+    if (pd.councilOverlays) pdLines.push(`- Council Overlays: ${pd.councilOverlays}`);
+    const projectContext = pdLines.length
+      ? `\n\nProject context — use and reference these details in your assessment, and package them in the project_info field of your output:\n${pdLines.join('\n')}`
+      : '';
 
-      const instruction = `Please perform a ${tierLabel} assessment on the attached architectural plan, strictly following your architectural-plan-assessor skill framework for that tier.${projectContext}
-
-Before analysing, consult your AgentBible for any relevant past compliance insights, recurring issues, or standard interpretations that apply to this plan type and tier, and use them to inform your review.
-
-After completing the assessment, write one concise, generalisable new insight or recurring pattern you learned to the AgentBible (set category to "compliance_insight", "standard_interpretation", "site_pattern", "recurring_issue", or "design_heuristic"). Never store client-specific dimensions or confidential project data in the Bible.
-
-Do NOT call saveToDrive for this assessment — the calling system handles persistence.
+    const instruction = `Please perform a ${tierLabel} assessment on the attached architectural plan.${projectContext}
 
 Return your final assessment STRICTLY as a JSON object with no markdown formatting, backticks, or prose outside the JSON. Use these exact keys:
 {
@@ -94,36 +65,30 @@ Return your final assessment STRICTLY as a JSON object with no markdown formatti
 }
 If the attached file is clearly not a development layout or architectural sheet drawing, set overall_score to 0.`;
 
-      const conversation = await base44.agents.getConversation(conversation_id);
-      if (!conversation) {
-        return new Response(JSON.stringify({ error: "Conversation not found" }), {
-          status: 404,
-          headers: { "Content-Type": "application/json" }
-        });
-      }
+    const input = `${instruction}\n\nAttached plan file (download and analyse): ${fileUrl}`;
 
-      await base44.agents.addMessage(conversation, {
-        role: 'user',
-        content: instruction,
-        file_urls: [fileUrl]
-      });
+    const apiRes = await fetch(`https://api.superagent.ai/v1/agents/${agentId}/invoke`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ input, stream: false })
+    });
 
-      return new Response(JSON.stringify({ success: true }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" }
-      });
+    if (!apiRes.ok) {
+      const errText = await apiRes.text();
+      console.error("Superagent API error:", apiRes.status, errText);
+      return Response.json({ error: `Superagent API error (${apiRes.status})` }, { status: 502 });
     }
 
-    return new Response(JSON.stringify({ error: "Unknown action" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" }
-    });
+    const data = await apiRes.json();
+    const output = data.output ?? data.message ?? data.response ??
+      (typeof data === "string" ? data : JSON.stringify(data));
 
+    return Response.json({ output }, { status: 200 });
   } catch (error) {
-    console.error("CRITICAL BACKEND ERROR DETECTED:", error);
-    return new Response(JSON.stringify({ error: "Internal Assessment Engine Exception" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    });
+    console.error("runPlanAssessment error:", error);
+    return Response.json({ error: "Internal Assessment Engine Exception" }, { status: 500 });
   }
 });

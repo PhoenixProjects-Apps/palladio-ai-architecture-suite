@@ -121,55 +121,18 @@ export default function PalladioAssess() {
       // Settle delay to avoid immediate asset bucket propagation race conditions
       await delay(1500);
 
-      // Create the agent conversation (returns quickly), then subscribe for the
-      // live thought process before triggering the assessment.
-      const createRes = await base44.functions.invoke('runPlanAssessment', {
-        action: 'create',
-        tier: reviewTier
+      const runRes = await base44.functions.invoke('runPlanAssessment', {
+        action: 'run',
+        fileUrl: fileUrl,
+        tier: reviewTier,
+        projectDetails
       });
-
-      const convId = createRes.data?.conversation_id;
-      if (!convId) {
-        throw new Error("Failed to start agent assessment.");
+      if (runRes.data?.error) {
+        throw new Error(runRes.data.error);
       }
-      setConversationId(convId);
-
-      // Subscribe to render the live thought process while the agent works.
-      const unsubscribe = base44.agents.subscribeToConversation(convId, (data) => {
-        setMessages(data?.messages || []);
-      });
-
-      // Trigger the assessment and await completion. The backend blocks until
-      // the agent has fully finished, so we then fetch the complete result.
-      let runOk = false;
-      try {
-        const runRes = await base44.functions.invoke('runPlanAssessment', {
-          action: 'run',
-          conversation_id: convId,
-          fileUrl: fileUrl,
-          tier: reviewTier,
-          projectDetails
-        });
-        runOk = !runRes.data?.error;
-      } catch (runErr) {
-        console.error('Assessment trigger failed:', runErr);
-      }
-      if (unsubscribe) unsubscribe();
-
-      if (!runOk) {
-        throw new Error("The agent did not complete the assessment.");
-      }
-
-      // Fetch the full conversation and parse the agent's final assessment.
-      const conv = await base44.agents.getConversation(convId);
-      const msgs = conv?.messages || [];
-      setMessages(msgs);
-      const lastAssistant = [...msgs].reverse().find(
-        (m) => m.role === 'assistant' && typeof m.content === 'string' && m.content.trim()
-      );
-      const rawContent = lastAssistant?.content || '';
+      const rawContent = runRes.data?.output || '';
       if (!rawContent) {
-        throw new Error("No assessment was returned by the agent.");
+        throw new Error("No assessment was returned by the superagent.");
       }
 
       const finalResult = extractJson(rawContent) || rawContent;
@@ -247,8 +210,10 @@ export default function PalladioAssess() {
 
           {!result ? (
             isAnalyzing ? (
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-md">
-                <AgentThoughtProcess messages={messages} />
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-12 shadow-md flex flex-col items-center justify-center">
+                <Loader2 size={40} className="animate-spin text-cyan-500 mb-4" />
+                <p className="text-slate-300 font-medium">Running superagent assessment...</p>
+                <p className="text-slate-500 text-sm mt-1">Analysing plan components and compliance</p>
               </div>
             ) : (
               <div className="space-y-6">
