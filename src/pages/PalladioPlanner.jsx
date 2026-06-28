@@ -11,6 +11,7 @@ import AddressAutocomplete from '../components/AddressAutocomplete';
 import PalladioGate from '../components/PalladioGate';
 import SaveToProject from '../components/SaveToProject';
 import { toast } from 'sonner';
+import { exportPlanningToPdf } from '@/lib/exportPlanningPdf';
 
 const devTypes = [
 "New Dwelling", "Extension/Addition", "Subdivision",
@@ -35,6 +36,7 @@ export default function PalladioPlanner() {
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzingDoc, setIsAnalyzingDoc] = useState(false);
   const [docResult, setDocResult] = useState(null);
+  const [exporting, setExporting] = useState(false);
 
   const handleAddressSelect = async (addr) => {
     setAddress(addr);
@@ -474,13 +476,24 @@ Return a valid JSON object matching this structure:
                             <div className="md:col-span-2 bg-slate-800/50 p-4 rounded-xl text-xs text-slate-400 text-center">
                                 {result.disclaimer || "This report is AI-generated for informational purposes. Consult a professional town planner."}
                             </div>
-                            <div className="md:col-span-2">
+                            <div className="md:col-span-2 flex flex-col sm:flex-row gap-3">
                                 <SaveToProject
                   textContent={`# Town Planning Assessment\n\n**Address:** ${address}\n**Development Type:** ${selectedType}\n**Description:** ${description}\n\n## Verdict: ${result.verdict}\n${result.verdict_reason}\n\n## Zoning Assessment\n${result.zoning_assessment}\n\n## Planning Controls\n${result.planning_controls}\n\n## Overlays\n${result.overlays}\n\n## Issues\n${(result.issues || []).map((i) => `- ${i}`).join('\n')}\n\n## Neighbour Impact\n${result.neighbour_impact}\n\n## Application Requirements\n${result.application_requirements}\n\n## Recommendations\n${(result.recommendations || []).map((r) => `- ${r}`).join('\n')}\n\n## Red Flags\n${(result.red_flags || []).map((r) => `- ${r}`).join('\n')}\n\n---\n${result.disclaimer || ''}`}
                   fileName="planning-assessment.md"
                   assetType="document"
-                  className="w-full border-rose-500/50 text-rose-300 hover:bg-rose-500/10 h-12 rounded-xl" />
-                
+                  className="w-full sm:flex-1 border-rose-500/50 text-rose-300 hover:bg-rose-500/10 h-12 rounded-xl" />
+                                <Button
+                  onClick={() => {
+                    setExporting(true);
+                    try { exportPlanningToPdf(result, { address, devType: selectedType, description, propertyData }); }
+                    catch (e) { console.error(e); toast.error('Could not generate PDF'); }
+                    finally { setExporting(false); }
+                  }}
+                  disabled={exporting}
+                  className="w-full sm:flex-1 rounded-xl bg-rose-600 hover:bg-rose-700 text-white h-12">
+                  {exporting ? <Loader2 size={16} className="animate-spin mr-2" /> : <Download size={16} className="mr-2" />}
+                  Download PDF
+                                </Button>
                             </div>
                         </div>
             }
