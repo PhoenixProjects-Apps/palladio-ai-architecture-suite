@@ -134,23 +134,23 @@ export default function PalladioFloorplan() {
                     </header>
 
                     {/* Tabs */}
-                    <div className="flex bg-slate-900 rounded-xl p-1 mb-8 w-full sm:w-max">
+                    <div className="flex flex-col sm:flex-row gap-1 bg-slate-900 rounded-xl p-1 mb-8 w-full sm:w-max">
                         <button
               onClick={() => setTab('text')}
-              className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${tab === 'text' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
-              
+              className={`w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${tab === 'text' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
+
                             Generate from Text
                         </button>
                         <button
               onClick={() => setTab('sketch')}
-              className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${tab === 'sketch' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
-              
+              className={`w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${tab === 'sketch' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
+
                             Sketch to Floorplan
                         </button>
                         <button
               onClick={() => setTab('model3d')}
-              className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${tab === 'model3d' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
-              
+              className={`w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${tab === 'model3d' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
+
                             3D Floorplan Renderer
                         </button>
                     </div>
