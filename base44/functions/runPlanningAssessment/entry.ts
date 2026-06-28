@@ -45,8 +45,8 @@ Deno.serve(async (req) => {
     const baseUrl = `https://app.base44.com/api/agents/${agentId}`;
     const headers = { "api_key": apiKey, "Content-Type": "application/json" };
 
-    const findAssessmentJson = (conv) => {
-      const msgs = conv?.messages || [];
+    const findAssessmentJson = (msgs) => {
+      if (!Array.isArray(msgs)) msgs = msgs?.messages || [];
       for (let i = msgs.length - 1; i >= 0; i--) {
         if (msgs[i].role === "assistant" && msgs[i].content) {
           const json = looksLikeJsonOutput(msgs[i].content);
@@ -126,13 +126,13 @@ CRITICAL: Do NOT reply with conversational text, greetings, or commentary. Your 
       if (!conversationId) {
         return Response.json({ error: "Missing conversation_id" }, { status: 400 });
       }
-      const conv = await fetch(`${baseUrl}/conversations/${conversationId}`, { headers })
+      const msgs = await fetch(`${baseUrl}/conversations/${conversationId}/messages`, { headers })
         .then((r) => (r.ok ? r.json() : null))
         .catch(() => null);
-      if (!conv) {
+      if (!msgs) {
         return Response.json({ status: "pending" }, { status: 200 });
       }
-      const json = findAssessmentJson(conv);
+      const json = findAssessmentJson(msgs);
       if (json) {
         return Response.json({ status: "ready", output: json }, { status: 200 });
       }
