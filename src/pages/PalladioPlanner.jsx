@@ -152,14 +152,18 @@ Return a valid JSON object matching this structure:
         setIsAnalyzing(false);
         return;
       }
-      const runRes = await base44.functions.invoke('runPlanningAssessment', {
-        address,
-        devType: selectedType,
-        description,
-        propertyData
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000);
+      const response = await base44.functions.fetch('/runPlanningAssessment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address, devType: selectedType, description, propertyData }),
+        signal: controller.signal,
       });
-      if (runRes.data?.error) throw new Error(runRes.data.error);
-      const rawContent = runRes.data?.output || '';
+      clearTimeout(timeoutId);
+      const data = await response.json();
+      if (data?.error) throw new Error(data.error);
+      const rawContent = data?.output || '';
       if (!rawContent) throw new Error('No assessment was returned by the superagent.');
       const finalResult = extractJson(rawContent) || rawContent;
       setResult(finalResult);
