@@ -71,6 +71,24 @@ const REGIONAL_COST_RATES = {
   }
 };
 
+const FINISH_MULTIPLIERS = {
+  'Low': 0.85,
+  'Medium': 1.0,
+  'High': 1.25
+};
+
+const COUNCIL_FEE_BASE = {
+  'NSW': 5500, 'VIC': 4800, 'QLD': 4200, 'WA': 4500,
+  'SA': 4000, 'TAS': 3800, 'ACT': 5200, 'NT': 4600
+};
+
+const REGIONAL_FEE_MULTIPLIER = {
+  'Sydney City': 1.15, 'Melbourne City': 1.1, 'Brisbane': 1.1,
+  'Gold Coast': 1.05, 'Northern QLD': 0.95, 'Perth': 1.05,
+  'Adelaide': 1.0, 'Hobart': 0.95, 'Canberra': 1.1, 'Darwin': 1.05,
+  'Outer Suburbs': 1.0, 'Regional': 0.9
+};
+
 export default function PalladioEstimator() {
   const [file, setFile] = useState(null);
   const [fileUrl, setFileUrl] = useState(null);
@@ -99,6 +117,17 @@ export default function PalladioEstimator() {
   const [roofMaterial, setRoofMaterial] = useState('');
   const [externalWallMaterial, setExternalWallMaterial] = useState('');
   const [floorFinish, setFloorFinish] = useState('');
+  const [finishLevel, setFinishLevel] = useState('Medium');
+
+  // Garage
+  const [garageArea, setGarageArea] = useState('');
+
+  // Auto-calculated quantities
+  const [slabVolume, setSlabVolume] = useState('');
+  const [mainFloorCoverings, setMainFloorCoverings] = useState('');
+
+  // Silent costs
+  const [silentCosts, setSilentCosts] = useState(null);
 
   const [result, setResult] = useState(null);
   const [showFullEstimate, setShowFullEstimate] = useState(false);
@@ -108,6 +137,42 @@ export default function PalladioEstimator() {
     const main = document.querySelector('main');
     if (main) main.scrollTop = 0;
   }, []);
+
+  // Auto-calculate derived quantities
+  useEffect(() => {
+    const fa = parseFloat(floorArea) || 0;
+    const wa = parseFloat(wetArea) || 0;
+    const ga = parseFloat(garageArea) || 0;
+    const ewl = parseFloat(externalWallLength) || 0;
+    const ch = parseFloat(ceilingHeight) || 0;
+
+    // Slab volume (m³) = floor area × 0.1
+    setSlabVolume(fa > 0 ? (fa * 0.1).toFixed(1) : '');
+
+    // Roof area = (floor area × 0.6) + floor area, rounded up to nearest 5m
+    if (fa > 0) {
+      const rawRoof = fa * 1.6;
+      setRoofArea(String(Math.ceil(rawRoof / 5) * 5));
+    } else {
+      setRoofArea('');
+    }
+
+    // External wall area = (external wall length × ceiling height in m) less 15% for windows/doors
+    if (ewl > 0 && ch > 0) {
+      const gross = ewl * (ch / 1000);
+      setExternalWallArea((gross * 0.85).toFixed(1));
+    } else {
+      setExternalWallArea('');
+    }
+
+    // Main floor coverings = floor area - wet areas - garage area
+    if (fa > 0) {
+      const coverings = fa - wa - ga;
+      setMainFloorCoverings(coverings > 0 ? coverings.toFixed(1) : '');
+    } else {
+      setMainFloorCoverings('');
+    }
+  }, [floorArea, wetArea, garageArea, externalWallLength, ceilingHeight]);
 
   const handleFileSelect = async (e) => {
     const selectedFile = e.target.files[0];
@@ -156,6 +221,27 @@ Site details:
 - State: ${state}, City: ${city}
 - Storeys: ${storeys}
 - Site Difficulty: ${difficulty} (Apply a ${markup}% markup to the subtotal as 'site_difficulty_markup_cost')
+- Finish Level: ${finishLevel} (Apply a ×${FINISH_MULTIPLIERS[finishLevel]} multiplier to all finish/material line items)
+
+User-Provided Quantities (use these where provided, override AI estimates):
+- Floor Area: ${floorArea || 'not provided'} m²
+- Wet Area: ${wetArea || 'not provided'} m²
+- Garage Area: ${garageArea || 'not provided'} m²
+- Ceiling Area: ${ceilingArea || 'not provided'} m²
+- Roof Area: ${roofArea || 'not provided'} m²
+- External Wall Area: ${externalWallArea || 'not provided'} m²
+- Patio Area: ${patioArea || 'not provided'} m²
+- Porch Area: ${porchArea || 'not provided'} m²
+- External Wall Length: ${externalWallLength || 'not provided'} m
+- Internal Wall Length: ${internalWallLength || 'not provided'} m
+- Ceiling Height: ${ceilingHeight || 'not provided'} mm
+- Slab Volume (auto-calc): ${slabVolume || 'not provided'} m³
+- Main Floor Coverings (auto-calc): ${mainFloorCoverings || 'not provided'} m²
+
+Selected Materials:
+- Roof: ${roofMaterial || 'not specified'}
+- External Walls: ${externalWallMaterial || 'not specified'}
+- Floor Finish: ${floorFinish || 'not specified'}
 
 Regional baseline construction cost for ${city}, ${state} (2025 market data):
 - Low: $${regionalRate.low}/sqm, High: $${regionalRate.high}/sqm, Average: $${regionalRate.avg}/sqm
@@ -206,6 +292,29 @@ INSTRUCTIONS:
       });
 
       setResult(res);
+
+      // Calculate silent costs (gutter/fascia, design, engineering, council, scaffolding)
+      const subtotal = res.subtotal || 0;
+      const regionalMult = REGIONAL_FEE_MULTIPLIER[city] || 1.0;
+      const councilBase = COUNCIL_FEE_BASE[state] || 4500;
+      const wallLen = parseFloat(externalWallLength) || (Math.sqrt(parseFloat(floorArea) || 0) * 4);
+      const gutterLength = wallLen * 1.3;
+      const gutterCost = gutterLength * 45;
+      const designFees = subtotal * 0.05 * regionalMult;
+      const engineeringFees = subtotal * 0.015 * regionalMult;
+      const councilFees = councilBase * regionalMult;
+      const needsScaffolding = parseInt(storeys) >= 2;
+      const scaffoldingCost = needsScaffolding ? subtotal * 0.02 : 0;
+      setSilentCosts({
+        gutterLength,
+        gutter: gutterCost,
+        design: designFees,
+        engineering: engineeringFees,
+        council: councilFees,
+        scaffolding: scaffoldingCost,
+        total: gutterCost + designFees + engineeringFees + councilFees + scaffoldingCost
+      });
+
       toast.success("Cost estimate generated successfully");
     } catch (err) {
       console.error(err);
@@ -233,6 +342,16 @@ INSTRUCTIONS:
     }
     text += `\n## Assumptions\n\n`;
     result.assumptions.forEach(a => { text += `- ${a}\n`; });
+    if (silentCosts) {
+      text += `\n## Additional Costs (Auto-Calculated)\n\n`;
+      text += `- Gutter & Fascia (${silentCosts.gutterLength.toFixed(1)} m): ${formatCurrency(silentCosts.gutter)}\n`;
+      text += `- Design & Drafting Fees (5%): ${formatCurrency(silentCosts.design)}\n`;
+      text += `- Engineering Fees (1.5%): ${formatCurrency(silentCosts.engineering)}\n`;
+      text += `- Council Fees (${state}): ${formatCurrency(silentCosts.council)}\n`;
+      if (silentCosts.scaffolding > 0) text += `- Scaffolding (2+ storeys): ${formatCurrency(silentCosts.scaffolding)}\n`;
+      text += `\n**Additional Costs Total:** ${formatCurrency(silentCosts.total)}\n`;
+      text += `**Revised Grand Total:** ${formatCurrency(result.grand_total + silentCosts.total)}\n`;
+    }
     return text;
   };
 
@@ -365,6 +484,10 @@ INSTRUCTIONS:
                                         <label className="text-xs text-slate-400 mb-1 block">Porch (m²)</label>
                                         <Input type="number" value={porchArea} onChange={(e) => setPorchArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white h-10" />
                                     </div>
+                                    <div className="col-span-2">
+                                        <label className="text-xs text-slate-400 mb-1 block">Garage (m²)</label>
+                                        <Input type="number" value={garageArea} onChange={(e) => setGarageArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white h-10" />
+                                    </div>
                                 </div>
                             </div>
                             <div>
@@ -381,6 +504,19 @@ INSTRUCTIONS:
                                     <div className="col-span-2">
                                         <label className="text-xs text-slate-400 mb-1 block">Ceiling Height (mm)</label>
                                         <Input type="number" value={ceilingHeight} onChange={(e) => setCeilingHeight(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white h-10" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <p className="text-xs font-semibold text-cyan-400 uppercase tracking-wider mb-2">Auto-Calculated</p>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="text-xs text-slate-400 mb-1 block">Slab Volume (m³) <span className="text-cyan-500/70">auto</span></label>
+                                        <Input type="text" value={slabVolume} readOnly placeholder="—" className="bg-slate-800/50 border-slate-700/50 text-slate-300 h-10" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs text-slate-400 mb-1 block">Main Floor Coverings (m²) <span className="text-cyan-500/70">auto</span></label>
+                                        <Input type="text" value={mainFloorCoverings} readOnly placeholder="—" className="bg-slate-800/50 border-slate-700/50 text-slate-300 h-10" />
                                     </div>
                                 </div>
                             </div>
@@ -416,6 +552,15 @@ INSTRUCTIONS:
                                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white h-10"><SelectValue placeholder="Select floor finish" /></SelectTrigger>
                                     <SelectContent className="bg-slate-800 border-slate-700 text-white">
                                         {['Tiles', 'Timber', 'Carpet', 'Polished Concrete', 'Hybrid Vinyl', 'Stone', 'Laminate'].map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <label className="text-xs text-slate-400 mb-1 block">Finish Level</label>
+                                <Select value={finishLevel} onValueChange={setFinishLevel}>
+                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white h-10"><SelectValue /></SelectTrigger>
+                                    <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                                        {['Low', 'Medium', 'High'].map((f) => <SelectItem key={f} value={f}>{f} (×{FINISH_MULTIPLIERS[f]})</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -537,6 +682,50 @@ INSTRUCTIONS:
                                         </TableBody>
                                     </Table>
                                 </div>
+
+                                {silentCosts && (
+                                    <div className="rounded-xl border border-slate-800 mb-4 bg-slate-800/20">
+                                        <div className="px-4 py-3 border-b border-slate-800">
+                                            <p className="text-sm font-semibold text-cyan-400">Additional Costs (Auto-Calculated)</p>
+                                            <p className="text-xs text-slate-500">Regional multiplier ×{REGIONAL_FEE_MULTIPLIER[city] || 1.0} · Finish: {finishLevel} (×{FINISH_MULTIPLIERS[finishLevel]})</p>
+                                        </div>
+                                        <div className="divide-y divide-slate-800">
+                                            <div className="flex justify-between items-center px-4 py-2.5">
+                                                <div>
+                                                    <span className="text-sm text-slate-300">Gutter & Fascia</span>
+                                                    <span className="text-xs text-slate-500 block">{silentCosts.gutterLength.toFixed(1)} m @ $45/m</span>
+                                                </div>
+                                                <span className="text-sm text-white font-medium">{formatCurrency(silentCosts.gutter)}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center px-4 py-2.5">
+                                                <span className="text-sm text-slate-300">Design & Drafting Fees (5%)</span>
+                                                <span className="text-sm text-white font-medium">{formatCurrency(silentCosts.design)}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center px-4 py-2.5">
+                                                <span className="text-sm text-slate-300">Engineering Fees (1.5%)</span>
+                                                <span className="text-sm text-white font-medium">{formatCurrency(silentCosts.engineering)}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center px-4 py-2.5">
+                                                <span className="text-sm text-slate-300">Council Fees ({state})</span>
+                                                <span className="text-sm text-white font-medium">{formatCurrency(silentCosts.council)}</span>
+                                            </div>
+                                            {silentCosts.scaffolding > 0 && (
+                                                <div className="flex justify-between items-center px-4 py-2.5">
+                                                    <span className="text-sm text-slate-300">Scaffolding (2+ storeys)</span>
+                                                    <span className="text-sm text-white font-medium">{formatCurrency(silentCosts.scaffolding)}</span>
+                                                </div>
+                                            )}
+                                            <div className="flex justify-between items-center px-4 py-3 bg-slate-800/30">
+                                                <span className="text-sm font-semibold text-slate-200">Additional Costs Total</span>
+                                                <span className="text-sm font-bold text-cyan-400">{formatCurrency(silentCosts.total)}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center px-4 py-3 border-t-2 border-slate-700">
+                                                <span className="text-base font-bold text-white">Revised Grand Total</span>
+                                                <span className="text-base font-bold text-blue-400">{formatCurrency(result.grand_total + silentCosts.total)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <Dialog open={showFullEstimate} onOpenChange={setShowFullEstimate}>
                                     <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-3xl max-h-[85vh] overflow-y-auto">
