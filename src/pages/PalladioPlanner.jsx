@@ -152,39 +152,21 @@ Return a valid JSON object matching this structure:
         setIsAnalyzing(false);
         return;
       }
-      const startRes = await base44.functions.invoke('runPlanningAssessment', {
-        action: 'start',
+      const runRes = await base44.functions.invoke('runPlanningAssessment', {
         address,
         devType: selectedType,
         description,
         propertyData
       });
-      if (startRes.data?.error) throw new Error(startRes.data.error);
-      const conversationId = startRes.data?.conversation_id;
-      if (!conversationId) throw new Error('Failed to start assessment');
-
-      let rawContent = '';
-      let pollError = '';
-      for (let i = 0; i < 60 && !rawContent; i++) {
-        await new Promise((r) => setTimeout(r, 3000));
-        try {
-          const pollRes = await base44.functions.invoke('runPlanningAssessment', {
-            action: 'poll',
-            conversation_id: conversationId
-          });
-          if (pollRes.data?.error) pollError = pollRes.data.error;
-          else if (pollRes.data?.status === 'ready' && pollRes.data?.output) {
-            rawContent = pollRes.data.output;
-          }
-        } catch (pollErr) {
-          console.error('poll error', pollErr);
-        }
-      }
-      if (!rawContent) throw new Error(pollError || 'Assessment timed out — please try again.');
+      if (runRes.data?.error) throw new Error(runRes.data.error);
+      const rawContent = runRes.data?.output || '';
+      if (!rawContent) throw new Error('No assessment was returned by the superagent.');
       const finalResult = extractJson(rawContent) || rawContent;
       setResult(finalResult);
+      toast.success("Assessment complete! Save to Project or Download PDF below.");
     } catch (err) {
       console.error(err);
+      toast.error("The assessment could not be completed. Please try again.");
     } finally {
       setIsAnalyzing(false);
     }
