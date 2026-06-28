@@ -83,6 +83,23 @@ export default function PalladioEstimator() {
   const [storeys, setStoreys] = useState('1');
   const [difficulty, setDifficulty] = useState('Level / Standard');
 
+  // Quantities / Areas
+  const [floorArea, setFloorArea] = useState('');
+  const [wetArea, setWetArea] = useState('');
+  const [ceilingArea, setCeilingArea] = useState('');
+  const [roofArea, setRoofArea] = useState('');
+  const [externalWallArea, setExternalWallArea] = useState('');
+  const [patioArea, setPatioArea] = useState('');
+  const [porchArea, setPorchArea] = useState('');
+  const [externalWallLength, setExternalWallLength] = useState('');
+  const [internalWallLength, setInternalWallLength] = useState('');
+  const [ceilingHeight, setCeilingHeight] = useState('');
+
+  // Materials
+  const [roofMaterial, setRoofMaterial] = useState('');
+  const [externalWallMaterial, setExternalWallMaterial] = useState('');
+  const [floorFinish, setFloorFinish] = useState('');
+
   const [result, setResult] = useState(null);
   const [showFullEstimate, setShowFullEstimate] = useState(false);
   const fileInputRef = useRef(null);
@@ -306,6 +323,99 @@ INSTRUCTIONS:
                                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white h-10"><SelectValue /></SelectTrigger>
                                     <SelectContent className="bg-slate-800 border-slate-700 text-white">
                                         {Object.keys(SITE_DIFFICULTY_RATES).map((s) => <SelectItem key={s} value={s}>{s} (+{SITE_DIFFICULTY_RATES[s]}%)</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-slate-900 border-slate-800">
+                        <CardHeader>
+                            <CardTitle className="text-white text-lg">Quantities/Areas (mm/m)</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div>
+                                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Areas</p>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="text-xs text-slate-400 mb-1 block">Floor (m²)</label>
+                                        <Input type="number" value={floorArea} onChange={(e) => setFloorArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white h-10" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs text-slate-400 mb-1 block">Wet (m²)</label>
+                                        <Input type="number" value={wetArea} onChange={(e) => setWetArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white h-10" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs text-slate-400 mb-1 block">Ceiling (m²)</label>
+                                        <Input type="number" value={ceilingArea} onChange={(e) => setCeilingArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white h-10" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs text-slate-400 mb-1 block">Roof (m²)</label>
+                                        <Input type="number" value={roofArea} onChange={(e) => setRoofArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white h-10" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs text-slate-400 mb-1 block">External Wall Area (m²)</label>
+                                        <Input type="number" value={externalWallArea} onChange={(e) => setExternalWallArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white h-10" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs text-slate-400 mb-1 block">Patio (m²)</label>
+                                        <Input type="number" value={patioArea} onChange={(e) => setPatioArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white h-10" />
+                                    </div>
+                                    <div className="col-span-2">
+                                        <label className="text-xs text-slate-400 mb-1 block">Porch (m²)</label>
+                                        <Input type="number" value={porchArea} onChange={(e) => setPorchArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white h-10" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Lengths</p>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="text-xs text-slate-400 mb-1 block">External Wall Length (m)</label>
+                                        <Input type="number" value={externalWallLength} onChange={(e) => setExternalWallLength(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white h-10" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs text-slate-400 mb-1 block">Internal Wall Length (m)</label>
+                                        <Input type="number" value={internalWallLength} onChange={(e) => setInternalWallLength(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white h-10" />
+                                    </div>
+                                    <div className="col-span-2">
+                                        <label className="text-xs text-slate-400 mb-1 block">Ceiling Height (mm)</label>
+                                        <Input type="number" value={ceilingHeight} onChange={(e) => setCeilingHeight(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white h-10" />
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-slate-900 border-slate-800">
+                        <CardHeader>
+                            <CardTitle className="text-white text-lg">(Materials)</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div>
+                                <label className="text-xs text-slate-400 mb-1 block">Roof</label>
+                                <Select value={roofMaterial} onValueChange={setRoofMaterial}>
+                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white h-10"><SelectValue placeholder="Select roof material" /></SelectTrigger>
+                                    <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                                        {['Colorbond Steel', 'Concrete Tile', 'Terracotta Tile', 'Slate', 'Metal Deck', 'Flat Membrane'].map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <label className="text-xs text-slate-400 mb-1 block">External Walls</label>
+                                <Select value={externalWallMaterial} onValueChange={setExternalWallMaterial}>
+                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white h-10"><SelectValue placeholder="Select wall material" /></SelectTrigger>
+                                    <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                                        {['Brick Veneer', 'Double Brick', 'Weatherboard', 'Hebel (AAC)', 'Rendered Foam', 'Concrete Block', 'Cladding'].map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <label className="text-xs text-slate-400 mb-1 block">Floor Finish</label>
+                                <Select value={floorFinish} onValueChange={setFloorFinish}>
+                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white h-10"><SelectValue placeholder="Select floor finish" /></SelectTrigger>
+                                    <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                                        {['Tiles', 'Timber', 'Carpet', 'Polished Concrete', 'Hybrid Vinyl', 'Stone', 'Laminate'].map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
