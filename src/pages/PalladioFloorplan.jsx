@@ -9,11 +9,13 @@ import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
 import PalladioGate from '../components/PalladioGate';
 import SaveToProject from '../components/SaveToProject';
+import ChooseProject from '../components/ChooseProject';
 import Floorplan3DRenderer from '../components/Floorplan3DRenderer';
 import { toast } from 'sonner';
 
 export default function PalladioFloorplan() {
   const [tab, setTab] = useState('text'); // 'text' or 'cad'
+  const [selectedProject, setSelectedProject] = useState(null);
 
   const [style, setStyle] = useState('Modern');
   const ARCH_STYLES = ['Modern', 'Minimalist', 'Industrial', 'Heritage', 'Contemporary', 'Scandinavian', 'Coastal', 'Mid-Century'];
@@ -131,6 +133,13 @@ export default function PalladioFloorplan() {
                             <Layers size={20} />
                         </div>
                         <h1 className="font-bold text-xl">Generate Floorplans</h1>
+                        <div className="ml-auto">
+                            <ChooseProject
+                                selected={selectedProject}
+                                onSelect={setSelectedProject}
+                                className="border-violet-500/50 text-violet-300 hover:bg-violet-500/10"
+                            />
+                        </div>
                     </header>
 
                     {/* Tabs */}
@@ -218,6 +227,7 @@ export default function PalladioFloorplan() {
                     fileUrl={textResult.image}
                     fileName="floorplan.png"
                     assetType="plan"
+                    projectId={selectedProject?.id}
                     className="w-full sm:flex-1 h-12 rounded-xl border-violet-500/50 text-violet-300 hover:bg-violet-500/10" />
                   
                                         </div>
@@ -311,6 +321,7 @@ export default function PalladioFloorplan() {
                     fileUrl={sketchResult}
                     fileName="floorplan-sketch.png"
                     assetType="plan"
+                    projectId={selectedProject?.id}
                     className="w-full sm:flex-1 h-12 rounded-xl border-violet-500/50 text-violet-300 hover:bg-violet-500/10" />
                   
                                         </div>

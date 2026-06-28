@@ -10,6 +10,7 @@ import PalladioGate from '@/components/PalladioGate';
 import SaveToProject from '@/components/SaveToProject';
 import AgentThoughtProcess from '@/components/AgentThoughtProcess';
 import ProjectDetailsForm from '@/components/ProjectDetailsForm';
+import ChooseProject from '@/components/ChooseProject';
 import { exportAssessmentToPdf } from '@/lib/exportPdf';
 import { toast } from 'sonner';
 
@@ -228,6 +229,11 @@ export default function PalladioAssess() {
               </div>
             ) : (
               <div className="space-y-6">
+                <ChooseProject
+                  selected={projectDetails.projectId ? { id: projectDetails.projectId, name: projectDetails.projectName } : null}
+                  onSelect={(p) => setProjectDetails((prev) => ({ ...prev, projectId: p.id, projectName: p.name }))}
+                  className="w-full border-cyan-600/50 text-cyan-300 hover:bg-cyan-500/10 h-12 rounded-xl"
+                />
                 <ProjectDetailsForm
                   value={projectDetails}
                   onChange={(patch) => setProjectDetails((prev) => ({ ...prev, ...patch }))}

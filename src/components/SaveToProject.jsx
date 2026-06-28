@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 
-export default function SaveToProject({ fileUrl, textContent, fileName, assetType = 'other', disabled, children, className, variant = 'outline', onSave }) {
+export default function SaveToProject({ fileUrl, textContent, fileName, assetType = 'other', disabled, children, className, variant = 'outline', onSave, projectId }) {
   const [open, setOpen] = useState(false);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -74,6 +74,15 @@ export default function SaveToProject({ fileUrl, textContent, fileName, assetTyp
       setSaving(false);
     }
   };
+
+  if (projectId) {
+    return (
+      <Button variant={variant} disabled={disabled || saving} className={className} onClick={() => performSave(projectId)}>
+        {saving ? <Loader2 size={16} className="animate-spin mr-2" /> : <Folder size={16} className="mr-2" />}
+        {children || "Save to Project"}
+      </Button>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
