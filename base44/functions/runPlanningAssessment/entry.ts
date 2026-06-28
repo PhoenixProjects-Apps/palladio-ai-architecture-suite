@@ -2,12 +2,19 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 function looksLikeJsonOutput(text) {
   if (!text) return null;
+  const tryParse = (str) => {
+    try {
+      const o = JSON.parse(str);
+      if (o && typeof o === "object" && "verdict" in o) return str;
+    } catch (_) {}
+    return null;
+  };
   let s = String(text).trim().replace(/```json/gi, '').replace(/```/g, '').trim();
-  try { return JSON.parse(s) ? s : null; } catch (_) {}
+  let p = tryParse(s); if (p) return p;
   const start = s.indexOf('{');
   const end = s.lastIndexOf('}');
   if (start !== -1 && end !== -1 && end > start) {
-    try { JSON.parse(s.slice(start, end + 1)); return s.slice(start, end + 1); } catch (_) {}
+    p = tryParse(s.slice(start, end + 1)); if (p) return p;
   }
   return null;
 }
@@ -38,10 +45,13 @@ Deno.serve(async (req) => {
     const baseUrl = `https://app.base44.com/api/agents/${agentId}`;
     const headers = { "api_key": apiKey, "Content-Type": "application/json" };
 
-    const lastAssistant = (conv) => {
+    const findAssessmentJson = (conv) => {
       const msgs = conv?.messages || [];
       for (let i = msgs.length - 1; i >= 0; i--) {
-        if (msgs[i].role === "assistant" && msgs[i].content) return msgs[i].content;
+        if (msgs[i].role === "assistant" && msgs[i].content) {
+          const json = looksLikeJsonOutput(msgs[i].content);
+          if (json) return json;
+        }
       }
       return null;
     };
@@ -65,13 +75,13 @@ Deno.serve(async (req) => {
         ? `\n\nKnown property context (verify and build on this):\n${pdLines.join('\n')}`
         : '';
 
-      const instruction = `Apply the town planning assessment rules defined in the "town-planning-assessor.md" knowledge file to assess this proposed development:
+      const instruction = `You are a town planning assessor. Apply the town planning assessment rules defined in the "town-planning-assessor.md" knowledge file to assess this proposed development:
 Address: ${address}
 Development Type: ${devType}
 Description: ${description}${propertyContext}
 
 Search local planning schemes, zoning and overlays for this address where useful.
-Return your final assessment STRICTLY as a JSON object with no markdown formatting, backticks, or prose outside the JSON. Use these exact keys:
+CRITICAL: Do NOT reply with conversational text, greetings, or commentary. Your ENTIRE reply must be a single JSON object and nothing else — no markdown, no backticks, no prose before or after it. Use these exact keys:
 {
   "verdict": "LIKELY PERMITTED" | "APPROVAL REQUIRED" | "LIKELY REFUSED" | "COMPLEX - SEEK ADVICE",
   "verdict_reason": "Short explanation of the verdict",
@@ -122,8 +132,7 @@ Return your final assessment STRICTLY as a JSON object with no markdown formatti
       if (!conv) {
         return Response.json({ status: "pending" }, { status: 200 });
       }
-      const candidate = lastAssistant(conv);
-      const json = looksLikeJsonOutput(candidate);
+      const json = findAssessmentJson(conv);
       if (json) {
         return Response.json({ status: "ready", output: json }, { status: 200 });
       }

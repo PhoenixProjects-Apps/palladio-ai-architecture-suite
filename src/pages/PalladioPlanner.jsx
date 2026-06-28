@@ -164,18 +164,23 @@ Return a valid JSON object matching this structure:
       if (!conversationId) throw new Error('Failed to start assessment');
 
       let rawContent = '';
+      let pollError = '';
       for (let i = 0; i < 60 && !rawContent; i++) {
         await new Promise((r) => setTimeout(r, 3000));
-        const pollRes = await base44.functions.invoke('runPlanningAssessment', {
-          action: 'poll',
-          conversation_id: conversationId
-        });
-        if (pollRes.data?.error) throw new Error(pollRes.data.error);
-        if (pollRes.data?.status === 'ready' && pollRes.data?.output) {
-          rawContent = pollRes.data.output;
+        try {
+          const pollRes = await base44.functions.invoke('runPlanningAssessment', {
+            action: 'poll',
+            conversation_id: conversationId
+          });
+          if (pollRes.data?.error) pollError = pollRes.data.error;
+          else if (pollRes.data?.status === 'ready' && pollRes.data?.output) {
+            rawContent = pollRes.data.output;
+          }
+        } catch (pollErr) {
+          console.error('poll error', pollErr);
         }
       }
-      if (!rawContent) throw new Error('Assessment timed out — please try again.');
+      if (!rawContent) throw new Error(pollError || 'Assessment timed out — please try again.');
       const finalResult = extractJson(rawContent) || rawContent;
       setResult(finalResult);
     } catch (err) {
