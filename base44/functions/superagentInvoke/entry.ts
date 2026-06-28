@@ -23,6 +23,7 @@ Deno.serve(async (req) => {
 
     const apiKey = Deno.env.get("SUPERAGENT_API_KEY");
     const agentId = Deno.env.get("SUPERAGENT_AGENT_ID");
+    const baseUrl = (Deno.env.get("SUPERAGENT_BASE_URL") || "https://api.superagent.ai").replace(/\/+$/, "");
     if (!apiKey || !agentId) {
       console.error("Superagent secrets missing");
       return Response.json({ error: "Superagent not configured" }, { status: 500 });
@@ -31,7 +32,7 @@ Deno.serve(async (req) => {
     const payload = { input, stream: false };
     if (sessionId) payload.session_id = sessionId;
 
-    const apiRes = await fetch(`https://api.superagent.ai/v1/agents/${agentId}/invoke`, {
+    const apiRes = await fetch(`${baseUrl}/v1/agents/${agentId}/invoke`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
