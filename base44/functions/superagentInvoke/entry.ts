@@ -32,9 +32,10 @@ Deno.serve(async (req) => {
 
     const headers = { "api_key": apiKey, "Content-Type": "application/json" };
 
-    const countAssistant = (conv) => (conv?.messages || []).filter((m) => m.role === "assistant").length;
-    const lastAssistant = (conv) => {
-      const msgs = conv?.messages || [];
+    const getMessages = (data) => Array.isArray(data) ? data : (data?.messages || []);
+    const countAssistant = (data) => getMessages(data).filter((m) => m.role === "assistant").length;
+    const lastAssistant = (data) => {
+      const msgs = getMessages(data);
       for (let i = msgs.length - 1; i >= 0; i--) {
         if (msgs[i].role === "assistant" && msgs[i].content) return msgs[i].content;
       }
@@ -45,10 +46,10 @@ Deno.serve(async (req) => {
     let prevCount = 0;
 
     if (conversationId) {
-      const existing = await fetch(`${baseUrl}/conversations/${conversationId}`, { headers })
+      const existing = await fetch(`${baseUrl}/conversations/${conversationId}/messages`, { headers })
         .then((r) => (r.ok ? r.json() : null))
         .catch(() => null);
-      if (existing?.id) {
+      if (Array.isArray(existing)) {
         prevCount = countAssistant(existing);
       } else {
         conversationId = "";
@@ -94,11 +95,11 @@ Deno.serve(async (req) => {
     // The assistant reply is generated asynchronously — poll until it appears.
     for (let i = 0; i < 25 && !reply; i++) {
       await new Promise((res) => setTimeout(res, 1500));
-      const conv = await fetch(`${baseUrl}/conversations/${conversationId}`, { headers })
+      const msgs = await fetch(`${baseUrl}/conversations/${conversationId}/messages`, { headers })
         .then((r) => (r.ok ? r.json() : null))
         .catch(() => null);
-      if (conv && countAssistant(conv) > prevCount) {
-        reply = lastAssistant(conv);
+      if (msgs && countAssistant(msgs) > prevCount) {
+        reply = lastAssistant(msgs);
       }
     }
 
