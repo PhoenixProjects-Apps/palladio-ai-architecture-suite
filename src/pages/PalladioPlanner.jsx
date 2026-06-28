@@ -152,15 +152,30 @@ Return a valid JSON object matching this structure:
         setIsAnalyzing(false);
         return;
       }
-      const runRes = await base44.functions.invoke('runPlanningAssessment', {
-        action: 'run',
+      const startRes = await base44.functions.invoke('runPlanningAssessment', {
+        action: 'start',
         address,
         devType: selectedType,
         description,
         propertyData
       });
-      if (runRes.data?.error) throw new Error(runRes.data.error);
-      const rawContent = runRes.data?.output || '';
+      if (startRes.data?.error) throw new Error(startRes.data.error);
+      const conversationId = startRes.data?.conversation_id;
+      if (!conversationId) throw new Error('Failed to start assessment');
+
+      let rawContent = '';
+      for (let i = 0; i < 60 && !rawContent; i++) {
+        await new Promise((r) => setTimeout(r, 3000));
+        const pollRes = await base44.functions.invoke('runPlanningAssessment', {
+          action: 'poll',
+          conversation_id: conversationId
+        });
+        if (pollRes.data?.error) throw new Error(pollRes.data.error);
+        if (pollRes.data?.status === 'ready' && pollRes.data?.output) {
+          rawContent = pollRes.data.output;
+        }
+      }
+      if (!rawContent) throw new Error('Assessment timed out — please try again.');
       const finalResult = extractJson(rawContent) || rawContent;
       setResult(finalResult);
     } catch (err) {

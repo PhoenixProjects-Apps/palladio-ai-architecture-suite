@@ -1,5 +1,17 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
+function looksLikeJsonOutput(text) {
+  if (!text) return null;
+  let s = String(text).trim().replace(/```json/gi, '').replace(/```/g, '').trim();
+  try { return JSON.parse(s) ? s : null; } catch (_) {}
+  const start = s.indexOf('{');
+  const end = s.lastIndexOf('}');
+  if (start !== -1 && end !== -1 && end > start) {
+    try { JSON.parse(s.slice(start, end + 1)); return s.slice(start, end + 1); } catch (_) {}
+  }
+  return null;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -15,17 +27,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json().catch(() => ({}));
-    const action = body?.action || 'run';
-    if (action !== 'run') {
-      return Response.json({ error: "Unknown action" }, { status: 400 });
-    }
-
-    const address = body?.address;
-    const devType = body?.devType;
-    const description = body?.description;
-    if (!address || !devType || !description) {
-      return Response.json({ error: "Missing address, devType or description" }, { status: 400 });
-    }
+    const action = body?.action || 'start';
 
     const apiKey = Deno.env.get("SUPERAGENT_API_KEY");
     const agentId = (Deno.env.get("SUPERAGENT_AGENT_ID") || "").replace(/[^a-f0-9]/gi, "");
@@ -36,17 +38,34 @@ Deno.serve(async (req) => {
     const baseUrl = `https://app.base44.com/api/agents/${agentId}`;
     const headers = { "api_key": apiKey, "Content-Type": "application/json" };
 
-    const pd = body?.propertyData || {};
-    const pdLines = [];
-    if (pd.lot_rp) pdLines.push(`- Lot / RP: ${pd.lot_rp}`);
-    if (pd.site_area) pdLines.push(`- Site Area: ${pd.site_area}`);
-    if (pd.zoning) pdLines.push(`- Zoning: ${pd.zoning}`);
-    if (Array.isArray(pd.overlays) && pd.overlays.length) pdLines.push(`- Property Overlays: ${pd.overlays.join(', ')}`);
-    const propertyContext = pdLines.length
-      ? `\n\nKnown property context (verify and build on this):\n${pdLines.join('\n')}`
-      : '';
+    const lastAssistant = (conv) => {
+      const msgs = conv?.messages || [];
+      for (let i = msgs.length - 1; i >= 0; i--) {
+        if (msgs[i].role === "assistant" && msgs[i].content) return msgs[i].content;
+      }
+      return null;
+    };
 
-    const instruction = `Act as an expert Australian Town Planner. Assess this proposed development:
+    // ---- START: kick off the assessment, return conversation id immediately ----
+    if (action === 'start') {
+      const address = body?.address;
+      const devType = body?.devType;
+      const description = body?.description;
+      if (!address || !devType || !description) {
+        return Response.json({ error: "Missing address, devType or description" }, { status: 400 });
+      }
+
+      const pd = body?.propertyData || {};
+      const pdLines = [];
+      if (pd.lot_rp) pdLines.push(`- Lot / RP: ${pd.lot_rp}`);
+      if (pd.site_area) pdLines.push(`- Site Area: ${pd.site_area}`);
+      if (pd.zoning) pdLines.push(`- Zoning: ${pd.zoning}`);
+      if (Array.isArray(pd.overlays) && pd.overlays.length) pdLines.push(`- Property Overlays: ${pd.overlays.join(', ')}`);
+      const propertyContext = pdLines.length
+        ? `\n\nKnown property context (verify and build on this):\n${pdLines.join('\n')}`
+        : '';
+
+      const instruction = `Apply the town planning assessment rules defined in the "town-planning-assessor.md" knowledge file to assess this proposed development:
 Address: ${address}
 Development Type: ${devType}
 Description: ${description}${propertyContext}
@@ -67,61 +86,51 @@ Return your final assessment STRICTLY as a JSON object with no markdown formatti
   "disclaimer": "Standard disclaimer"
 }`;
 
-    // Create a fresh one-shot conversation for each assessment.
-    const createRes = await fetch(`${baseUrl}/conversations`, {
-      method: "POST",
-      headers,
-      body: "{}",
-    });
-    if (!createRes.ok) {
-      const t = await createRes.text();
-      console.error("createConversation failed", createRes.status, t);
-      return Response.json({ error: `Superagent API error (${createRes.status})` }, { status: 502 });
-    }
-    const created = await createRes.json();
-    const conversationId = created.id;
-
-    const sendRes = await fetch(`${baseUrl}/conversations/${conversationId}/messages`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ role: "user", content: instruction }),
-    });
-    if (!sendRes.ok) {
-      const t = await sendRes.text();
-      console.error("sendMessage failed", sendRes.status, t);
-      return Response.json({ error: `Superagent API error (${sendRes.status})` }, { status: 502 });
-    }
-    const afterSend = await sendRes.json();
-
-    const countAssistant = (conv) => (conv?.messages || []).filter((m) => m.role === "assistant").length;
-    const lastAssistant = (conv) => {
-      const msgs = conv?.messages || [];
-      for (let i = msgs.length - 1; i >= 0; i--) {
-        if (msgs[i].role === "assistant" && msgs[i].content) return msgs[i].content;
+      const createRes = await fetch(`${baseUrl}/conversations`, {
+        method: "POST",
+        headers,
+        body: "{}",
+      });
+      if (!createRes.ok) {
+        const t = await createRes.text();
+        console.error("createConversation failed", createRes.status, t);
+        return Response.json({ error: `Superagent API error (${createRes.status})` }, { status: 502 });
       }
-      return null;
-    };
+      const created = await createRes.json();
+      const conversationId = created.id;
 
-    let reply = null;
-    if (countAssistant(afterSend) > 0) {
-      reply = lastAssistant(afterSend);
+      // Fire the message without blocking — Superagent processes asynchronously.
+      // We return the conversation id immediately and let the client poll for the result.
+      fetch(`${baseUrl}/conversations/${conversationId}/messages`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ role: "user", content: instruction }),
+      }).catch((e) => console.error("sendMessage failed", e));
+
+      return Response.json({ status: "pending", conversation_id: conversationId }, { status: 200 });
     }
 
-    for (let i = 0; i < 80 && !reply; i++) {
-      await new Promise((res) => setTimeout(res, 1500));
+    // ---- POLL: check whether the final JSON reply is ready ----
+    if (action === 'poll') {
+      const conversationId = body?.conversation_id;
+      if (!conversationId) {
+        return Response.json({ error: "Missing conversation_id" }, { status: 400 });
+      }
       const conv = await fetch(`${baseUrl}/conversations/${conversationId}`, { headers })
         .then((r) => (r.ok ? r.json() : null))
         .catch(() => null);
-      if (conv && countAssistant(conv) > 0) {
-        reply = lastAssistant(conv);
+      if (!conv) {
+        return Response.json({ status: "pending" }, { status: 200 });
       }
+      const candidate = lastAssistant(conv);
+      const json = looksLikeJsonOutput(candidate);
+      if (json) {
+        return Response.json({ status: "ready", output: json }, { status: 200 });
+      }
+      return Response.json({ status: "pending" }, { status: 200 });
     }
 
-    if (!reply) {
-      return Response.json({ error: "Superagent did not return a response in time." }, { status: 504 });
-    }
-
-    return Response.json({ output: reply }, { status: 200 });
+    return Response.json({ error: "Unknown action" }, { status: 400 });
   } catch (error) {
     console.error("runPlanningAssessment error:", error);
     return Response.json({ error: "Internal Assessment Engine Exception" }, { status: 500 });
