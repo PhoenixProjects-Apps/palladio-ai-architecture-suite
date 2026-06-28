@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Home, MessageSquare, Settings, X, Layers, Building2, MapPin, ClipboardList, FileImage, PanelLeftClose, PanelLeftOpen, ShieldAlert, CreditCard, Folder, Bell, PenTool, LogIn, Info, ChevronUp, BookOpen } from 'lucide-react';
+import { Home, MessageSquare, Settings, X, Layers, Building2, MapPin, ClipboardList, FileImage, PanelLeftClose, PanelLeftOpen, ShieldAlert, CreditCard, Folder, Bell, PenTool, LogIn, Info, ChevronUp, BookOpen, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 
@@ -89,11 +89,13 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
         { name: 'Notifications', icon: Bell, path: 'Notifications', badge: unreadCount },
         { name: 'About', icon: Building2, path: 'About' },
         { name: 'Contact', icon: MessageSquare, path: 'Contact' },
+        { name: 'Privacy Policy', icon: ShieldCheck, path: 'PrivacyPolicy' },
       ]
     : [
         { name: 'Pricing', icon: CreditCard, path: 'PalladioPricing' },
         { name: 'About', icon: Building2, path: 'About' },
         { name: 'Contact', icon: MessageSquare, path: 'Contact' },
+        { name: 'Privacy Policy', icon: ShieldCheck, path: 'PrivacyPolicy' },
         { name: 'Sign In', icon: LogIn, action: 'login' },
       ];
 

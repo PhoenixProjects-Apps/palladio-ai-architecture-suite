@@ -9,6 +9,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import AgentBible from './pages/AgentBible';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -63,6 +64,7 @@ const AuthenticatedApp = () => {
       <Route path="/about" element={<LayoutWrapper currentPageName="About"><About /></LayoutWrapper>} />
       <Route path="/contact" element={<LayoutWrapper currentPageName="Contact"><Contact /></LayoutWrapper>} />
       <Route path="/AgentBible" element={<LayoutWrapper currentPageName="AgentBible"><AgentBible /></LayoutWrapper>} />
+      <Route path="/PrivacyPolicy" element={<LayoutWrapper currentPageName="PrivacyPolicy"><PrivacyPolicy /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
