@@ -289,9 +289,15 @@ export default function PalladioFloorplan() {
                                         <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-lg p-4">
                                             <img src={sketchResult} alt="Generated Floorplan" className="w-full rounded-lg" />
                                         </div>
+                                        <Button
+                                        onClick={() => setTab('model3d')}
+                                        className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl shadow-lg shadow-cyan-500/20">
+
+                                                <Box size={18} className="mr-2" /> 3D Floorplan Renderer
+                                            </Button>
                                         <div className="flex gap-3">
                                             <a
-                    href={sketchResult}
+                                        href={sketchResult}
                     download="floorplan.png"
                     target="_blank"
                     rel="noreferrer"
@@ -322,7 +328,7 @@ export default function PalladioFloorplan() {
 
                     {tab === 'model3d' &&
           <Floorplan3DRenderer
-            floorplanImage={textResult.image}
+            floorplanImage={textResult.image || sketchResult}
             onRequireFloorplan={() => setTab('text')}
           />
           }
