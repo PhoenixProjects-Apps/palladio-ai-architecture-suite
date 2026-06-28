@@ -27,12 +27,14 @@ Deno.serve(async (req) => {
     }
 
     const apiKey = Deno.env.get("SUPERAGENT_API_KEY");
-    const agentId = Deno.env.get("SUPERAGENT_AGENT_ID");
-    const baseUrl = (Deno.env.get("SUPERAGENT_BASE_URL") || "https://api.superagent.ai").replace(/\/+$/, "");
+    const agentId = (Deno.env.get("SUPERAGENT_AGENT_ID") || "").replace(/[^a-f0-9]/gi, "");
     if (!apiKey || !agentId) {
       console.error("Superagent secrets missing");
       return Response.json({ error: "Superagent not configured" }, { status: 500 });
     }
+    const baseUrl = `https://app.base44.com/api/agents/${agentId}`;
+
+    const headers = { "api_key": apiKey, "Content-Type": "application/json" };
 
     const tierLabel = tier === 'construction'
       ? 'Tier 2 (Construction & Compliance Documentation Review)'
@@ -68,26 +70,61 @@ If the attached file is clearly not a development layout or architectural sheet 
 
     const input = `${instruction}\n\nAttached plan file (download and analyse): ${fileUrl}`;
 
-    const apiRes = await fetch(`${baseUrl}/v1/agents/${agentId}/invoke`, {
+    // Create a fresh one-shot conversation for each assessment.
+    const createRes = await fetch(`${baseUrl}/conversations`, {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ input, stream: false })
+      headers,
+      body: "{}",
     });
+    if (!createRes.ok) {
+      const t = await createRes.text();
+      console.error("createConversation failed", createRes.status, t);
+      return Response.json({ error: `Superagent API error (${createRes.status})` }, { status: 502 });
+    }
+    const created = await createRes.json();
+    const conversationId = created.id;
 
-    if (!apiRes.ok) {
-      const errText = await apiRes.text();
-      console.error("Superagent API error:", apiRes.status, errText);
-      return Response.json({ error: `Superagent API error (${apiRes.status})` }, { status: 502 });
+    const sendRes = await fetch(`${baseUrl}/conversations/${conversationId}/messages`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ role: "user", content: input, file_urls: [fileUrl] }),
+    });
+    if (!sendRes.ok) {
+      const t = await sendRes.text();
+      console.error("sendMessage failed", sendRes.status, t);
+      return Response.json({ error: `Superagent API error (${sendRes.status})` }, { status: 502 });
+    }
+    const afterSend = await sendRes.json();
+
+    const countAssistant = (conv) => (conv?.messages || []).filter((m) => m.role === "assistant").length;
+    const lastAssistant = (conv) => {
+      const msgs = conv?.messages || [];
+      for (let i = msgs.length - 1; i >= 0; i--) {
+        if (msgs[i].role === "assistant" && msgs[i].content) return msgs[i].content;
+      }
+      return null;
+    };
+
+    let reply = null;
+    if (countAssistant(afterSend) > 0) {
+      reply = lastAssistant(afterSend);
     }
 
-    const data = await apiRes.json();
-    const output = data.output ?? data.message ?? data.response ??
-      (typeof data === "string" ? data : JSON.stringify(data));
+    for (let i = 0; i < 25 && !reply; i++) {
+      await new Promise((res) => setTimeout(res, 1500));
+      const conv = await fetch(`${baseUrl}/conversations/${conversationId}`, { headers })
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null);
+      if (conv && countAssistant(conv) > 0) {
+        reply = lastAssistant(conv);
+      }
+    }
 
-    return Response.json({ output }, { status: 200 });
+    if (!reply) {
+      return Response.json({ error: "Superagent did not return a response in time." }, { status: 504 });
+    }
+
+    return Response.json({ output: reply }, { status: 200 });
   } catch (error) {
     console.error("runPlanAssessment error:", error);
     return Response.json({ error: "Internal Assessment Engine Exception" }, { status: 500 });
