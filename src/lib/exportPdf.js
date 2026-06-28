@@ -58,6 +58,55 @@ export function exportAssessmentToPdf(result, tier) {
     y += 3;
   };
 
+  const table = (rows) => {
+    const data = Array.isArray(rows) ? rows : [];
+    if (!data.length) return;
+    const keys = Object.keys(data[0]);
+    if (!keys.length) return;
+    const colCount = keys.length;
+    const colW = contentW / colCount;
+    const rowH = 7;
+    const minRowH = 6;
+
+    // Header row
+    newPageIfNeeded(rowH + 4);
+    doc.setFillColor(...DARK);
+    doc.rect(margin, y, contentW, rowH, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(...CYAN);
+    keys.forEach((k, i) => {
+      const lines = doc.splitTextToSize(String(k).replace(/_/g, ' '), colW - 3);
+      doc.text(lines[0] || '', margin + i * colW + 2, y + 5);
+    });
+    y += rowH;
+
+    // Body rows
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    data.forEach((row, idx) => {
+      // compute max lines across columns for this row
+      const cellLines = keys.map((k) =>
+        doc.splitTextToSize(String(row[k] ?? ''), colW - 3)
+      );
+      const maxLines = Math.max(1, ...cellLines.map((l) => l.length));
+      const thisRowH = Math.max(minRowH, maxLines * 4.2 + 2.5);
+      newPageIfNeeded(thisRowH);
+      if (idx % 2 === 1) {
+        doc.setFillColor(244, 246, 248);
+        doc.rect(margin, y, contentW, thisRowH, 'F');
+      }
+      doc.setTextColor(...BODY);
+      cellLines.forEach((lines, i) => {
+        lines.forEach((ln, li) => {
+          doc.text(ln, margin + i * colW + 2, y + 4.5 + li * 4.2);
+        });
+      });
+      y += thisRowH;
+    });
+    y += 4;
+  };
+
   // Header band
   doc.setFillColor(...DARK);
   doc.rect(0, 0, pageW, 22, 'F');
@@ -115,6 +164,16 @@ export function exportAssessmentToPdf(result, tier) {
   heading('Design Observations', CYAN); bullets(result.design_observations);
   heading('Compliance & Flags', AMBER); bullets(result.compliance_flags);
   heading('Recommendations', EMERALD); bullets(result.recommendations);
+
+  if (Array.isArray(result.estimating_blind_spots) && result.estimating_blind_spots.length) {
+    heading('Estimating Blind Spots', AMBER);
+    bullets(result.estimating_blind_spots);
+  }
+
+  if (Array.isArray(result.generated_window_door_schedule) && result.generated_window_door_schedule.length) {
+    heading('Window & Door Schedule', CYAN);
+    table(result.generated_window_door_schedule);
+  }
 
   doc.save(`${tier}-assessment.pdf`);
 }
