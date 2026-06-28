@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
 import PalladioGate from '../components/PalladioGate';
-import Floorplan3DViewer from '../components/Floorplan3DViewer';
 import SaveToProject from '../components/SaveToProject';
 import Floorplan3DRenderer from '../components/Floorplan3DRenderer';
 import { toast } from 'sonner';
@@ -23,7 +22,6 @@ export default function PalladioFloorplan() {
   const [desc, setDesc] = useState('');
   const [isGeneratingText, setIsGeneratingText] = useState(false);
   const [textResult, setTextResult] = useState({ layout: null, image: null, layoutData: null });
-  const [show3DViewer, setShow3DViewer] = useState(false);
 
   // Tab 2 state
   const [cadFile, setCadFile] = useState(null);
@@ -121,8 +119,6 @@ export default function PalladioFloorplan() {
 
   return (
     <PalladioGate>
-            {show3DViewer && <Floorplan3DViewer layoutData={textResult.layoutData} onClose={() => setShow3DViewer(false)} />}
-            
             <div className="min-h-screen bg-[#0f1117] text-white p-6 pb-24">
                 <div className="max-w-5xl mx-auto">
                     <header className="flex items-center gap-4 mb-8 border-b border-white/10 pb-4">
@@ -213,10 +209,10 @@ export default function PalladioFloorplan() {
                 }
                                         <div className="flex gap-3">
                                             <Button
-                    onClick={() => setShow3DViewer(true)}
+                    onClick={() => setTab('model3d')}
                     className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl shadow-lg shadow-cyan-500/20">
                     
-                                                <Box size={18} className="mr-2" /> View in 3D
+                                                <Box size={18} className="mr-2" /> 3D Floorplan Renderer
                                             </Button>
                                             <SaveToProject
                     fileUrl={textResult.image}
@@ -326,7 +322,6 @@ export default function PalladioFloorplan() {
 
                     {tab === 'model3d' &&
           <Floorplan3DRenderer
-            layoutData={textResult.layoutData}
             floorplanImage={textResult.image}
             onRequireFloorplan={() => setTab('text')}
           />
