@@ -80,14 +80,25 @@ export default function PalladioAssess() {
 
     setIsUploading(true);
     try {
-      const res = await base44.integrations.Core.UploadFile({ file: selectedFile });
-      setFileUrl(res.file_url || res.url);
+      const fileBase64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(selectedFile);
+      });
+      const res = await base44.functions.invoke('uploadPlanFile', {
+        fileName: selectedFile.name,
+        fileType: selectedFile.type,
+        fileBase64
+      });
+      const url = res.data?.file_url;
+      if (!url) throw new Error(res.data?.error || 'Upload failed');
+      setFileUrl(url);
     } catch (err) {
       console.error(err);
-      let errMsg = "Failed to upload file. Please try again.";
-      if (err?.message?.includes("Network Error")) {
-        errMsg = "Network Error: The file might be too large or your connection was interrupted.";
-      }
+      const errMsg = err?.message?.includes("Network Error")
+        ? "Network Error: The file might be too large or your connection was interrupted."
+        : "Failed to upload file. Please try again.";
       setUploadError(errMsg);
       toast.error(errMsg);
     } finally {
