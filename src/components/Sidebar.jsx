@@ -14,24 +14,32 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
 
   useEffect(() => {
     let currentUser = null;
+    let unsubscribe = null;
+
     base44.auth.me().then(async (u) => {
-      if (u) {
-        currentUser = u;
-        try {
-          const fullUser = await base44.entities.User.get(u.id);
-          setUser({ ...u, ...fullUser });
-        } catch {
-          setUser(u);
-        }
+      if (!u) return;
+      currentUser = u;
+      try {
+        const fullUser = await base44.entities.User.get(u.id);
+        setUser({ ...u, ...fullUser });
+      } catch {
+        setUser(u);
       }
     });
 
-    const unsubscribe = base44.entities.User?.subscribe?.((event) => {
+    // Subscribe to User entity changes only after confirming auth
+    base44.auth.isAuthenticated().then((authenticated) => {
+      if (!authenticated) return;
+      unsubscribe = base44.entities.User?.subscribe?.((event) => {
         if (event.type === 'update' && currentUser && event.id === currentUser.id) {
-            setUser(prev => prev ? { ...prev, tokens: event.data.tokens } : prev);
+          setUser(prev => prev ? { ...prev, tokens: event.data.tokens } : prev);
         }
+      });
     });
-    return () => unsubscribe && unsubscribe();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
