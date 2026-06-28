@@ -24,6 +24,7 @@ function getDb() {
     admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
   }
   _db = admin.firestore();
+  _db.settings({ preferRest: true });
   return _db;
 }
 

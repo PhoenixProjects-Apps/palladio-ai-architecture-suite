@@ -11,6 +11,7 @@ function getDb() {
   const serviceAccount = JSON.parse(Deno.env.get("FIREBASE_SERVICE_ACCOUNT"));
   if (!admin.apps.length) admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
   _db = admin.firestore();
+  _db.settings({ preferRest: true });
   return _db;
 }
 async function grantCredits(email, amount) {
