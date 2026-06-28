@@ -96,10 +96,9 @@ If the attached file is clearly not a development layout or architectural sheet 
     }
     const afterSend = await sendRes.json();
 
-    const getMessages = (data) => Array.isArray(data) ? data : (data?.messages || []);
-    const countAssistant = (data) => getMessages(data).filter((m) => m.role === "assistant").length;
-    const lastAssistant = (data) => {
-      const msgs = getMessages(data);
+    const countAssistant = (conv) => (conv?.messages || []).filter((m) => m.role === "assistant").length;
+    const lastAssistant = (conv) => {
+      const msgs = conv?.messages || [];
       for (let i = msgs.length - 1; i >= 0; i--) {
         if (msgs[i].role === "assistant" && msgs[i].content) return msgs[i].content;
       }
@@ -113,11 +112,11 @@ If the attached file is clearly not a development layout or architectural sheet 
 
     for (let i = 0; i < 25 && !reply; i++) {
       await new Promise((res) => setTimeout(res, 1500));
-      const msgs = await fetch(`${baseUrl}/conversations/${conversationId}/messages`, { headers })
+      const conv = await fetch(`${baseUrl}/conversations/${conversationId}`, { headers })
         .then((r) => (r.ok ? r.json() : null))
         .catch(() => null);
-      if (msgs && countAssistant(msgs) > 0) {
-        reply = lastAssistant(msgs);
+      if (conv && countAssistant(conv) > 0) {
+        reply = lastAssistant(conv);
       }
     }
 
