@@ -4,10 +4,12 @@ import { createPageUrl } from '@/utils';
 import { ArrowLeft, Mail, CreditCard, LogOut, Loader2, User, ShieldAlert, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 
 export default function UserProfile() {
+  const { logout } = useAuth();
   const [user, setUser] = useState(null);
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -48,7 +50,7 @@ export default function UserProfile() {
   }
 
   const handleLogout = () => {
-    base44.auth.logout();
+    logout();
   };
 
   const handleAvatarClick = () => {
