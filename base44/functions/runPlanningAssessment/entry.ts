@@ -107,7 +107,7 @@ Return your final assessment STRICTLY as a JSON object with no markdown formatti
       reply = lastAssistant(afterSend);
     }
 
-    for (let i = 0; i < 25 && !reply; i++) {
+    for (let i = 0; i < 80 && !reply; i++) {
       await new Promise((res) => setTimeout(res, 1500));
       const conv = await fetch(`${baseUrl}/conversations/${conversationId}`, { headers })
         .then((r) => (r.ok ? r.json() : null))
