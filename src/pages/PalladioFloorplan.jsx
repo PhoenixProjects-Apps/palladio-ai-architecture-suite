@@ -207,10 +207,10 @@ export default function PalladioFloorplan() {
                                                 <img src={textResult.image} alt="Generated floorplan" className="w-full h-auto" />
                                             </div>
                 }
-                                        <div className="flex gap-3">
+                                        <div className="flex flex-col sm:flex-row gap-3">
                                             <Button
                     onClick={() => setTab('model3d')}
-                    className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl shadow-lg shadow-cyan-500/20">
+                    className="w-full sm:flex-1 bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl shadow-lg shadow-cyan-500/20">
                     
                                                 <Box size={18} className="mr-2" /> 3D Floorplan Renderer
                                             </Button>
@@ -218,7 +218,7 @@ export default function PalladioFloorplan() {
                     fileUrl={textResult.image}
                     fileName="floorplan.png"
                     assetType="plan"
-                    className="flex-1 h-12 rounded-xl border-violet-500/50 text-violet-300 hover:bg-violet-500/10" />
+                    className="w-full sm:flex-1 h-12 rounded-xl border-violet-500/50 text-violet-300 hover:bg-violet-500/10" />
                   
                                         </div>
 
@@ -295,13 +295,13 @@ export default function PalladioFloorplan() {
 
                                                 <Box size={18} className="mr-2" /> 3D Floorplan Renderer
                                             </Button>
-                                        <div className="flex gap-3">
+                                        <div className="flex flex-col sm:flex-row gap-3">
                                             <a
                                         href={sketchResult}
                     download="floorplan.png"
                     target="_blank"
                     rel="noreferrer"
-                    className="flex-1">
+                    className="w-full sm:flex-1">
                     
                                                 <Button className="w-full bg-white text-black hover:bg-slate-200 h-12 rounded-xl">
                                                     <Download size={18} className="mr-2" /> Download
@@ -311,7 +311,7 @@ export default function PalladioFloorplan() {
                     fileUrl={sketchResult}
                     fileName="floorplan-sketch.png"
                     assetType="plan"
-                    className="flex-1 h-12 rounded-xl border-violet-500/50 text-violet-300 hover:bg-violet-500/10" />
+                    className="w-full sm:flex-1 h-12 rounded-xl border-violet-500/50 text-violet-300 hover:bg-violet-500/10" />
                   
                                         </div>
                                     </div> :
