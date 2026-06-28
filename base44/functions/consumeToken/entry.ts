@@ -1,19 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.24';
-import admin from 'npm:firebase-admin@12.7.0';
-
-const COLLECTION = 'user';
-
-let _db = null;
-function getDb() {
-  if (_db) return _db;
-  const serviceAccount = JSON.parse(Deno.env.get("FIREBASE_SERVICE_ACCOUNT"));
-  if (!admin.apps.length) {
-    admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-  }
-  _db = admin.firestore();
-  _db.settings({ preferRest: true });
-  return _db;
-}
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 Deno.serve(async (req) => {
   try {
@@ -29,38 +14,25 @@ Deno.serve(async (req) => {
       }
     } catch (_) {}
 
-    const email = String(user.email || '').toLowerCase();
+    const email = user.email;
     if (!email) return Response.json({ error: 'No email on account' }, { status: 400 });
 
-    const db = getDb();
-    const ref = db.collection(COLLECTION).doc(email);
+    const existing = await base44.entities.UserCredits.filter({ user_email: email });
+    const current = existing.length > 0 ? (existing[0].tokens ?? 0) : 0;
+    if (current < amount) {
+      return Response.json({
+        error: `Insufficient tokens. This action requires ${amount} token(s), but you have ${current}.`,
+        success: false,
+        required: amount,
+        available: current
+      }, { status: 403 });
+    }
 
-    let newBalance;
-    try {
-      newBalance = await db.runTransaction(async (t) => {
-        const snap = await t.get(ref);
-        const current = snap.exists ? (snap.data().tokens ?? 0) : 0;
-        if (current < amount) {
-          const err = new Error('INSUFFICIENT');
-          err.code = 'INSUFFICIENT';
-          err.available = current;
-          err.required = amount;
-          throw err;
-        }
-        const nb = current - amount;
-        t.set(ref, { tokens: nb, updated_date: new Date().toISOString() }, { merge: true });
-        return nb;
-      });
-    } catch (err) {
-      if (err.code === 'INSUFFICIENT') {
-        return Response.json({
-          error: `Insufficient tokens. This action requires ${err.required} token(s), but you have ${err.available}.`,
-          success: false,
-          required: err.required,
-          available: err.available
-        }, { status: 403 });
-      }
-      throw err;
+    const newBalance = current - amount;
+    if (existing.length > 0) {
+      await base44.entities.UserCredits.update(existing[0].id, { tokens: newBalance });
+    } else {
+      await base44.entities.UserCredits.create({ user_email: email, tokens: newBalance });
     }
 
     return Response.json({ success: true, tokens: newBalance, consumed: amount });
