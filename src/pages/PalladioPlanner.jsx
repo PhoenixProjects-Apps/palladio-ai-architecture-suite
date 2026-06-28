@@ -14,10 +14,21 @@ import { toast } from 'sonner';
 import { exportPlanningToPdf } from '@/lib/exportPlanningPdf';
 
 const devTypes = [
-"New Dwelling", "Extension/Addition", "Subdivision",
-"Multi-unit Development", "Commercial/Retail", "Industrial",
-"Change of Use", "Demolition", "Signage", "Other"];
+  "New Dwelling", "Extension/Addition", "Subdivision",
+  "Multi-unit Development", "Commercial/Retail", "Industrial",
+  "Change of Use", "Demolition", "Signage", "Other"];
 
+function extractJson(text) {
+  if (!text) return null;
+  let s = String(text).trim().replace(/```json/gi, '').replace(/```/g, '').trim();
+  try { return JSON.parse(s); } catch (_) {}
+  const start = s.indexOf('{');
+  const end = s.lastIndexOf('}');
+  if (start !== -1 && end !== -1 && end > start) {
+    try { return JSON.parse(s.slice(start, end + 1)); } catch (_) {}
+  }
+  return null;
+}
 
 export default function PalladioPlanner() {
   const [activeTab, setActiveTab] = useState('assessment');
@@ -141,48 +152,17 @@ Return a valid JSON object matching this structure:
         setIsAnalyzing(false);
         return;
       }
-      const prompt = `Act as an expert Australian Town Planner. Assess this proposed development:
-Address: ${address}
-Type: ${selectedType}
-Description: ${description}
-
-Search local planning schemes and zoning for this address.
-Return a valid JSON object matching this structure:
-{
-    "verdict": "LIKELY PERMITTED" | "APPROVAL REQUIRED" | "LIKELY REFUSED" | "COMPLEX - SEEK ADVICE",
-    "verdict_reason": "Short explanation of the verdict",
-    "zoning_assessment": "Markdown text about zoning compatibility",
-    "planning_controls": "Markdown text about relevant codes",
-    "overlays": "Markdown text about overlays (heritage, bushfire, etc)",
-    "issues": ["Issue 1", "Issue 2"],
-    "neighbour_impact": "Markdown text about impact on neighbours",
-    "application_requirements": "Markdown text about what to submit",
-    "recommendations": ["Rec 1", "Rec 2"],
-    "red_flags": ["Flag 1"],
-    "disclaimer": "Standard disclaimer"
-}`;
-
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt,
-        add_context_from_internet: true,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            verdict: { type: "string" },
-            verdict_reason: { type: "string" },
-            zoning_assessment: { type: "string" },
-            planning_controls: { type: "string" },
-            overlays: { type: "string" },
-            issues: { type: "array", items: { type: "string" } },
-            neighbour_impact: { type: "string" },
-            application_requirements: { type: "string" },
-            recommendations: { type: "array", items: { type: "string" } },
-            red_flags: { type: "array", items: { type: "string" } },
-            disclaimer: { type: "string" }
-          }
-        }
+      const runRes = await base44.functions.invoke('runPlanningAssessment', {
+        action: 'run',
+        address,
+        devType: selectedType,
+        description,
+        propertyData
       });
-      setResult(response);
+      if (runRes.data?.error) throw new Error(runRes.data.error);
+      const rawContent = runRes.data?.output || '';
+      const finalResult = extractJson(rawContent) || rawContent;
+      setResult(finalResult);
     } catch (err) {
       console.error(err);
     } finally {
