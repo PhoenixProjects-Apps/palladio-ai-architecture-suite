@@ -299,8 +299,8 @@ export default function Floorplan3DRenderer({ layoutData, floorplanImage, onRequ
       </div>
 
       {/* Bird's-eye 3D viewer */}
-      <div className="flex flex-col">
-        <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden shadow-xl flex-1 min-h-[520px] relative">
+      <div className="flex flex-col min-w-0">
+        <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden shadow-xl relative h-[460px] lg:h-full lg:min-h-[520px]">
           <div className="absolute top-4 left-4 z-10 bg-black/50 backdrop-blur-md text-white text-xs px-4 py-2 rounded-full border border-white/10">
             Bird's eye view • Scroll to zoom • Drag to pan
           </div>
