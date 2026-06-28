@@ -149,9 +149,9 @@ export default function PalladioEstimator() {
     // Slab volume (m³) = floor area × 0.1
     setSlabVolume(fa > 0 ? (fa * 0.1).toFixed(1) : '');
 
-    // Roof area = (floor area × 0.6) + floor area, rounded up to nearest 5m
+    // Roof area = floor area × 0.6, rounded up to nearest 5m
     if (fa > 0) {
-      const rawRoof = fa * 1.6;
+      const rawRoof = fa * 0.6;
       setRoofArea(String(Math.ceil(rawRoof / 5) * 5));
     } else {
       setRoofArea('');
