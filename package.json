@@ -1,8 +1,16 @@
 {
-  "name": "palladio-ai",
-  "private": true,
+  "name": "palladio_ai",
   "version": "0.0.1",
+  "private": true,
+  "description": "Initial Testing Release",
+  "repository": {
+    "type": "git",
+    "url": "palladio-ai-architecture-suite"
+  },
+  "license": "ISC",
+  "author": "Daniel Battams",
   "type": "module",
+  "main": "eslint.config.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
