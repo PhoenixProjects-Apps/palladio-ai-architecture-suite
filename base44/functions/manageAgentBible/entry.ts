@@ -16,7 +16,8 @@ Deno.serve(async (req) => {
         headers: { "Content-Type": "application/json" }
       });
     }
-    if (user.role !== 'admin') {
+    const dbUser = await base44.asServiceRole.entities.User.get(user.id);
+    if (!dbUser || dbUser.role !== 'admin') {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
         headers: { "Content-Type": "application/json" }

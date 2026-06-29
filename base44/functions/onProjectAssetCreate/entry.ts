@@ -7,7 +7,8 @@ Deno.serve(async (req) => {
         const payload = await req.json();
         const { event, data, internal_secret } = payload;
         
-        if (internal_secret !== "palladio_internal_automation_secret") {
+        const expectedSecret = Deno.env.get('INTERNAL_AUTOMATION_SECRET');
+        if (!expectedSecret || internal_secret !== expectedSecret) {
             return Response.json({ error: "Unauthorized" }, { status: 401 });
         }
         

@@ -19,6 +19,11 @@ Deno.serve(async (req) => {
     const signature = req.headers.get("stripe-signature");
     const secret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
     
+    if (!secret || secret.trim() === '') {
+        console.error("Missing STRIPE_WEBHOOK_SECRET");
+        return new Response("Webhook secret not configured", { status: 500 });
+    }
+    
     const bodyText = await req.text();
     let event;
 
