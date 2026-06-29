@@ -23,6 +23,7 @@ export default function MobileBottomNav() {
             <Link
               key={item.label}
               to={item.path}
+              replace={true}
               className={cn(
                 "flex flex-col items-center justify-center w-full h-full space-y-1 text-xs transition-colors",
                 isActive ? "text-amber-500" : "text-slate-500 hover:text-slate-300"

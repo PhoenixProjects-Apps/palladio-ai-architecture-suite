@@ -55,33 +55,42 @@ export default function Notifications() {
     };
 
     const markAsRead = async (id) => {
+        const prev = [...notifications];
+        setNotifications(prev.map(n => n.id === id ? { ...n, is_read: true } : n));
         try {
             await base44.entities.Notification.update(id, { is_read: true });
-            setNotifications(notifications.map(n => n.id === id ? { ...n, is_read: true } : n));
         } catch (e) {
             console.error(e);
+            setNotifications(prev);
+            toast.error("Failed to mark as read");
         }
     };
 
     const markAllAsRead = async () => {
+        const prev = [...notifications];
+        setNotifications(prev.map(n => ({ ...n, is_read: true })));
         try {
-            const unread = notifications.filter(n => !n.is_read);
+            const unread = prev.filter(n => !n.is_read);
             await Promise.all(unread.map(n => base44.entities.Notification.update(n.id, { is_read: true })));
-            setNotifications(notifications.map(n => ({ ...n, is_read: true })));
             toast.success("All marked as read");
         } catch (e) {
             console.error(e);
+            setNotifications(prev);
+            toast.error("Failed to mark all as read");
         }
     };
 
     const clearAll = async () => {
         if (!confirm("Are you sure you want to delete all notifications?")) return;
+        const prev = [...notifications];
+        setNotifications([]);
         try {
-            await Promise.all(notifications.map(n => base44.entities.Notification.delete(n.id)));
-            setNotifications([]);
+            await Promise.all(prev.map(n => base44.entities.Notification.delete(n.id)));
             toast.success("All notifications cleared");
         } catch (e) {
             console.error(e);
+            setNotifications(prev);
+            toast.error("Failed to clear notifications");
         }
     };
 

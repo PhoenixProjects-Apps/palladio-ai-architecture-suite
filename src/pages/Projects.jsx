@@ -51,13 +51,20 @@ export default function Projects() {
     const handleCreateProject = async (e) => {
         e.preventDefault();
         if (!newProjectName.trim()) return;
+        
+        const optimisticId = 'temp-' + Date.now();
+        const optimisticProj = { id: optimisticId, name: newProjectName.trim(), created_date: new Date().toISOString() };
+        
+        setProjects(prev => [optimisticProj, ...prev]);
+        setNewProjectName('');
+        setIsCreateOpen(false);
+        
         try {
-            const newProj = await base44.entities.Project.create({ name: newProjectName.trim() });
-            setProjects([newProj, ...projects]);
-            setNewProjectName('');
-            setIsCreateOpen(false);
+            const newProj = await base44.entities.Project.create({ name: optimisticProj.name });
+            setProjects(prev => prev.map(p => p.id === optimisticId ? newProj : p));
             toast.success("Project created successfully");
         } catch (e) {
+            setProjects(prev => prev.filter(p => p.id !== optimisticId));
             toast.error("Failed to create project");
         }
     };
@@ -65,12 +72,19 @@ export default function Projects() {
     const handleDeleteProject = async (e, id) => {
         e.stopPropagation();
         if (!confirm('Are you sure you want to delete this project?')) return;
+        
+        const previousProjects = [...projects];
+        const prevSelected = selectedProject;
+        
+        setProjects(prev => prev.filter(p => p.id !== id));
+        if (selectedProject?.id === id) setSelectedProject(null);
+        
         try {
             await base44.entities.Project.delete(id);
-            setProjects(projects.filter(p => p.id !== id));
-            if (selectedProject?.id === id) setSelectedProject(null);
             toast.success("Project deleted");
         } catch (e) {
+            setProjects(previousProjects);
+            if (prevSelected?.id === id) setSelectedProject(prevSelected);
             toast.error("Failed to delete project");
         }
     };
