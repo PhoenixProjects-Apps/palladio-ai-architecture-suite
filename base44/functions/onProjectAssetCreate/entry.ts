@@ -5,7 +5,11 @@ Deno.serve(async (req) => {
         const base44 = createClientFromRequest(req);
 
         const payload = await req.json();
-        const { event, data } = payload;
+        const { event, data, internal_secret } = payload;
+        
+        if (internal_secret !== "palladio_internal_automation_secret") {
+            return Response.json({ error: "Unauthorized" }, { status: 401 });
+        }
         
         if (event.type === 'create') {
             
