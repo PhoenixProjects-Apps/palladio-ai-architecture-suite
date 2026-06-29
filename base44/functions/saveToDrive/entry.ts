@@ -24,6 +24,11 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Invalid fileUrl format' }, { status: 400 });
         }
 
+        const assets = await base44.entities.ProjectAsset.filter({ file_url: fileUrl });
+        if (assets.length === 0) {
+            return Response.json({ error: 'File not found or unauthorized' }, { status: 403 });
+        }
+
         const accessToken = await base44.asServiceRole.connectors.getAccessToken("googledrive");
 
         if (!accessToken) {
