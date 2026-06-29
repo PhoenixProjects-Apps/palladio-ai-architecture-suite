@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Plus, Trash2, Database, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -43,22 +44,29 @@ export default function CostDatabase() {
             return;
         }
         setIsSaving(true);
+        const optimisticId = 'temp-' + Date.now();
+        const optimisticItem = {
+            id: optimisticId,
+            state: newState,
+            city: newCity,
+            category: newCategory,
+            item: newItem,
+            unit: newUnit,
+            rate: parseFloat(newRate),
+            notes: ""
+        };
+        
+        setCosts(prev => [optimisticItem, ...prev]);
+        setCategory('');
+        setItem('');
+        setRate('');
+        
         try {
-            await base44.entities.MaterialCost.create({
-                state: newState,
-                city: newCity,
-                category: newCategory,
-                item: newItem,
-                unit: newUnit,
-                rate: parseFloat(newRate),
-                notes: ""
-            });
-            setCategory('');
-            setItem('');
-            setRate('');
-            loadCosts();
+            const added = await base44.entities.MaterialCost.create(optimisticItem);
+            setCosts(prev => prev.map(c => c.id === optimisticId ? added : c));
             toast.success("Item added");
         } catch(e) {
+            setCosts(prev => prev.filter(c => c.id !== optimisticId));
             toast.error("Failed to add item");
         } finally {
             setIsSaving(false);
@@ -66,11 +74,13 @@ export default function CostDatabase() {
     };
 
     const handleDelete = async (id) => {
+        const previousCosts = [...costs];
+        setCosts(prev => prev.filter(c => c.id !== id));
         try {
             await base44.entities.MaterialCost.delete(id);
-            loadCosts();
             toast.success("Item deleted");
         } catch(e) {
+            setCosts(previousCosts);
             toast.error("Failed to delete item");
         }
     };
@@ -95,7 +105,7 @@ export default function CostDatabase() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-7 gap-3 bg-slate-900 p-4 rounded-xl border border-slate-800 items-end">
+                <div className="grid grid-cols-1 sm:grid-cols-7 gap-3 bg-slate-900 p-4 rounded-xl border border-slate-800 items-end">
                     <div className="col-span-1">
                         <label className="text-xs text-slate-400 mb-1 block">State</label>
                         <Select value={newState} onValueChange={setState}>
@@ -137,40 +147,67 @@ export default function CostDatabase() {
                     </div>
                 </div>
 
-                <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
-                    <Table>
-                        <TableHeader className="bg-slate-800/50">
-                            <TableRow className="border-slate-800">
-                                <TableHead className="text-slate-300">Location</TableHead>
-                                <TableHead className="text-slate-300">Category</TableHead>
-                                <TableHead className="text-slate-300">Item</TableHead>
-                                <TableHead className="text-slate-300">Rate</TableHead>
-                                <TableHead className="text-slate-300 text-right">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {loading ? (
-                                <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-500"><Loader2 className="animate-spin w-6 h-6 mx-auto mb-2" /> Loading...</TableCell></TableRow>
-                            ) : costs.length === 0 ? (
-                                <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-500">No cost data found.</TableCell></TableRow>
-                            ) : (
-                                costs.map(c => (
-                                    <TableRow key={c.id} className="border-slate-800">
-                                        <TableCell>{c.city}, {c.state}</TableCell>
-                                        <TableCell>{c.category}</TableCell>
-                                        <TableCell className="font-medium text-white">{c.item}</TableCell>
-                                        <TableCell>${c.rate.toFixed(2)} / {c.unit}</TableCell>
-                                        <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon" onClick={() => handleDelete(c.id)} className="text-red-400 hover:text-red-300 hover:bg-red-400/10 h-8 w-8">
-                                                <Trash2 size={14} />
-                                            </Button>
-                                        </TableCell>
+                {loading ? (
+                    <div className="space-y-3">
+                        {[1,2,3,4,5].map(i => <Skeleton key={i} className="h-16 w-full rounded-xl bg-slate-800/50" />)}
+                    </div>
+                ) : costs.length === 0 ? (
+                    <div className="text-center py-8 text-slate-500 bg-slate-900 rounded-xl border border-slate-800">No cost data found.</div>
+                ) : (
+                    <>
+                        {/* Desktop Table */}
+                        <div className="hidden sm:block bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
+                            <Table>
+                                <TableHeader className="bg-slate-800/50">
+                                    <TableRow className="border-slate-800">
+                                        <TableHead className="text-slate-300">Location</TableHead>
+                                        <TableHead className="text-slate-300">Category</TableHead>
+                                        <TableHead className="text-slate-300">Item</TableHead>
+                                        <TableHead className="text-slate-300">Rate</TableHead>
+                                        <TableHead className="text-slate-300 text-right">Actions</TableHead>
                                     </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
+                                </TableHeader>
+                                <TableBody>
+                                    {costs.map(c => (
+                                        <TableRow key={c.id} className="border-slate-800">
+                                            <TableCell>{c.city}, {c.state}</TableCell>
+                                            <TableCell>{c.category}</TableCell>
+                                            <TableCell className="font-medium text-white">{c.item}</TableCell>
+                                            <TableCell>${c.rate.toFixed(2)} / {c.unit}</TableCell>
+                                            <TableCell className="text-right">
+                                                <Button variant="ghost" size="icon" onClick={() => handleDelete(c.id)} className="text-red-400 hover:text-red-300 hover:bg-red-400/10 h-8 w-8">
+                                                    <Trash2 size={14} />
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                        {/* Mobile Cards */}
+                        <div className="sm:hidden space-y-3">
+                            {costs.map(c => (
+                                <div key={c.id} className="bg-slate-900 p-4 rounded-xl border border-slate-800 flex flex-col gap-3">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <div className="font-medium text-white text-lg">{c.item}</div>
+                                            <div className="text-sm text-slate-400">{c.category} &middot; {c.city}, {c.state}</div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-white font-medium text-lg">${c.rate.toFixed(2)}</div>
+                                            <div className="text-xs text-slate-400">per {c.unit}</div>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-end pt-2 border-t border-slate-800">
+                                        <Button variant="ghost" size="sm" onClick={() => handleDelete(c.id)} className="text-red-400 hover:text-red-300 hover:bg-red-400/10 h-9 px-3">
+                                            <Trash2 size={16} className="mr-2" /> Delete
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );

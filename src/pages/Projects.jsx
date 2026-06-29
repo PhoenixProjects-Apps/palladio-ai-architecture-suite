@@ -6,14 +6,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { createPageUrl } from '@/utils';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import PalladioGate from '@/components/PalladioGate';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 
 export default function Projects() {
     const [projects, setProjects] = useState([]);
-    const [selectedProject, setSelectedProject] = useState(null);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const selectedProjectId = searchParams.get('projectId');
+    const selectedProject = projects.find(p => p.id === selectedProjectId) || null;
+    
     const [isLoading, setIsLoading] = useState(true);
     const [newProjectName, setNewProjectName] = useState('');
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -28,9 +32,15 @@ export default function Projects() {
         loadProjects();
     }, []);
 
+    useEffect(() => {
+        if (selectedProjectId) {
+            loadProjectDetails(selectedProjectId);
+        }
+    }, [selectedProjectId]);
+
     usePullToRefresh(() => {
         loadProjects();
-        if (selectedProject) loadProjectDetails(selectedProject.id);
+        if (selectedProjectId) loadProjectDetails(selectedProjectId);
     });
 
     const loadProjects = async () => {
@@ -74,24 +84,23 @@ export default function Projects() {
         if (!confirm('Are you sure you want to delete this project?')) return;
         
         const previousProjects = [...projects];
-        const prevSelected = selectedProject;
+        const wasSelected = selectedProjectId === id;
         
         setProjects(prev => prev.filter(p => p.id !== id));
-        if (selectedProject?.id === id) setSelectedProject(null);
+        if (wasSelected) setSearchParams({});
         
         try {
             await base44.entities.Project.delete(id);
             toast.success("Project deleted");
         } catch (e) {
             setProjects(previousProjects);
-            if (prevSelected?.id === id) setSelectedProject(prevSelected);
+            if (wasSelected) setSearchParams({ projectId: id });
             toast.error("Failed to delete project");
         }
     };
 
     const openProject = async (project) => {
-        setSelectedProject(project);
-        loadProjectDetails(project.id);
+        setSearchParams({ projectId: project.id });
     };
 
     const loadProjectDetails = async (projectId) => {
@@ -130,11 +139,13 @@ export default function Projects() {
 
     const handleDeleteAsset = async (id) => {
         if (!confirm('Delete this file?')) return;
+        const prevAssets = [...assets];
+        setAssets(prev => prev.filter(a => a.id !== id));
         try {
             await base44.entities.ProjectAsset.delete(id);
-            setAssets(assets.filter(a => a.id !== id));
             toast.success("File removed");
         } catch (e) {
+            setAssets(prevAssets);
             toast.error("Failed to delete file");
         }
     };
@@ -172,7 +183,20 @@ export default function Projects() {
     };
 
     if (isLoading) {
-        return <div className="flex-1 flex items-center justify-center bg-[#0f1117] h-screen"><Loader2 className="animate-spin text-amber-500" size={32} /></div>;
+        return (
+            <PalladioGate>
+                <div className="min-h-screen bg-[#0f1117] text-white p-6 md:p-10">
+                    <div className="max-w-6xl mx-auto">
+                        <Skeleton className="h-10 w-48 bg-slate-800/50 rounded-lg mb-8" />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+                                <Skeleton key={i} className="h-32 w-full bg-slate-800/50 rounded-2xl" />
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </PalladioGate>
+        );
     }
 
     if (selectedProject) {
@@ -180,7 +204,7 @@ export default function Projects() {
             <PalladioGate>
                 <div className="min-h-screen bg-[#0f1117] text-white p-6 md:p-10">
                     <div className="max-w-5xl mx-auto">
-                        <button onClick={() => setSelectedProject(null)} className="flex items-center gap-2 text-slate-400 hover:text-white mb-8 transition-colors">
+                        <button onClick={() => setSearchParams({})} className="flex items-center gap-2 text-slate-400 hover:text-white mb-8 transition-colors">
                             <ArrowLeft size={20} /> Back to Projects
                         </button>
                         <div className="flex items-center justify-between mb-3">

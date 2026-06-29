@@ -7,6 +7,20 @@ import { cn } from '@/lib/utils';
 export default function MobileBottomNav() {
   const location = useLocation();
   
+  const [tabHistory, setTabHistory] = React.useState(() => {
+    const saved = sessionStorage.getItem('mobile-tab-history');
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  React.useEffect(() => {
+    const activeTab = navItems.find(item => location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path)));
+    if (activeTab) {
+      const newHistory = { ...tabHistory, [activeTab.path]: location.pathname + location.search };
+      setTabHistory(newHistory);
+      sessionStorage.setItem('mobile-tab-history', JSON.stringify(newHistory));
+    }
+  }, [location.pathname, location.search]);
+
   const navItems = [
     { label: 'Home', icon: Home, path: '/' },
     { label: 'Assistant', icon: MessageSquare, path: '/SavedChats' },
@@ -19,10 +33,11 @@ export default function MobileBottomNav() {
       <div className="flex items-center justify-around h-16 px-2">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
+          const targetPath = (!isActive && tabHistory[item.path]) ? tabHistory[item.path] : item.path;
           return (
             <Link
               key={item.label}
-              to={item.path}
+              to={targetPath}
               replace={true}
               className={cn(
                 "flex flex-col items-center justify-center w-full h-full space-y-1 text-xs transition-colors",

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
 import PalladioGate from '@/components/PalladioGate';
 import { toast } from 'sonner';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
@@ -105,7 +106,20 @@ export default function Notifications() {
         }
     };
 
-    if (isLoading) return <div className="flex-1 flex items-center justify-center bg-[#0f1117] h-screen"><Loader2 className="animate-spin text-amber-500" size={32} /></div>;
+    if (isLoading) {
+        return (
+            <PalladioGate>
+                <div className="min-h-screen bg-[#0f1117] p-6 md:p-10">
+                    <div className="max-w-4xl mx-auto space-y-4">
+                        <Skeleton className="h-10 w-48 bg-slate-800/50 rounded-lg mb-8" />
+                        {[1, 2, 3, 4, 5].map(i => (
+                            <Skeleton key={i} className="h-24 w-full bg-slate-800/50 rounded-xl" />
+                        ))}
+                    </div>
+                </div>
+            </PalladioGate>
+        );
+    }
 
     return (
         <PalladioGate>

@@ -81,17 +81,18 @@ Return exactly what you find from official sources. Use an empty string for any 
       <div className="grid sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <label className="text-xs text-slate-400">Project Name</label>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Input value={value.projectName} onChange={(e) => onChange({ projectName: e.target.value, projectId: null })} placeholder="e.g. Altola St Extension" className={fieldClass} />
             {value.projectName.trim() && (
               <Button
                 type="button"
                 onClick={handleCreateProject}
                 disabled={creating || !!value.projectId}
-                className="bg-amber-600 hover:bg-amber-700 text-white shrink-0 px-3 h-11"
+                className="bg-amber-600 hover:bg-amber-700 text-white shrink-0 px-4 h-11 w-full sm:w-auto flex items-center justify-center gap-2"
                 title={value.projectId ? 'Project created' : 'Create a new project with this name'}
               >
                 {creating ? <Loader2 size={18} className="animate-spin" /> : value.projectId ? <Check size={18} /> : <Plus size={18} />}
+                <span className="sm:hidden">{value.projectId ? 'Created' : 'Create Project'}</span>
               </Button>
             )}
           </div>
@@ -106,7 +107,7 @@ Return exactly what you find from official sources. Use an empty string for any 
         <label className="text-xs text-slate-400">Site Address</label>
         <AddressAutocomplete value={value.address} onChange={(v) => set('address', v)} onSelect={handleAddressSelect} />
       </div>
-      <div className="grid sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="space-y-1.5">
           <label className="text-xs text-slate-400">Lot No.</label>
           <Input value={value.lotNo} onChange={(e) => set('lotNo', e.target.value)} placeholder="Auto-filled" disabled={lookingUp} className={fieldClass} />
