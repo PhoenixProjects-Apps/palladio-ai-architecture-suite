@@ -25,6 +25,24 @@ Deno.serve(async (req) => {
     if (!fileUrl) {
       return Response.json({ error: "Missing fileUrl" }, { status: 400 });
     }
+    
+    try {
+      const urlObj = new URL(fileUrl);
+      if (!['firebasestorage.googleapis.com', 'storage.googleapis.com'].includes(urlObj.hostname)) {
+        return Response.json({ error: 'Invalid fileUrl domain' }, { status: 400 });
+      }
+    } catch {
+      return Response.json({ error: 'Invalid fileUrl format' }, { status: 400 });
+    }
+
+    try {
+      const consumeRes = await base44.functions.invoke('consumeToken', { amount: 1 });
+      if (!consumeRes.data || !consumeRes.data.success) {
+        return Response.json({ error: "Insufficient tokens" }, { status: 403 });
+      }
+    } catch (err) {
+      return Response.json({ error: err.response?.data?.error || "Insufficient tokens" }, { status: 403 });
+    }
 
     const apiKey = Deno.env.get("SUPERAGENT_API_KEY");
     const agentId = (Deno.env.get("SUPERAGENT_AGENT_ID") || "").replace(/[^a-f0-9]/gi, "");

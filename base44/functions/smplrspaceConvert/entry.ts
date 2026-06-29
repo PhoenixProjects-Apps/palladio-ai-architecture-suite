@@ -16,6 +16,24 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'file_url is required' }, { status: 400 });
     }
 
+    try {
+      const urlObj = new URL(file_url);
+      if (!['firebasestorage.googleapis.com', 'storage.googleapis.com'].includes(urlObj.hostname)) {
+        return Response.json({ error: 'Invalid file_url domain' }, { status: 400 });
+      }
+    } catch {
+      return Response.json({ error: 'Invalid file_url format' }, { status: 400 });
+    }
+
+    try {
+      const consumeRes = await base44.functions.invoke('consumeToken', { amount: 1 });
+      if (!consumeRes.data || !consumeRes.data.success) {
+        return Response.json({ error: "Insufficient tokens" }, { status: 403 });
+      }
+    } catch (err) {
+      return Response.json({ error: err.response?.data?.error || "Insufficient tokens" }, { status: 403 });
+    }
+
     // SMPLRSPACE uses QueryClient to create spaces
     // First, we need to upload the floor plan to their system
     // The createSpace endpoint creates a space, then we need to upload the image

@@ -14,6 +14,15 @@ Deno.serve(async (req) => {
         if (!fileUrl || !fileName) {
             return Response.json({ error: 'Missing fileUrl or fileName' }, { status: 400 });
         }
+        
+        try {
+            const urlObj = new URL(fileUrl);
+            if (!['firebasestorage.googleapis.com', 'storage.googleapis.com'].includes(urlObj.hostname)) {
+                return Response.json({ error: 'Invalid fileUrl domain' }, { status: 400 });
+            }
+        } catch {
+            return Response.json({ error: 'Invalid fileUrl format' }, { status: 400 });
+        }
 
         const accessToken = await base44.asServiceRole.connectors.getAccessToken("googledrive");
 

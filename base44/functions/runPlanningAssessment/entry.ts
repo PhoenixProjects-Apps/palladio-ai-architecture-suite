@@ -21,6 +21,15 @@ Deno.serve(async (req) => {
     const description = body?.description || 'No description provided';
     const propertyData = body?.propertyData || {};
 
+    try {
+      const consumeRes = await base44.functions.invoke('consumeToken', { amount: 1 });
+      if (!consumeRes.data || !consumeRes.data.success) {
+        return Response.json({ error: "Insufficient tokens" }, { status: 403 });
+      }
+    } catch (err) {
+      return Response.json({ error: err.response?.data?.error || "Insufficient tokens" }, { status: 403 });
+    }
+
     const apiKey = Deno.env.get("SUPERAGENT_API_KEY");
     const agentId = (Deno.env.get("SUPERAGENT_AGENT_ID") || "").replace(/[^a-f0-9]/gi, "");
     if (!apiKey || !agentId) {
