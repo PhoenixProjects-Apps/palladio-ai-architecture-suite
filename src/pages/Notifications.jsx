@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import PalladioGate from '@/components/PalladioGate';
 import { toast } from 'sonner';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 
 export default function Notifications() {
     const [notifications, setNotifications] = useState([]);
@@ -26,6 +27,10 @@ export default function Notifications() {
         });
         return () => unsubscribe && unsubscribe();
     }, []);
+
+    usePullToRefresh(() => {
+        loadData();
+    });
 
     const loadData = async () => {
         try {

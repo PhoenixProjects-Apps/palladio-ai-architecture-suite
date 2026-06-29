@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import Sidebar from '@/components/Sidebar';
 import UserHeader from '@/components/UserHeader';
 import { Toaster } from 'sonner';
+import MobileBottomNav from '@/components/MobileBottomNav';
 
 export default function Layout({ children }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   return (
-    <div className="text-white font-sans flex h-screen overflow-hidden" style={{ backgroundColor: '#0f1117' }}>
+    <div className="text-white font-sans flex h-screen overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]" style={{ backgroundColor: '#0f1117' }}>
       <style>{`
-        body { background-color: #0f1117 !important; margin: 0; }
+        body { background-color: #0f1117 !important; margin: 0; overscroll-behavior-y: none; }
         * { border-color: rgba(255,255,255,0.1); }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -27,12 +28,13 @@ export default function Layout({ children }) {
         .prose-invert blockquote { border-left: 4px solid #374151; padding-left: 1rem; color: #9ca3af; font-style: italic; margin: 1rem 0; }
       `}</style>
       <Sidebar isMobileOpen={isMobileOpen} setIsMobileOpen={setIsMobileOpen} />
-      <main className="flex-1 overflow-y-auto overflow-x-hidden h-full relative">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden h-full relative pb-16 md:pb-0">
         <div className="sticky top-0 z-50 flex items-center p-4 bg-[#0f1117] border-b border-white/5">
           <UserHeader setIsMobileOpen={setIsMobileOpen} />
         </div>
         {children}
       </main>
+      <MobileBottomNav />
       <Toaster theme="dark" position="bottom-right" />
     </div>
   );

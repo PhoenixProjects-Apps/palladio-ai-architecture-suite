@@ -2,9 +2,10 @@ import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { pagesConfig } from './pages.config'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { AnimatePresence, motion } from 'framer-motion';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,20 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}>{children}</Layout>
   : <>{children}</>;
 
+const AnimatedRouteWrapper = ({ children }) => (
+  <motion.div
+    initial={{ opacity: 0, x: 10 }}
+    animate={{ opacity: 1, x: 0 }}
+    exit={{ opacity: 0, x: -10 }}
+    transition={{ duration: 0.2 }}
+    className="h-full"
+  >
+    {children}
+  </motion.div>
+);
+
 const AuthenticatedApp = () => {
+  const location = useLocation();
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
   // Show loading spinner while checking app public settings or auth
@@ -63,20 +77,21 @@ const AuthenticatedApp = () => {
   );
 
   return (
-    <Routes>
-      <Route path="/" element={
-        <LayoutWrapper currentPageName={mainPageKey}>
-          <MainPage />
-        </LayoutWrapper>
-      } />
-      
-      {Object.entries(Pages).map(([path, Page]) => {
-        const isPublic = publicPages.includes(path);
-        const element = (
-          <LayoutWrapper currentPageName={path}>
-            <Page />
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={
+          <LayoutWrapper currentPageName={mainPageKey}>
+            <AnimatedRouteWrapper><MainPage /></AnimatedRouteWrapper>
           </LayoutWrapper>
-        );
+        } />
+        
+        {Object.entries(Pages).map(([path, Page]) => {
+          const isPublic = publicPages.includes(path);
+          const element = (
+            <LayoutWrapper currentPageName={path}>
+              <AnimatedRouteWrapper><Page /></AnimatedRouteWrapper>
+            </LayoutWrapper>
+          );
         
         if (isPublic) {
           return <Route key={path} path={`/${path}`} element={element} />;
@@ -91,13 +106,14 @@ const AuthenticatedApp = () => {
         );
       })}
       
-      <Route path="/about" element={<LayoutWrapper currentPageName="About"><About /></LayoutWrapper>} />
-      <Route path="/contact" element={<LayoutWrapper currentPageName="Contact"><Contact /></LayoutWrapper>} />
-      <Route path="/AgentBible" element={<LayoutWrapper currentPageName="AgentBible"><AgentBible /></LayoutWrapper>} />
-      <Route path="/PrivacyPolicy" element={<LayoutWrapper currentPageName="PrivacyPolicy"><PrivacyPolicy /></LayoutWrapper>} />
-      <Route path="/TermsOfService" element={<LayoutWrapper currentPageName="TermsOfService"><TermsOfService /></LayoutWrapper>} />
+      <Route path="/about" element={<LayoutWrapper currentPageName="About"><AnimatedRouteWrapper><About /></AnimatedRouteWrapper></LayoutWrapper>} />
+      <Route path="/contact" element={<LayoutWrapper currentPageName="Contact"><AnimatedRouteWrapper><Contact /></AnimatedRouteWrapper></LayoutWrapper>} />
+      <Route path="/AgentBible" element={<LayoutWrapper currentPageName="AgentBible"><AnimatedRouteWrapper><AgentBible /></AnimatedRouteWrapper></LayoutWrapper>} />
+      <Route path="/PrivacyPolicy" element={<LayoutWrapper currentPageName="PrivacyPolicy"><AnimatedRouteWrapper><PrivacyPolicy /></AnimatedRouteWrapper></LayoutWrapper>} />
+      <Route path="/TermsOfService" element={<LayoutWrapper currentPageName="TermsOfService"><AnimatedRouteWrapper><TermsOfService /></AnimatedRouteWrapper></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
+    </AnimatePresence>
   );
 };
 

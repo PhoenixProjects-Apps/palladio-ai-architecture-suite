@@ -85,4 +85,10 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  button, a, nav, [role="button"], .lucide {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
 }

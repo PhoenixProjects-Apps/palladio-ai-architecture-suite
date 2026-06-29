@@ -9,6 +9,7 @@ import { createPageUrl } from '@/utils';
 import { useNavigate } from 'react-router-dom';
 import PalladioGate from '@/components/PalladioGate';
 import { toast } from 'sonner';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 
 export default function Projects() {
     const [projects, setProjects] = useState([]);
@@ -26,6 +27,11 @@ export default function Projects() {
     useEffect(() => {
         loadProjects();
     }, []);
+
+    usePullToRefresh(() => {
+        loadProjects();
+        if (selectedProject) loadProjectDetails(selectedProject.id);
+    });
 
     const loadProjects = async () => {
         setIsLoading(true);
