@@ -46,6 +46,11 @@ Deno.serve(async (req) => {
     let prevCount = 0;
 
     if (conversationId) {
+      const chats = await base44.entities.SuperagentChat.filter({ session_id: conversationId });
+      if (chats.length === 0) {
+        return Response.json({ error: "Forbidden or invalid conversation" }, { status: 403 });
+      }
+
       const existing = await fetch(`${baseUrl}/conversations/${conversationId}/messages`, { headers })
         .then((r) => (r.ok ? r.json() : null))
         .catch(() => null);
