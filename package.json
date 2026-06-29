@@ -1,25 +1,15 @@
 {
-  "name": "palladio_ai",
-  "version": "0.0.1",
+  "name": "base44-app",
   "private": true,
-  "description": "Initial Testing Release",
-  "repository": {
-    "type": "git",
-    "url": "palladio-ai-architecture-suite"
-  },
-  "license": "ISC",
-  "author": "Daniel Battams",
+  "version": "0.0.0",
   "type": "module",
-  "main": "eslint.config.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
-    "preview": "vite preview",
-    "cap:sync": "vite build && npx cap sync",
-    "cap:open": "npx cap open android"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@base44/sdk": "^0.8.35",
