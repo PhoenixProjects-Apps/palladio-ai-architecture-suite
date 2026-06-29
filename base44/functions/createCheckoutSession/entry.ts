@@ -12,8 +12,18 @@ Deno.serve(async (req) => {
         }
 
         const payload = await req.json();
-        const { priceId, planType } = payload;
+        const { priceId } = payload;
         const origin = req.headers.get('origin') || "https://example.com";
+
+        const planMapping: Record<string, string> = {
+            'price_1Tlv99RODDkwX6GssAYICx9u': 'palladio_monthly',
+            'price_1Tlv9ARODDkwX6Gs5Y7jxGOe': 'palladio_annual'
+        };
+
+        const planType = planMapping[priceId];
+        if (!planType) {
+            return Response.json({ error: 'Invalid price ID' }, { status: 400 });
+        }
 
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
