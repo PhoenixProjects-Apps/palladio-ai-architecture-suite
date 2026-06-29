@@ -14,6 +14,15 @@ Deno.serve(async (req) => {
 
         const { returnUrl } = await req.json();
 
+        const originHeader = req.headers.get("origin") || "https://example.com";
+        const isValidOrigin = originHeader.startsWith("http://localhost") || originHeader.endsWith(".base44.app");
+        const safeOrigin = isValidOrigin ? originHeader : "https://example.com";
+        
+        let safeReturnUrl = safeOrigin;
+        if (returnUrl && returnUrl.startsWith("/") && !returnUrl.startsWith("//")) {
+            safeReturnUrl = `${safeOrigin}${returnUrl}`;
+        }
+
         const subs = await base44.entities.Subscription.filter({ user_email: user.email });
         const activeSub = subs.find(s => s.status === 'active') || subs[0];
 
@@ -23,7 +32,7 @@ Deno.serve(async (req) => {
 
         const session = await stripe.billingPortal.sessions.create({
             customer: activeSub.stripe_customer_id,
-            return_url: returnUrl || req.headers.get("origin")
+            return_url: safeReturnUrl
         });
 
         return Response.json({ url: session.url });

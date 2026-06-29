@@ -13,7 +13,9 @@ Deno.serve(async (req) => {
 
         const payload = await req.json();
         const { priceId } = payload;
-        const origin = req.headers.get('origin') || "https://example.com";
+        const originHeader = req.headers.get('origin') || "https://example.com";
+        const isValidOrigin = originHeader.startsWith("http://localhost") || originHeader.endsWith(".base44.app");
+        const origin = isValidOrigin ? originHeader : "https://example.com";
 
         const planMapping: Record<string, string> = {
             'price_1Tlv99RODDkwX6GssAYICx9u': 'palladio_monthly',
