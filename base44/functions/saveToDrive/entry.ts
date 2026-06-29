@@ -29,6 +29,12 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'File not found or unauthorized' }, { status: 403 });
         }
 
+        const asset = assets[0];
+        const projects = await base44.entities.Project.filter({ id: asset.project_id });
+        if (projects.length === 0 || projects[0].created_by_id !== user.id) {
+            return Response.json({ error: 'Unauthorized: You do not own the associated project.' }, { status: 403 });
+        }
+
         const accessToken = await base44.asServiceRole.connectors.getAccessToken("googledrive");
 
         if (!accessToken) {

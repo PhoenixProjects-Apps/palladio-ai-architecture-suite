@@ -12,19 +12,19 @@ Deno.serve(async (req) => {
         }
 
         const payload = await req.json();
-        const { priceId } = payload;
+        const { planType } = payload;
         const originHeader = req.headers.get('origin') || "https://example.com";
         const isValidOrigin = originHeader.startsWith("http://localhost") || originHeader.endsWith(".base44.app");
         const origin = isValidOrigin ? originHeader : "https://example.com";
 
         const planMapping: Record<string, string> = {
-            'price_1Tlv99RODDkwX6GssAYICx9u': 'palladio_monthly',
-            'price_1Tlv9ARODDkwX6Gs5Y7jxGOe': 'palladio_annual'
+            'palladio_monthly': 'price_1Tlv99RODDkwX6GssAYICx9u',
+            'palladio_annual': 'price_1Tlv9ARODDkwX6Gs5Y7jxGOe'
         };
 
-        const planType = planMapping[priceId];
-        if (!planType) {
-            return Response.json({ error: 'Invalid price ID' }, { status: 400 });
+        const resolvedPriceId = planMapping[planType];
+        if (!resolvedPriceId) {
+            return Response.json({ error: 'Invalid plan type' }, { status: 400 });
         }
 
         const session = await stripe.checkout.sessions.create({
@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
             mode: 'subscription',
             line_items: [
                 {
-                    price: priceId,
+                    price: resolvedPriceId,
                     quantity: 1,
                 },
             ],
