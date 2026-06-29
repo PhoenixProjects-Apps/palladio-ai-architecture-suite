@@ -36,8 +36,17 @@ Deno.serve(async (req) => {
 
     console.log('Creating Hi3D task with file_url:', file_url);
 
-    // Download the image from the file_url and convert to blob
-    const imageResponse = await fetch(file_url);
+    // Query ProjectAsset to prove ownership
+    const assets = await base44.entities.ProjectAsset.filter({ file_url: file_url });
+    if (assets.length === 0) {
+      return Response.json({ error: 'File not found or unauthorized' }, { status: 403 });
+    }
+
+    // Download the image from the file_url and convert to blob (disable redirects to avoid SSRF bypass)
+    const imageResponse = await fetch(file_url, { redirect: "manual" });
+    if (imageResponse.status >= 300 && imageResponse.status < 400) {
+      return Response.json({ error: 'Redirects are not permitted for security reasons' }, { status: 400 });
+    }
     if (!imageResponse.ok) {
       return Response.json({ error: 'Failed to download image from file_url' }, { status: 500 });
     }

@@ -50,6 +50,11 @@ Deno.serve(async (req) => {
       if (chats.length === 0) {
         return Response.json({ error: "Forbidden or invalid conversation" }, { status: 403 });
       }
+      
+      const chat = chats[0];
+      if (chat.created_by_id !== user.id) {
+        return Response.json({ error: "Unauthorized access to this conversation" }, { status: 403 });
+      }
 
       const existing = await fetch(`${baseUrl}/conversations/${conversationId}/messages`, { headers })
         .then((r) => (r.ok ? r.json() : null))
