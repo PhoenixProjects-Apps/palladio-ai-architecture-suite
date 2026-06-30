@@ -1,7 +1,10 @@
 import React from 'react';
-import { FileText } from 'lucide-react';
+import { FileText, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 export default function TermsOfService() {
+  const navigate = useNavigate();
   const sections = [
     {
       title: "1. Acceptance of Terms",
@@ -116,6 +119,14 @@ export default function TermsOfService() {
   return (
     <div className="min-h-screen bg-[#0f1117] text-slate-200">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate(-1)} 
+          className="mb-6 hover:bg-white/10 text-slate-400 hover:text-white px-0"
+        >
+          <ArrowLeft size={20} className="mr-2" />
+          Back
+        </Button>
         <div className="flex items-center gap-3 mb-8">
           <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center">
             <FileText className="text-amber-500" size={26} />
