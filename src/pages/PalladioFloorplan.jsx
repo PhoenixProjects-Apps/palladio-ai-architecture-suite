@@ -78,6 +78,7 @@ export default function PalladioFloorplan() {
       setTextResult({ layout: layoutRes, image: imageRes.url, layoutData: structuredRes });
     } catch (err) {
       console.error(err);
+      toast.error('Generation failed. Please try again.');
     } finally {
       setIsGeneratingText(false);
     }
@@ -115,6 +116,7 @@ export default function PalladioFloorplan() {
       setSketchResult(imageRes.url);
     } catch (err) {
       console.error(err);
+      toast.error('Generation failed. Please try again.');
     } finally {
       setIsGeneratingSketch(false);
     }

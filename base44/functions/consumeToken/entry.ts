@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
         success: false,
         required: amount,
         available: current
-      }, { status: 403 });
+      }, { status: 200 });
     }
 
     const newBalance = current - amount;
