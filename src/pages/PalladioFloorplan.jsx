@@ -158,7 +158,7 @@ export default function PalladioFloorplan() {
                             Sketch to Floorplan
                         </button>
                         <Link
-              to="/Floorplan3D" state={{ layoutData: textResult?.layoutData || sketchResult }}
+              to="/Floorplan3D" state={{ layoutData: textResult?.layoutData || (sketchResult ? { imageUrl: sketchResult } : null), sourceImage: textResult?.image || sketchResult }}
               className={`w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white flex items-center justify-center`}>
 
                             3D Floorplan Renderer
@@ -226,7 +226,7 @@ export default function PalladioFloorplan() {
                                                 </Button>
                                               }
                                             />
-                                            <Link to="/Floorplan3D" state={{ layoutData: textResult?.layoutData }} className="w-full sm:flex-1">
+                                            <Link to="/Floorplan3D" state={{ layoutData: textResult?.layoutData, sourceImage: textResult?.image }} className="w-full sm:flex-1">
                                               <Button
                       className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl shadow-lg shadow-cyan-500/20">
                       
@@ -309,7 +309,7 @@ export default function PalladioFloorplan() {
                                         <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-lg p-4">
                                             <img src={sketchResult} alt="Generated Floorplan" className="w-full rounded-lg" />
                                         </div>
-                                        <Link to="/Floorplan3D" state={{ layoutData: sketchResult }} className="w-full">
+                                        <Link to="/Floorplan3D" state={{ layoutData: { imageUrl: sketchResult }, sourceImage: sketchResult }} className="w-full">
                                           <Button
                                           className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl shadow-lg shadow-cyan-500/20">
 
