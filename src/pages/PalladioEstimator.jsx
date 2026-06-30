@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Upload, Loader2, Calculator, Database, FileText, DollarSign, Download, Eye } from 'lucide-react';
+import { ArrowLeft, Upload, Loader2, Calculator, Database, FileText, DollarSign, Download, Eye, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
@@ -95,6 +95,7 @@ export default function PalladioEstimator() {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
 
   const [state, setState] = useState('QLD');
   const [city, setCity] = useState('Gold Coast');
@@ -173,6 +174,70 @@ export default function PalladioEstimator() {
       setMainFloorCoverings('');
     }
   }, [floorArea, wetArea, garageArea, externalWallLength, ceilingHeight]);
+
+  const handleAutoExtract = async () => {
+    if (!fileUrl) return;
+    setIsExtracting(true);
+    try {
+      const tokenRes = await base44.functions.invoke('consumeToken', {});
+      if (tokenRes.data?.error) {
+        toast.error("You don't have enough AI tokens. Please upgrade your plan.");
+        setIsExtracting(false);
+        return;
+      }
+
+      const prompt = `Analyze this dimensioned floor plan. Extract the following architectural quantities. Return ONLY a JSON object with these exact keys (use numbers only, no units, or 0 if cannot be determined). If a dimension is missing, try to estimate it based on standard proportions, but prioritize written dimensions:
+      - floorArea (m2)
+      - wetArea (m2)
+      - ceilingArea (m2)
+      - patioArea (m2)
+      - porchArea (m2)
+      - garageArea (m2)
+      - externalWallLength (m)
+      - internalWallLength (m)
+      - ceilingHeight (mm)`;
+
+      const responseSchema = {
+        type: "object",
+        properties: {
+          floorArea: { type: "number" },
+          wetArea: { type: "number" },
+          ceilingArea: { type: "number" },
+          patioArea: { type: "number" },
+          porchArea: { type: "number" },
+          garageArea: { type: "number" },
+          externalWallLength: { type: "number" },
+          internalWallLength: { type: "number" },
+          ceilingHeight: { type: "number" }
+        }
+      };
+
+      const res = await base44.integrations.Core.InvokeLLM({
+        prompt: prompt,
+        file_urls: [fileUrl],
+        model: "gemini_3_1_pro",
+        response_json_schema: responseSchema
+      });
+
+      if (res) {
+        if (res.floorArea) setFloorArea(String(res.floorArea));
+        if (res.wetArea) setWetArea(String(res.wetArea));
+        if (res.ceilingArea) setCeilingArea(String(res.ceilingArea));
+        if (res.patioArea) setPatioArea(String(res.patioArea));
+        if (res.porchArea) setPorchArea(String(res.porchArea));
+        if (res.garageArea) setGarageArea(String(res.garageArea));
+        if (res.externalWallLength) setExternalWallLength(String(res.externalWallLength));
+        if (res.internalWallLength) setInternalWallLength(String(res.internalWallLength));
+        if (res.ceilingHeight) setCeilingHeight(String(res.ceilingHeight));
+        toast.success("Quantities auto-extracted from plan!");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to extract quantities.");
+    } finally {
+      setIsExtracting(false);
+    }
+  };
 
   const handleFileSelect = async (e) => {
     const selectedFile = e.target.files[0];
@@ -485,10 +550,20 @@ INSTRUCTIONS:
                                 <input ref={fileInputRef} type="file" accept="image/*,.pdf" onChange={handleFileSelect} className="hidden" />
                             </div>
                             
+                            {fileUrl && (
+                                <Button
+                                  onClick={handleAutoExtract}
+                                  disabled={isExtracting || isAnalyzing}
+                                  variant="secondary"
+                                  className="w-full mt-4 mb-2 border border-slate-700 text-cyan-400 hover:text-cyan-300 hover:bg-slate-800 bg-slate-800/50 h-11">
+                                  {isExtracting ? <><Loader2 className="animate-spin mr-2" size={18} /> Extracting Quantities...</> : <><Sparkles className="mr-2" size={18} /> Auto-Extract Quantities</>}
+                                </Button>
+                            )}
+
                             <Button
                   onClick={handleAnalyze}
-                  disabled={!fileUrl || isAnalyzing}
-                  className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white h-11">
+                  disabled={!fileUrl || isAnalyzing || isExtracting}
+                  className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white h-11">
                   
                                 {isAnalyzing ? <><Loader2 className="animate-spin mr-2" size={18} /> Analyzing...</> : <><Calculator className="mr-2" size={18} /> Generate Estimate</>}
                             </Button>
