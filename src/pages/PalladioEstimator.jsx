@@ -97,6 +97,7 @@ export default function PalladioEstimator() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
   const [isGeneratingPresentation, setIsGeneratingPresentation] = useState(false);
+  const [presentationUrl, setPresentationUrl] = useState(null);
 
   const [state, setState] = useState('QLD');
   const [city, setCity] = useState('Gold Coast');
@@ -439,6 +440,7 @@ INSTRUCTIONS:
       
       if (res.data?.url) {
         toast.success("Presentation generated successfully!");
+        setPresentationUrl(res.data.url);
         window.open(res.data.url, '_blank');
       } else {
         throw new Error(res.data?.error || "Unknown error");
@@ -755,6 +757,21 @@ INSTRUCTIONS:
                                       className="border-blue-700/50 text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 bg-blue-900/20">
                                         {isGeneratingPresentation ? <><Loader2 size={16} className="mr-1 animate-spin" /> Generating...</> : <><Presentation size={16} className="mr-1" /> Presentation Slide</>}
                                     </Button>
+                                    {presentationUrl && (
+                                        <>
+                                            <a href={presentationUrl} target="_blank" rel="noreferrer">
+                                                <Button variant="outline" size="sm" className="border-blue-500 text-blue-400 hover:bg-blue-500/10 hover:text-blue-300">
+                                                    <Download size={16} className="mr-1" /> Download Slides
+                                                </Button>
+                                            </a>
+                                            <SaveToProject
+                                                fileUrl={presentationUrl}
+                                                fileName="presentation-slides.pdf"
+                                                assetType="document"
+                                                className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50 h-8 rounded-md px-3 text-xs"
+                                            />
+                                        </>
+                                    )}
                                 </div>
 
                                 <div className="rounded-xl border border-slate-800 mb-4">
