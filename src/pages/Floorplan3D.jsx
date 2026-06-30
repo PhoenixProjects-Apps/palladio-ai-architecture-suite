@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link, useLocation } from 'react-router-dom';
-import { ArrowLeft, Loader2, Box } from 'lucide-react';
+import { ArrowLeft, Loader2, Box, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PalladioGate from '@/components/PalladioGate';
+import BrandedExportModal from '@/components/BrandedExportModal';
 
 export default function Floorplan3D() {
   const location = useLocation();
@@ -227,9 +228,20 @@ export default function Floorplan3D() {
           {outputImageUrl ? (
             <div className="flex flex-col items-center justify-center gap-4 w-full max-w-4xl animate-in fade-in zoom-in duration-500">
               <img src={outputImageUrl} alt="Generated Floorplan" className="w-full h-auto object-contain rounded-xl shadow-2xl border border-white/10 max-h-[80vh]" />
-              <a href={outputImageUrl} target="_blank" rel="noreferrer" className="text-cyan-400 hover:text-cyan-300 text-sm underline mt-2">
-                View Full Resolution
-              </a>
+              <div className="flex items-center gap-4 mt-2">
+                <a href={outputImageUrl} target="_blank" rel="noreferrer" className="text-cyan-400 hover:text-cyan-300 text-sm underline">
+                  View Full Resolution
+                </a>
+                <BrandedExportModal 
+                  imageUrl={outputImageUrl} 
+                  generationId={generationId}
+                  triggerButton={
+                    <Button variant="outline" className="text-slate-200 border-white/20 bg-slate-800/50 hover:bg-slate-700">
+                      <Download size={16} className="mr-2" /> Export with Branding
+                    </Button>
+                  } 
+                />
+              </div>
             </div>
           ) : (
             <div className="text-center text-slate-500 max-w-lg">

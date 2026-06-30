@@ -12,6 +12,7 @@ import SaveToProject from '../components/SaveToProject';
 import ChooseProject from '../components/ChooseProject';
 import Floorplan3DRenderer from '../components/Floorplan3DRenderer';
 import { toast } from 'sonner';
+import BrandedExportModal from '../components/BrandedExportModal';
 
 export default function PalladioFloorplan() {
   const [tab, setTab] = useState('text'); // 'text' or 'cad'
@@ -217,6 +218,14 @@ export default function PalladioFloorplan() {
                                             </div>
                 }
                                         <div className="flex flex-col sm:flex-row gap-3">
+                                            <BrandedExportModal
+                                              imageUrl={textResult.image}
+                                              triggerButton={
+                                                <Button className="w-full sm:flex-1 bg-white text-black hover:bg-slate-200 h-12 rounded-xl shadow-lg">
+                                                  <Download size={18} className="mr-2" /> Export Branded
+                                                </Button>
+                                              }
+                                            />
                                             <Link to="/Floorplan3D" state={{ layoutData: textResult?.layoutData }} className="w-full sm:flex-1">
                                               <Button
                       className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl shadow-lg shadow-cyan-500/20">
@@ -308,17 +317,14 @@ export default function PalladioFloorplan() {
                                               </Button>
                                         </Link>
                                         <div className="flex flex-col sm:flex-row gap-3">
-                                            <a
-                                        href={sketchResult}
-                    download="floorplan.png"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="w-full sm:flex-1">
-                    
-                                                <Button className="w-full bg-white text-black hover:bg-slate-200 h-12 rounded-xl">
-                                                    <Download size={18} className="mr-2" /> Download
+                                            <BrandedExportModal
+                                              imageUrl={sketchResult}
+                                              triggerButton={
+                                                <Button className="w-full sm:flex-1 bg-white text-black hover:bg-slate-200 h-12 rounded-xl shadow-lg">
+                                                  <Download size={18} className="mr-2" /> Export Branded
                                                 </Button>
-                                            </a>
+                                              }
+                                            />
                                             <SaveToProject
                     fileUrl={sketchResult}
                     fileName="floorplan-sketch.png"
