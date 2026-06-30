@@ -27,7 +27,7 @@ export default Deno.serve(async (req) => {
     const copyRes = await fetch(copyUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${driveConnection.access_token}`,
+        'Authorization': `Bearer ${driveConnection.accessToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -75,7 +75,7 @@ export default Deno.serve(async (req) => {
     const updateRes = await fetch(updateUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${slidesConnection.access_token}`,
+        'Authorization': `Bearer ${slidesConnection.accessToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ requests })
