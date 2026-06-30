@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 function compileMasterPrompt(generationRecord) {
-  const baselinePrompt = "High-end marketing layout architectural plan.";
+  const baselinePrompt = "High-end marketing layout architectural plan. Enhance the 'Photorealistic' texture parameters. Ensure the engine explicitly separates material assignments for a clean real estate look: Flooring: Light oak hardwood planks with subtle matte reflection. Kitchen/Bath Surfaces: Polished white quartz or Carrara marble. Walls: Clean matte white architectural paint. Fixtures: Modern brushed steel and transparent clear glass. Avoid: Plastic-looking surfaces, dark heavy mud textures, over-saturated colors, and deep unrealistic shadows.";
   
   const perspectiveMap = {
     "Isometric": "3D axonometric view, 45-degree angle dollhouse view, detailed wall height, architectural visualization, global studio lighting",
@@ -10,7 +10,7 @@ function compileMasterPrompt(generationRecord) {
   };
 
   const finishMap = {
-    "Photorealistic": "photorealistic architectural render, high-end CGI, ray-traced lighting, realistic material textures (oak wood, marble, fabric), soft studio shadows, ultra-detailed textures",
+    "Photorealistic": "photorealistic architectural render, high-end CGI, ray-traced global illumination, realistic physical material textures (light natural oak wood flooring planks, polished white carrara marble countertops, soft linen fabric seating upholstery), clear double-glazed window glass panes, brushed steel metal fixtures, soft studio interior lighting, hyper-realistic reflections, sharp ambient occlusion shadows, ultra-detailed 8k resolution surfaces",
     "Clay Model": "ambient occlusion render, monochromatic white clay model, untextured architectural massing, focus on spatial volume, smooth matte surfaces"
   };
 

@@ -30,7 +30,7 @@ export default function Floorplan3DRenderer({ floorplanImage, onRequireFloorplan
         setIsRendering(false);
         return;
       }
-      const fullPrompt = `3D architectural floorplan render, bird's eye view, top-down isometric 3D visualization, photorealistic materials and lighting, detailed roof cutaway showing furnished rooms. ${prompt}. Keep the exact room layout and proportions from the reference floorplan.`;
+      const fullPrompt = `3D architectural floorplan render, bird's eye view, top-down isometric 3D visualization, photorealistic materials and lighting, detailed roof cutaway showing furnished rooms. ${prompt}. Keep the exact room layout and proportions from the reference floorplan. Enhance the 'Photorealistic' texture parameters. Ensure the engine explicitly separates material assignments for a clean real estate look: Flooring: Light oak hardwood planks with subtle matte reflection. Kitchen/Bath Surfaces: Polished white quartz or Carrara marble. Walls: Clean matte white architectural paint. Fixtures: Modern brushed steel and transparent clear glass. Avoid: Plastic-looking surfaces, dark heavy mud textures, over-saturated colors, and deep unrealistic shadows.`;
       const res = await base44.integrations.Core.GenerateImage({
         prompt: fullPrompt,
         existing_image_urls: [floorplanImage]
