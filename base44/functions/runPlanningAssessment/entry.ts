@@ -35,8 +35,6 @@ Known property context:
 - Site Area: ${propertyData.site_area || 'N/A'}
 - Zoning: ${propertyData.zoning || 'N/A'}
 - Property Overlays: ${overlaysString}
-
-You may also search the web to review the specific council planning schemes and codes relevant to this address to verify your assessment.
 `;
 
     const responseSchema = {
