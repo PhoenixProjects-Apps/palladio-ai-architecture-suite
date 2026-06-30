@@ -120,9 +120,16 @@ export default function Floorplan3D() {
             border-right: none;
             border-top: 1px solid #1f242c;
             border-radius: 20px 20px 0 0;
-            padding: 16px 20px 34px 20px; /* Extra bottom padding for iOS home indicator */
+            padding: 16px 20px 120px 20px; /* Extra bottom padding for mobile nav */
             box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.5);
             overflow-y: auto;
+            z-index: 40;
+          }
+          
+          .b44-main-content {
+            justify-content: flex-start !important;
+            padding-top: 40px !important;
+            padding-bottom: 75vh !important;
           }
 
           /* Add visual native indicator bar top of mobile drawer */
@@ -213,7 +220,7 @@ export default function Floorplan3D() {
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col items-center justify-center p-6 relative overflow-y-auto" style={{ paddingBottom: '30vh' }}>
+        <div className="flex-1 flex flex-col items-center justify-center p-6 relative overflow-y-auto b44-main-content">
           {outputImageUrl ? (
             <div className="flex flex-col items-center justify-center gap-4 w-full max-w-4xl animate-in fade-in zoom-in duration-500">
               <img src={outputImageUrl} alt="Generated Floorplan" className="w-full h-auto object-contain rounded-xl shadow-2xl border border-white/10 max-h-[80vh]" />
