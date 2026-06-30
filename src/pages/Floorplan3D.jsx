@@ -35,14 +35,24 @@ export default function Floorplan3D() {
 
   const handleGenerate = async (overrideFinish) => {
     try {
+      const tokenRes = await base44.functions.invoke('consumeToken', { amount: 5 });
+      if (tokenRes.data?.error) {
+        // Simple alert since toast might not be imported yet
+        alert("You don't have enough AI tokens. Rendering requires 5 tokens. Please upgrade your plan.");
+        return;
+      }
+
       const currentFinish = overrideFinish || finish;
       if (overrideFinish) {
         setFinish(overrideFinish);
       }
+      
+      // Inject the source image into layout data if available so the backend can use it
+      const finalLayoutData = rawLayoutData ? { ...rawLayoutData, imageUrl: sourceImage || rawLayoutData.imageUrl } : { imageUrl: sourceImage };
 
       const record = await base44.entities.FloorplanGenerations.create({
         project_name: "Floorplan Render",
-        raw_layout_data: rawLayoutData,
+        raw_layout_data: finalLayoutData,
         ui_style_selection: perspective,
         ui_finish_selection: currentFinish,
         ui_layout_selection: layout,

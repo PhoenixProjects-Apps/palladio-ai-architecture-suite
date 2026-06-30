@@ -45,78 +45,36 @@ Deno.serve(async (req) => {
     // ========================================================
     // PASS 2: Aesthetic Render
     // ========================================================
-    const RENDER_ENGINE_URL = Deno.env.get("RENDER_ENGINE_URL") || "https://api.example-rendering.com/v1/render";
-    const RENDER_ENGINE_API_KEY = Deno.env.get("RENDER_ENGINE_API_KEY") || "";
-
-    const payload = {
-      "generation_id": record.id,
-      "pipeline_stage": "pass_2_aesthetic",
-      "rendering_parameters": {
-        "prompt": record.injected_api_prompt || "High-end marketing layout architectural plan.",
-        "negative_prompt": "blurry, low resolution, warped furniture, floating walls, overlapping doors, distorted perspective, extra rooms, monochrome if photorealistic selected, handwritten notes, text overlays",
-        "aspect_ratio": "4:3",
-        "resolution_width": 2048,
-        "resolution_height": 1536
-      }
-    };
-
-    const maxRetries = 3;
-    let finalError = null;
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        const response = await fetch(RENDER_ENGINE_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${RENDER_ENGINE_API_KEY}`
-          },
-          body: JSON.stringify(payload)
+    const prompt = record.injected_api_prompt || "High-end marketing layout architectural plan.";
+    let existingImageUrls = undefined;
+    
+    // Check if there is an image to base this off. 
+    // The structured data might just be used if we don't have an image, but typically sourceImage is passed.
+    // However, the function gets 'raw_layout_data'.
+    if (record.raw_layout_data && record.raw_layout_data.imageUrl) {
+        existingImageUrls = [record.raw_layout_data.imageUrl];
+    }
+    
+    try {
+        const response = await base44.asServiceRole.integrations.Core.GenerateImage({
+            prompt: prompt,
+            ...(existingImageUrls ? { existing_image_urls: existingImageUrls } : {})
         });
 
-        if (response.ok) {
-          const data = await response.json();
-          // Assuming the external API returns the final asset link via 'image_url'
-          const outputImageUrl = data.image_url || data.url || data.output_image_url;
-
-          await base44.entities.FloorplanGenerations.update(generation_id, {
+        await base44.entities.FloorplanGenerations.update(generation_id, {
             status: 'Completed',
-            output_image_url: outputImageUrl
-          });
+            output_image_url: response.url
+        });
 
-          return Response.json({ 
+        return Response.json({ 
             success: true, 
             status: 'Completed', 
-            output_image_url: outputImageUrl 
-          });
-        }
-
-        // Check for transient errors (e.g., 429 Too Many Requests, 504 Gateway Timeout)
-        if (response.status === 429 || response.status === 504) {
-          await base44.entities.FloorplanGenerations.update(generation_id, { status: 'Error_Retrying' });
-          if (attempt < maxRetries) {
-            await delay(10000); // Wait 10 seconds before next attempt
-            continue;
-          }
-        }
-
-        // Fatal errors (e.g., 400 Bad Request) or exhausted retries
-        finalError = `Render Engine API failed with status: ${response.status}`;
-        break;
-
-      } catch (err) {
-        if (attempt === maxRetries) {
-          finalError = err.message;
-          break;
-        }
-        await base44.entities.FloorplanGenerations.update(generation_id, { status: 'Error_Retrying' });
-        await delay(10000); // 10 seconds spacing
-      }
+            output_image_url: response.url 
+        });
+    } catch (err) {
+        await base44.entities.FloorplanGenerations.update(generation_id, { status: 'Failed' });
+        return Response.json({ error: 'Pass 2 Aesthetic Render Failed', details: err.message }, { status: 400 });
     }
-
-    // If we escape the loop without a successful return, it's a failure
-    await base44.entities.FloorplanGenerations.update(generation_id, { status: 'Failed' });
-    return Response.json({ error: 'Pass 2 Aesthetic Render Failed', details: finalError }, { status: 400 });
 
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
