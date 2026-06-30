@@ -15,6 +15,7 @@ import Contact from './pages/Contact';
 import AgentBible from './pages/AgentBible';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
+import Floorplan3D from './pages/Floorplan3D';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -111,6 +112,7 @@ const AuthenticatedApp = () => {
       <Route path="/AgentBible" element={<LayoutWrapper currentPageName="AgentBible"><AnimatedRouteWrapper><AgentBible /></AnimatedRouteWrapper></LayoutWrapper>} />
       <Route path="/PrivacyPolicy" element={<LayoutWrapper currentPageName="PrivacyPolicy"><AnimatedRouteWrapper><PrivacyPolicy /></AnimatedRouteWrapper></LayoutWrapper>} />
       <Route path="/TermsOfService" element={<LayoutWrapper currentPageName="TermsOfService"><AnimatedRouteWrapper><TermsOfService /></AnimatedRouteWrapper></LayoutWrapper>} />
+      <Route path="/Floorplan3D" element={<LayoutWrapper currentPageName="Floorplan3D"><AnimatedRouteWrapper><Floorplan3D /></AnimatedRouteWrapper></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
     </AnimatePresence>

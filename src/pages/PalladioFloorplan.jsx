@@ -156,12 +156,12 @@ export default function PalladioFloorplan() {
 
                             Sketch to Floorplan
                         </button>
-                        <button
-              onClick={() => setTab('model3d')}
-              className={`w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${tab === 'model3d' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
+                        <Link
+              to="/Floorplan3D" state={{ layoutData: textResult?.layoutData || sketchResult }}
+              className={`w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white flex items-center justify-center`}>
 
                             3D Floorplan Renderer
-                        </button>
+                        </Link>
                     </div>
 
                     {tab === 'text' &&
@@ -217,12 +217,13 @@ export default function PalladioFloorplan() {
                                             </div>
                 }
                                         <div className="flex flex-col sm:flex-row gap-3">
-                                            <Button
-                    onClick={() => setTab('model3d')}
-                    className="w-full sm:flex-1 bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl shadow-lg shadow-cyan-500/20">
-                    
-                                                <Box size={18} className="mr-2" /> 3D Floorplan Renderer
-                                            </Button>
+                                            <Link to="/Floorplan3D" state={{ layoutData: textResult?.layoutData }} className="w-full sm:flex-1">
+                                              <Button
+                      className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl shadow-lg shadow-cyan-500/20">
+                      
+                                                  <Box size={18} className="mr-2" /> 3D Floorplan Renderer
+                                              </Button>
+                                            </Link>
                                             <SaveToProject
                     fileUrl={textResult.image}
                     fileName="floorplan.png"
@@ -299,12 +300,13 @@ export default function PalladioFloorplan() {
                                         <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-lg p-4">
                                             <img src={sketchResult} alt="Generated Floorplan" className="w-full rounded-lg" />
                                         </div>
-                                        <Button
-                                        onClick={() => setTab('model3d')}
-                                        className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl shadow-lg shadow-cyan-500/20">
+                                        <Link to="/Floorplan3D" state={{ layoutData: sketchResult }} className="w-full">
+                                          <Button
+                                          className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl shadow-lg shadow-cyan-500/20">
 
-                                                <Box size={18} className="mr-2" /> 3D Floorplan Renderer
-                                            </Button>
+                                                  <Box size={18} className="mr-2" /> 3D Floorplan Renderer
+                                              </Button>
+                                        </Link>
                                         <div className="flex flex-col sm:flex-row gap-3">
                                             <a
                                         href={sketchResult}
@@ -337,12 +339,7 @@ export default function PalladioFloorplan() {
                         </div>
           }
 
-                    {tab === 'model3d' &&
-          <Floorplan3DRenderer
-            floorplanImage={textResult.image || sketchResult}
-            onRequireFloorplan={() => setTab('text')}
-          />
-          }
+
                 </div>
             </div>
         </PalladioGate>);
