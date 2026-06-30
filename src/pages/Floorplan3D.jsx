@@ -110,37 +110,17 @@ export default function Floorplan3D() {
         /* Mobile CSS Overrides (Screens smaller than 768px) */
         @media (max-width: 767px) {
           .b44-sidebar-generator {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100vw;
+            width: 100%;
             height: auto;
-            max-height: 70vh;
             background: #0d0f12;
             border-right: none;
             border-top: 1px solid #1f242c;
-            border-radius: 20px 20px 0 0;
-            padding: 16px 20px 120px 20px; /* Extra bottom padding for mobile nav */
-            box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.5);
-            overflow-y: auto;
-            z-index: 40;
+            padding: 24px 20px 120px 20px; /* Extra bottom padding for mobile nav */
+            box-shadow: none;
           }
           
           .b44-main-content {
-            justify-content: flex-start !important;
-            padding-top: 40px !important;
-            padding-bottom: 75vh !important;
-          }
-
-          /* Add visual native indicator bar top of mobile drawer */
-          .b44-sidebar-generator::before {
-            content: "";
-            width: 36px;
-            height: 4px;
-            background: #2a313d;
-            border-radius: 2px;
-            margin: -4px auto 16px auto;
-            display: block;
+            padding-bottom: 32px !important;
           }
 
           .b44-sidebar-title {
@@ -162,9 +142,9 @@ export default function Floorplan3D() {
         }
       `}} />
 
-      <div className="flex flex-col md:flex-row min-h-[calc(100vh-64px)] bg-[#0a0a14] overflow-hidden relative">
+      <div className="flex flex-col md:flex-row min-h-[calc(100vh-64px)] bg-[#0a0a14] overflow-y-auto md:overflow-hidden relative">
         {/* Sidebar */}
-        <div className="b44-sidebar-generator">
+        <div className="b44-sidebar-generator order-2 md:order-1">
           <div className="b44-sidebar-title">
             <Link to="/PalladioFloorplan" className="text-white hover:text-cyan-400 mr-2 flex items-center justify-center p-1 rounded hover:bg-white/10 transition-colors">
               <ArrowLeft size={18} />
@@ -220,7 +200,7 @@ export default function Floorplan3D() {
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col items-center justify-center p-6 relative overflow-y-auto b44-main-content">
+        <div className="flex-1 flex flex-col items-center justify-center p-6 relative overflow-y-auto b44-main-content order-1 md:order-2">
           {outputImageUrl ? (
             <div className="flex flex-col items-center justify-center gap-4 w-full max-w-4xl animate-in fade-in zoom-in duration-500">
               <img src={outputImageUrl} alt="Generated Floorplan" className="w-full h-auto object-contain rounded-xl shadow-2xl border border-white/10 max-h-[80vh]" />
