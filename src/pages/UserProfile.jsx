@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Mail, CreditCard, LogOut, Loader2, User, ShieldAlert, Camera, Trash2 } from 'lucide-react';
+import { ArrowLeft, Mail, CreditCard, LogOut, Loader2, User, ShieldAlert, Camera, Trash2, FileText, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { base44 } from '@/api/base44Client';
@@ -191,8 +191,8 @@ export default function UserProfile() {
           {user?.role === 'admin' && (
             <div className="border-t border-white/10 pt-6 pb-2">
               <h3 className="text-xs sm:text-sm font-medium text-slate-400 uppercase tracking-wider mb-4">Administration</h3>
-              <Link to={createPageUrl('Admin')}>
-                <Button className="w-full sm:w-auto bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/20 h-11">
+              <Link to={createPageUrl('Admin')} className="block">
+                <Button className="w-full bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/20 h-11">
                   <ShieldAlert size={18} className="mr-2" />
                   Admin Dashboard
                 </Button>
@@ -200,11 +200,25 @@ export default function UserProfile() {
             </div>
           )}
 
-          <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row gap-4">
+          <div className="border-t border-white/10 pt-6 flex flex-col gap-4">
+            <Link to={createPageUrl('PrivacyPolicy')} className="block">
+              <Button variant="outline" className="w-full bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white h-11">
+                <Shield size={18} className="mr-2" />
+                Privacy Policy
+              </Button>
+            </Link>
+            
+            <Link to={createPageUrl('TermsOfService')} className="block">
+              <Button variant="outline" className="w-full bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white h-11">
+                <FileText size={18} className="mr-2" />
+                Terms of Service
+              </Button>
+            </Link>
+
             <Button 
               onClick={handleLogout}
               variant="outline" 
-              className="w-full sm:w-auto bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white h-11"
+              className="w-full bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white h-11"
             >
               <LogOut size={18} className="mr-2" />
               Sign Out
@@ -213,7 +227,7 @@ export default function UserProfile() {
             <Button 
               onClick={() => setIsDeleteDialogOpen(true)}
               variant="destructive" 
-              className="w-full sm:w-auto bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 h-11 ml-auto"
+              className="w-full bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 h-11"
             >
               <Trash2 size={18} className="mr-2" />
               Delete Account
