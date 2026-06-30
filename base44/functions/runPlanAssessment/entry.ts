@@ -80,13 +80,18 @@ If the attached file is clearly not a development layout or architectural sheet 
       required: ["project_info", "plan_type", "overall_score", "overview", "spatial_analysis", "design_observations", "compliance_flags", "recommendations"]
     };
 
-    const reply = await base44.integrations.Core.InvokeLLM({
-      prompt: instruction,
-      file_urls: [fileUrl],
-      response_json_schema: responseSchema
+    const jsonPrompt = instruction + `\n\nCRITICAL: Return ONLY valid JSON matching this schema: ${JSON.stringify(responseSchema)}`;
+
+    const responseData = await base44.functions.invoke('superagentInvoke', {
+      input: jsonPrompt,
+      fileUrls: [fileUrl]
     });
 
-    return Response.json({ output: reply }, { status: 200 });
+    if (responseData.data?.error) {
+      throw new Error(responseData.data.error);
+    }
+
+    return Response.json({ output: responseData.data?.output || "" }, { status: 200 });
   } catch (error) {
     console.error("runPlanAssessment error:", error);
     return Response.json({ error: "Internal Assessment Engine Exception" }, { status: 500 });

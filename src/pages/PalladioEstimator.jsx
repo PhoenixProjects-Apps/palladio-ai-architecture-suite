@@ -19,6 +19,16 @@ const SITE_DIFFICULTY_RATES = {
   'Extreme / Restricted Access': 30
 };
 
+function extractJson(text) {
+  try {
+    const jsonMatch = text.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+    if (jsonMatch) return JSON.parse(jsonMatch[0]);
+    return JSON.parse(text);
+  } catch (e) {
+    return null;
+  }
+}
+
 const CITY_OPTIONS = {
   'NSW': ['Sydney City', 'Outer Suburbs', 'Regional'],
   'VIC': ['Melbourne City', 'Outer Suburbs', 'Regional'],
@@ -214,12 +224,13 @@ export default function PalladioEstimator() {
         }
       };
 
-      const res = await base44.integrations.Core.InvokeLLM({
-        prompt: prompt,
-        file_urls: [fileUrl],
-        model: "gemini_3_1_pro",
-        response_json_schema: responseSchema
+      const jsonPrompt = prompt + `\n\nCRITICAL: Return ONLY valid JSON matching this schema: ${JSON.stringify(responseSchema)}`;
+      const resData = await base44.functions.invoke('superagentInvoke', {
+        input: jsonPrompt,
+        fileUrls: [fileUrl]
       });
+      const rawContent = resData.data?.output || "";
+      const res = extractJson(rawContent);
 
       if (res) {
         if (res.floorArea) setFloorArea(String(res.floorArea));
@@ -352,11 +363,13 @@ INSTRUCTIONS:
         required: ["line_items", "subtotal", "scaffolding_included", "site_difficulty_markup_cost", "grand_total", "assumptions"]
       };
 
-      const res = await base44.integrations.Core.InvokeLLM({
-        prompt: prompt,
-        file_urls: [fileUrl],
-        response_json_schema: responseSchema
+      const jsonPrompt = prompt + `\n\nCRITICAL: Return ONLY valid JSON matching this schema: ${JSON.stringify(responseSchema)}`;
+      const resData = await base44.functions.invoke('superagentInvoke', {
+        input: jsonPrompt,
+        fileUrls: [fileUrl]
       });
+      const rawContent = resData.data?.output || "";
+      const res = extractJson(rawContent) || { line_items: [], subtotal: 0, scaffolding_included: false, site_difficulty_markup_cost: 0, grand_total: 0, assumptions: [] };
 
       setResult(res);
 

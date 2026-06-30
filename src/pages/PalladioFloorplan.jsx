@@ -14,6 +14,16 @@ import Floorplan3DRenderer from '../components/Floorplan3DRenderer';
 import { toast } from 'sonner';
 import BrandedExportModal from '../components/BrandedExportModal';
 
+function extractJson(text) {
+  try {
+    const jsonMatch = text.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+    if (jsonMatch) return JSON.parse(jsonMatch[0]);
+    return JSON.parse(text);
+  } catch (e) {
+    return null;
+  }
+}
+
 export default function PalladioFloorplan() {
   const [tab, setTab] = useState('text'); // 'text' or 'cad'
   const [selectedProject, setSelectedProject] = useState(null);
@@ -69,11 +79,18 @@ export default function PalladioFloorplan() {
         required: ["rooms"]
       };
 
-      const [layoutRes, imageRes, structuredRes] = await Promise.all([
-      base44.integrations.Core.InvokeLLM({ prompt: layoutPrompt }),
+      const layoutPromptFull = layoutPrompt + " CRITICAL: Ensure you include an entry door and clear entrance area.";
+      const structuredPromptFull = structuredPrompt + `\n\nCRITICAL: Return ONLY valid JSON matching this schema: ${JSON.stringify(layoutSchema)}. MUST include an entry door space.`;
+
+      const [layoutResData, imageRes, structuredResData] = await Promise.all([
+      base44.functions.invoke('superagentInvoke', { input: layoutPromptFull }),
       base44.integrations.Core.GenerateImage({ prompt: imagePrompt }),
-      base44.integrations.Core.InvokeLLM({ prompt: structuredPrompt, response_json_schema: layoutSchema })]
+      base44.functions.invoke('superagentInvoke', { input: structuredPromptFull })]
       );
+
+      const layoutRes = layoutResData.data?.output || "";
+      const rawStruct = structuredResData.data?.output || "";
+      const structuredRes = extractJson(rawStruct) || { rooms: [] };
 
       setTextResult({ layout: layoutRes, image: imageRes.url, layoutData: structuredRes });
     } catch (err) {

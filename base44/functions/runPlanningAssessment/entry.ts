@@ -55,12 +55,17 @@ Known property context:
       required: ["verdict", "verdict_reason", "zoning_assessment", "planning_controls", "overlays", "issues", "neighbour_impact", "application_requirements", "recommendations", "red_flags", "disclaimer"]
     };
 
-    const response = await base44.integrations.Core.InvokeLLM({
-      prompt,
-      response_json_schema: responseSchema
+    const jsonPrompt = prompt + `\n\nCRITICAL: Return ONLY valid JSON matching this schema: ${JSON.stringify(responseSchema)}`;
+
+    const responseData = await base44.functions.invoke('superagentInvoke', {
+      input: jsonPrompt
     });
 
-    return Response.json({ output: response }, { status: 200 });
+    if (responseData.data?.error) {
+      throw new Error(responseData.data.error);
+    }
+
+    return Response.json({ output: responseData.data?.output || "" }, { status: 200 });
   } catch (error) {
     console.error("runPlanningAssessment error:", error);
     return Response.json({ error: "Internal Assessment Engine Exception" }, { status: 500 });
