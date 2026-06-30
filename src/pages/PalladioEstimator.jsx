@@ -380,7 +380,7 @@ INSTRUCTIONS:
   };
 
   return (
-    <div className="min-h-screen bg-[#0f1117] text-white p-6 pb-12">
+    <div className="min-h-screen bg-[#0f1117] text-white p-4 sm:p-6 pb-8">
         <div className="max-w-6xl mx-auto space-y-6">
             <div className="flex flex-col gap-4 border-b border-slate-800 pb-4">
                     <header className="flex items-center gap-4 border-b border-white/10 mb-1">

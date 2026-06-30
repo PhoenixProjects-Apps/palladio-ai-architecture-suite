@@ -47,11 +47,13 @@ export default function Layout({ children }) {
         .prose-invert blockquote { border-left: 4px solid #374151; padding-left: 1rem; color: #9ca3af; font-style: italic; margin: 1rem 0; }
       `}</style>
       <Sidebar isMobileOpen={isMobileOpen} setIsMobileOpen={setIsMobileOpen} />
-      <main ref={mainRef} onScroll={handleScroll} className="flex-1 overflow-y-auto overflow-x-hidden h-full relative pb-16 md:pb-0">
+      <main ref={mainRef} onScroll={handleScroll} className="flex-1 overflow-y-auto overflow-x-hidden h-full relative md:pb-0">
         <div className="sticky top-0 z-50 flex items-center p-4 bg-[#0f1117] border-b border-white/5">
           <UserHeader setIsMobileOpen={setIsMobileOpen} />
         </div>
         {children}
+        {/* Mobile spacing to ensure content isn't hidden behind the fixed bottom nav */}
+        <div className="h-24 md:hidden pb-[env(safe-area-inset-bottom)]"></div>
       </main>
       <MobileBottomNav />
       <Toaster theme="dark" position="bottom-right" />

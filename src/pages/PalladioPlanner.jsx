@@ -238,7 +238,7 @@ Return a valid JSON object matching this structure:
 
   return (
     <PalladioGate>
-            <div className="min-h-screen bg-[#0f1117] text-white p-6 pb-20">
+            <div className="min-h-screen bg-[#0f1117] text-white p-4 sm:p-6 pb-8">
                 <div className="max-w-4xl mx-auto">
                     <header className="flex items-center gap-4 mb-8 border-b border-white/10 pb-4">
                     <Link to={createPageUrl('Home')}>
