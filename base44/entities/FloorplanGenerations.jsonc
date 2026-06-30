@@ -1,0 +1,74 @@
+{
+  "name": "FloorplanGenerations",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "project_name": {
+      "type": "string"
+    },
+    "raw_layout_data": {
+      "type": "object"
+    },
+    "ui_style_selection": {
+      "type": "string",
+      "enum": [
+        "Isometric",
+        "Top-Down",
+        "Cut-Away"
+      ]
+    },
+    "ui_finish_selection": {
+      "type": "string",
+      "enum": [
+        "Photorealistic",
+        "Clay Model"
+      ]
+    },
+    "ui_layout_selection": {
+      "type": "string",
+      "enum": [
+        "Standard 3D",
+        "Hybrid 2D/3D"
+      ]
+    },
+    "injected_api_prompt": {
+      "type": "string",
+      "maxLength": 5000
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Structure_Passed",
+        "Aesthetic_Rendering",
+        "Error_Retrying",
+        "Failed",
+        "Completed"
+      ],
+      "default": "Draft"
+    },
+    "output_image_url": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_name",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}
