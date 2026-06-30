@@ -216,11 +216,11 @@ export default function Projects() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             {/* Assets Section */}
                             <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-                                <div className="flex items-center justify-between mb-3">
-                                    <h2 className="text-xl font-semibold flex items-center gap-2">
-                                        <File className="text-cyan-400" size={20} /> Project Files
+                                <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                                    <h2 className="text-xl font-semibold flex items-center gap-2 min-w-[150px]">
+                                        <File className="text-cyan-400 shrink-0" size={20} /> Project Files
                                     </h2>
-                                    <div>
+                                    <div className="shrink-0">
                                         <input type="file" id="file-upload" className="hidden" onChange={handleUploadFile} disabled={isUploading} />
                                         <label htmlFor="file-upload" className="cursor-pointer bg-slate-800 hover:bg-slate-700 text-sm font-medium px-4 py-2 rounded-lg transition flex items-center gap-2">
                                             {isUploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
@@ -264,12 +264,12 @@ export default function Projects() {
 
                             {/* Chats Section */}
                             <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h2 className="text-xl font-semibold flex items-center gap-2">
-                                        <MessageSquare className="text-indigo-400" size={20} /> AI Discussions
+                                <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+                                    <h2 className="text-xl font-semibold flex items-center gap-2 min-w-[150px]">
+                                        <MessageSquare className="text-indigo-400 shrink-0" size={20} /> AI Discussions
                                     </h2>
-                                    <Button onClick={handleNewChat} variant="outline" size="sm" className="bg-slate-800 border-slate-700 hover:bg-slate-700 text-white">
-                                        <Plus size={16} className="mr-2" /> New Chat
+                                    <Button onClick={handleNewChat} variant="outline" size="sm" className="bg-slate-800 border-slate-700 hover:bg-slate-700 text-white shrink-0">
+                                        <Plus size={16} className="mr-2 shrink-0" /> New Chat
                                     </Button>
                                 </div>
                                 

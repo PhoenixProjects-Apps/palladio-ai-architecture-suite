@@ -123,17 +123,17 @@ export default function PalladioFloorplan() {
     <PalladioGate>
             <div className="min-h-screen bg-[#0f1117] text-white p-4 sm:p-6 pb-12 sm:pb-24">
                 <div className="max-w-5xl mx-auto">
-                    <header className="flex items-center gap-4 mb-8 border-b border-white/10 pb-4">
-                    <Link to={createPageUrl('Home')}>
-                        <Button variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
-                            <ArrowLeft size={20} />
-                        </Button>
-                    </Link>
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center shadow-lg">
+                    <header className="flex flex-wrap items-center gap-3 sm:gap-4 mb-8 border-b border-white/10 pb-4">
+                        <Link to={createPageUrl('Home')} className="shrink-0">
+                            <Button variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
+                                <ArrowLeft size={20} />
+                            </Button>
+                        </Link>
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center shadow-lg shrink-0">
                             <Layers size={20} />
                         </div>
-                        <h1 className="font-bold text-xl">Generate Floorplans</h1>
-                        <div className="ml-auto">
+                        <h1 className="font-bold text-lg sm:text-xl flex-1 min-w-[150px] whitespace-nowrap overflow-hidden text-ellipsis">Floorplans</h1>
+                        <div className="ml-auto shrink-0">
                             <ChooseProject
                                 selected={selectedProject}
                                 onSelect={setSelectedProject}
