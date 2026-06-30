@@ -20,13 +20,15 @@ const SITE_DIFFICULTY_RATES = {
 };
 
 function extractJson(text) {
-  try {
-    const jsonMatch = text.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
-    if (jsonMatch) return JSON.parse(jsonMatch[0]);
-    return JSON.parse(text);
-  } catch (e) {
-    return null;
+  if (!text) return null;
+  let s = String(text).trim().replace(/```json/gi, '').replace(/```/g, '').trim();
+  try { return JSON.parse(s); } catch (_) {}
+  const start = s.indexOf('{');
+  const end = s.lastIndexOf('}');
+  if (start !== -1 && end !== -1 && end > start) {
+    try { return JSON.parse(s.slice(start, end + 1)); } catch (_) {}
   }
+  return null;
 }
 
 const CITY_OPTIONS = {
@@ -266,10 +268,22 @@ export default function PalladioEstimator() {
 
     setIsUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: selectedFile });
-      setFileUrl(file_url);
+      const fileBase64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(selectedFile);
+      });
+      const res = await base44.functions.invoke('uploadPlanFile', {
+        fileName: selectedFile.name,
+        fileType: selectedFile.type,
+        fileBase64
+      });
+      const url = res.data?.file_url;
+      if (!url) throw new Error(res.data?.error || 'Upload failed');
+      setFileUrl(url);
     } catch (err) {
-      toast.error('Failed to upload file');
+      toast.error('Failed to upload file. ' + (err.message || ''));
     } finally {
       setIsUploading(false);
     }

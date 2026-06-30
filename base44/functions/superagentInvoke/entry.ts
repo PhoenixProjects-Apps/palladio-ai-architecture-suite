@@ -103,8 +103,8 @@ Deno.serve(async (req) => {
     }
 
     // The assistant reply is generated asynchronously — poll until it appears.
-    for (let i = 0; i < 25 && !reply; i++) {
-      await new Promise((res) => setTimeout(res, 1500));
+    for (let i = 0; i < 60 && !reply; i++) {
+      await new Promise((res) => setTimeout(res, 2000));
       const msgs = await fetch(`${baseUrl}/conversations/${conversationId}/messages`, { headers })
         .then((r) => (r.ok ? r.json() : null))
         .catch(() => null);

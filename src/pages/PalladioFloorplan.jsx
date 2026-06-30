@@ -15,13 +15,15 @@ import { toast } from 'sonner';
 import BrandedExportModal from '../components/BrandedExportModal';
 
 function extractJson(text) {
-  try {
-    const jsonMatch = text.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
-    if (jsonMatch) return JSON.parse(jsonMatch[0]);
-    return JSON.parse(text);
-  } catch (e) {
-    return null;
+  if (!text) return null;
+  let s = String(text).trim().replace(/```json/gi, '').replace(/```/g, '').trim();
+  try { return JSON.parse(s); } catch (_) {}
+  const start = s.indexOf('{');
+  const end = s.lastIndexOf('}');
+  if (start !== -1 && end !== -1 && end > start) {
+    try { return JSON.parse(s.slice(start, end + 1)); } catch (_) {}
   }
+  return null;
 }
 
 export default function PalladioFloorplan() {

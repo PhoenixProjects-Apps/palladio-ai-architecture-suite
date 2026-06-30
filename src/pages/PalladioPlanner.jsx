@@ -152,16 +152,10 @@ Return a valid JSON object matching this structure:
         setIsAnalyzing(false);
         return;
       }
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 120000);
-      const response = await base44.functions.fetch('/runPlanningAssessment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address, devType: selectedType, description, propertyData }),
-        signal: controller.signal,
+      const response = await base44.functions.invoke('runPlanningAssessment', {
+        address, devType: selectedType, description, propertyData
       });
-      clearTimeout(timeoutId);
-      const data = await response.json();
+      const data = response.data;
       if (data?.error) throw new Error(data.error);
       const rawContent = data?.output || '';
       if (!rawContent) throw new Error('No assessment was returned by the superagent.');
@@ -195,7 +189,19 @@ Return a valid JSON object matching this structure:
         setIsAnalyzingDoc(false);
         return;
       }
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: docFile });
+      const fileBase64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(docFile);
+      });
+      const resFile = await base44.functions.invoke('uploadPlanFile', {
+        fileName: docFile.name,
+        fileType: docFile.type,
+        fileBase64
+      });
+      const file_url = resFile.data?.file_url;
+      if (!file_url) throw new Error('Upload failed');
       setIsUploading(false);
 
       const prompt = `Analyze this uploaded planning document (e.g. council report, property title, scheme code). 
@@ -207,20 +213,25 @@ Return a valid JSON object matching this structure:
     "compliance_issues": ["Potential issue 1", "Potential issue 2"],
     "requirements": ["Requirement 1", "Requirement 2"]
 }`;
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt,
-        file_urls: [file_url],
-        response_json_schema: {
-          type: "object",
-          properties: {
-            summary: { type: "string" },
-            key_information: { type: "array", items: { type: "string" } },
-            compliance_issues: { type: "array", items: { type: "string" } },
-            requirements: { type: "array", items: { type: "string" } }
-          }
+      const responseSchema = {
+        type: "object",
+        properties: {
+          summary: { type: "string" },
+          key_information: { type: "array", items: { type: "string" } },
+          compliance_issues: { type: "array", items: { type: "string" } },
+          requirements: { type: "array", items: { type: "string" } }
         }
+      };
+      
+      const jsonPrompt = prompt + `\n\nCRITICAL: Return ONLY valid JSON matching this schema: ${JSON.stringify(responseSchema)}`;
+      const resData = await base44.functions.invoke('superagentInvoke', {
+        input: jsonPrompt,
+        fileUrls: [file_url]
       });
-      setDocResult(response);
+      const rawContent = resData.data?.output || "";
+      const finalResult = extractJson(rawContent) || rawContent;
+      
+      setDocResult(finalResult);
     } catch (err) {
       console.error(err);
     } finally {
