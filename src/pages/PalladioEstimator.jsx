@@ -565,9 +565,9 @@ INSTRUCTIONS:
                   previewUrl ?
                   <img src={previewUrl} alt="preview" className="mx-auto rounded-lg object-contain max-h-[140px]" /> :
                   file && !previewUrl ?
-                  <div className="flex flex-col items-center gap-2 w-full px-4 overflow-hidden">
+                  <div className="flex flex-col items-center gap-2 w-full px-2">
                                         <FileText size={24} className="text-blue-500 shrink-0" />
-                                        <p className="text-white text-xs font-medium truncate w-full text-center">{file.name}</p>
+                                        <p className="text-white text-xs font-medium break-all whitespace-normal text-center max-w-full">{file.name}</p>
                                     </div> :
 
                   <div className="flex flex-col items-center gap-2">
