@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Upload, Loader2, Calculator, Database, FileText, DollarSign, Download, Eye, Sparkles } from 'lucide-react';
+import { ArrowLeft, Upload, Loader2, Calculator, Database, FileText, DollarSign, Download, Eye, Sparkles, Presentation } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
@@ -96,6 +96,7 @@ export default function PalladioEstimator() {
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
+  const [isGeneratingPresentation, setIsGeneratingPresentation] = useState(false);
 
   const [state, setState] = useState('QLD');
   const [city, setCity] = useState('Gold Coast');
@@ -365,8 +366,8 @@ INSTRUCTIONS:
       const wallLen = parseFloat(externalWallLength) || (Math.sqrt(parseFloat(floorArea) || 0) * 4);
       const gutterLength = wallLen * 1.3;
       const gutterCost = gutterLength * 45;
-      const designFees = subtotal * 0.05 * regionalMult;
-      const engineeringFees = subtotal * 0.015 * regionalMult;
+      const designFees = subtotal * 0.015 * regionalMult;
+      const engineeringFees = subtotal * 0.02 * regionalMult;
       const councilFees = councilBase * regionalMult;
       const needsScaffolding = parseInt(storeys) >= 2;
       const scaffoldingCost = needsScaffolding ? subtotal * 0.02 : 0;
@@ -410,14 +411,44 @@ INSTRUCTIONS:
     if (silentCosts) {
       text += `\n## Additional Costs (Auto-Calculated)\n\n`;
       text += `- Gutter & Fascia (${silentCosts.gutterLength.toFixed(1)} m): ${formatCurrency(silentCosts.gutter)}\n`;
-      text += `- Design & Drafting Fees (5%): ${formatCurrency(silentCosts.design)}\n`;
-      text += `- Engineering Fees (1.5%): ${formatCurrency(silentCosts.engineering)}\n`;
-      text += `- Council Fees (${state}): ${formatCurrency(silentCosts.council)}\n`;
+      text += `- Design & Drafting Fees (1.5%): ${formatCurrency(silentCosts.design)}\n`;
+      text += `- Engineering Fees (2%): ${formatCurrency(silentCosts.engineering)}\n`;
+      text += `- Approval Fees (${state}): ${formatCurrency(silentCosts.council)}\n`;
       if (silentCosts.scaffolding > 0) text += `- Scaffolding (2+ storeys): ${formatCurrency(silentCosts.scaffolding)}\n`;
       text += `\n**Additional Costs Total:** ${formatCurrency(silentCosts.total)}\n`;
       text += `**Revised Grand Total:** ${formatCurrency(result.grand_total + silentCosts.total)}\n`;
     }
     return text;
+  };
+
+  const handleGeneratePresentation = async () => {
+    if (!result) return;
+    setIsGeneratingPresentation(true);
+    try {
+      const presentationData = {
+        total_cost: formatCurrency(result.grand_total + (silentCosts?.total || 0)),
+        address: `${city}, ${state}`,
+        floor_area: floorArea,
+        roof_area: roofArea,
+        bedrooms: 'TBA',
+        bathrooms: 'TBA',
+        living_areas: 'TBA',
+      };
+      
+      const res = await base44.functions.invoke('generatePresentation', { presentation_data: presentationData });
+      
+      if (res.data?.url) {
+        toast.success("Presentation generated successfully!");
+        window.open(res.data.url, '_blank');
+      } else {
+        throw new Error(res.data?.error || "Unknown error");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to generate presentation');
+    } finally {
+      setIsGeneratingPresentation(false);
+    }
   };
 
   const handleDownload = () => {
@@ -559,14 +590,6 @@ INSTRUCTIONS:
                                   {isExtracting ? <><Loader2 className="animate-spin mr-2" size={18} /> Extracting Quantities...</> : <><Sparkles className="mr-2" size={18} /> Auto-Extract Quantities</>}
                                 </Button>
                             )}
-
-                            <Button
-                  onClick={handleAnalyze}
-                  disabled={!fileUrl || isAnalyzing || isExtracting}
-                  className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white h-11">
-                  
-                                {isAnalyzing ? <><Loader2 className="animate-spin mr-2" size={18} /> Analyzing...</> : <><Calculator className="mr-2" size={18} /> Generate Estimate</>}
-                            </Button>
                         </CardContent>
                     </Card>
 
@@ -689,6 +712,12 @@ INSTRUCTIONS:
                         </CardContent>
                     </Card>
 
+                    <Button
+                      onClick={handleAnalyze}
+                      disabled={!fileUrl || isAnalyzing || isExtracting}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white h-14 text-lg font-semibold shadow-lg shadow-blue-900/20">
+                      {isAnalyzing ? <><Loader2 className="animate-spin mr-2" size={24} /> Analyzing Project...</> : <><Calculator className="mr-2" size={24} /> Generate Estimate</>}
+                    </Button>
                 </div>
 
                 <div className="lg:col-span-2 min-w-0 overflow-hidden">
@@ -717,6 +746,14 @@ INSTRUCTIONS:
                                     />
                                     <Button variant="outline" size="sm" onClick={handleDownload} className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50">
                                         <Download size={16} className="mr-1" /> Download
+                                    </Button>
+                                    <Button 
+                                      variant="secondary" 
+                                      size="sm" 
+                                      onClick={handleGeneratePresentation} 
+                                      disabled={isGeneratingPresentation}
+                                      className="border-blue-700/50 text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 bg-blue-900/20">
+                                        {isGeneratingPresentation ? <><Loader2 size={16} className="mr-1 animate-spin" /> Generating...</> : <><Presentation size={16} className="mr-1" /> Presentation Slide</>}
                                     </Button>
                                 </div>
 
@@ -774,15 +811,15 @@ INSTRUCTIONS:
                                                 <span className="text-sm text-white font-medium">{formatCurrency(silentCosts.gutter)}</span>
                                             </div>
                                             <div className="flex justify-between items-center px-4 py-2.5">
-                                                <span className="text-sm text-slate-300">Design & Drafting Fees (5%)</span>
+                                                <span className="text-sm text-slate-300">Design & Drafting Fees (1.5%)</span>
                                                 <span className="text-sm text-white font-medium">{formatCurrency(silentCosts.design)}</span>
                                             </div>
                                             <div className="flex justify-between items-center px-4 py-2.5">
-                                                <span className="text-sm text-slate-300">Engineering Fees (1.5%)</span>
+                                                <span className="text-sm text-slate-300">Engineering Fees (2%)</span>
                                                 <span className="text-sm text-white font-medium">{formatCurrency(silentCosts.engineering)}</span>
                                             </div>
                                             <div className="flex justify-between items-center px-4 py-2.5">
-                                                <span className="text-sm text-slate-300">Council Fees ({state})</span>
+                                                <span className="text-sm text-slate-300">Approval Fees ({state})</span>
                                                 <span className="text-sm text-white font-medium">{formatCurrency(silentCosts.council)}</span>
                                             </div>
                                             {silentCosts.scaffolding > 0 && (
