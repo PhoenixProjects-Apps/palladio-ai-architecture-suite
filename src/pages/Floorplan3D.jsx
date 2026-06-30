@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link, useLocation } from 'react-router-dom';
-import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Loader2, Box } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PalladioGate from '@/components/PalladioGate';
 
@@ -218,8 +218,9 @@ export default function Floorplan3D() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-4 bg-slate-900/50 p-10 rounded-2xl border border-white/5 border-dashed">
-                  <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 flex items-center justify-center mb-2">
-                    <AlertCircle className="h-8 w-8 text-indigo-400" />
+                  <div className="w-full max-w-[280px] rounded-xl bg-slate-800/50 flex items-center justify-center mb-2 aspect-video overflow-hidden border border-white/5">
+                    {/* Placeholder image resembling a 3D floorplan layout */}
+                    <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=600&auto=format&fit=crop" alt="3D Floorplan preview" className="w-full h-full object-cover opacity-60 mix-blend-luminosity" />
                   </div>
                   <h3 className="text-lg font-medium text-slate-200">Ready to Render</h3>
                   <p className="text-sm text-slate-400 leading-relaxed">
