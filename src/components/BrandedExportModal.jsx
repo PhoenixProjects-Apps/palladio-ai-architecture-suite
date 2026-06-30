@@ -137,7 +137,7 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
 
                   .b44-canvas-floorplan-area {
                     width: 100%;
-                    height: 840px;
+                    height: 800px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -151,40 +151,47 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
 
                   .b44-canvas-title-block {
                     width: 100%;
-                    height: 120px;
-                    padding-top: 24px;
+                    height: 160px;
+                    padding-top: 28px;
                     display: flex;
                     justify-content: space-between;
-                    align-items: center;
+                    align-items: flex-start;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                   }
 
+                  .b44-title-block-meta {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: flex-start;
+                    max-width: 70%;
+                  }
+
                   .b44-title-block-meta h3 {
-                    font-size: 20px;
+                    font-size: 32px;
                     font-weight: 700;
                     color: #111827;
-                    margin: 0 0 6px 0;
+                    margin: 0 0 10px 0;
                     text-transform: uppercase;
-                    letter-spacing: 0.03em;
                   }
 
                   .b44-title-block-meta p {
-                    font-size: 13px;
-                    color: #6b7280;
+                    font-size: 22px;
+                    color: #4b5563;
                     margin: 0;
-                    line-height: 1.4;
+                    line-height: 1.5;
                     white-space: pre-line;
                   }
 
                   .b44-title-block-logo {
-                    height: 64px;
+                    height: 120px;
                     display: flex;
                     align-items: center;
+                    justify-content: flex-end;
                   }
 
                   .b44-title-block-logo img {
-                    max-height: 64px;
-                    max-width: 240px;
+                    max-height: 120px;
+                    max-width: 340px;
                     object-fit: contain;
                   }
 
