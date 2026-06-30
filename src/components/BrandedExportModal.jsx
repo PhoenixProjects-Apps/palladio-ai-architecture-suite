@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { base44 } from '@/api/base44Client';
-import html2canvas from 'html2canvas';
+
 import { Loader2, Download, Upload } from 'lucide-react';
 
 export default function BrandedExportModal({ generationId, imageUrl, triggerButton }) {
@@ -34,7 +34,6 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
   };
 
   const handleExport = async () => {
-    if (!canvasRef.current) return;
     setIsExporting(true);
     try {
       if (generationId) {
@@ -46,20 +45,111 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
         });
       }
 
-      const canvas = await html2canvas(canvasRef.current, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff'
-      });
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 1200;
+      canvas.height = 1080;
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const loadImage = (src) => {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => resolve(img);
+          img.onerror = () => reject(new Error(`Failed to load asset: ${src}`));
+          img.src = src;
+        });
+      };
+
+      if (!imageUrl) {
+        alert("No floorplan image asset found to export. Please generate the plan first.");
+        setIsExporting(false);
+        return;
+      }
       
-      const dataUrl = canvas.toDataURL("image/png");
+      const floorplanImg = await loadImage(imageUrl);
+
+      const maxPlanW = 1120;
+      const maxPlanH = 800;
+      let planW = floorplanImg.width;
+      let planH = floorplanImg.height;
+      const ratio = Math.min(maxPlanW / planW, maxPlanH / planH);
+      
+      planW = planW * ratio;
+      planH = planH * ratio;
+      const planX = 40 + (maxPlanW - planW) / 2;
+      const planY = 40 + (maxPlanH - planH) / 2;
+
+      ctx.drawImage(floorplanImg, planX, planY, planW, planH);
+
+      const accent = accentColor || '#14213d'; 
+      ctx.strokeStyle = accent;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(40, 920);
+      ctx.lineTo(1160, 920);
+      ctx.stroke();
+
+      ctx.fillStyle = '#111827';
+      ctx.font = 'bold 32px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      const titleText = (title || "PROPOSED PROPERTY LAYOUT").toUpperCase();
+      ctx.fillText(titleText, 40, 970);
+
+      ctx.fillStyle = '#4b5563';
+      ctx.font = '22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      const descriptionText = description || "Standard Property Specifications • Structural Layout Plan";
+      const lines = descriptionText.split('\n');
+      let lineY = 1010;
+      lines.forEach((line) => {
+        ctx.fillText(line, 40, lineY);
+        lineY += 32;
+      });
+
+      function drawTextLogoFallback(context) {
+        context.fillStyle = '#9ca3af';
+        context.font = 'bold 24px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+        context.textAlign = 'right';
+        context.fillText('REAL ESTATE STUDIO', 1160, 1010);
+        context.textAlign = 'left';
+      }
+
+      if (logoUrl) {
+        try {
+          const logoImg = await loadImage(logoUrl);
+          const maxLogoW = 340;
+          const maxLogoH = 120;
+          let logoW = logoImg.width;
+          let logoH = logoImg.height;
+          const logoRatio = Math.min(maxLogoW / logoW, maxLogoH / logoH);
+
+          logoW = logoW * logoRatio;
+          logoH = logoH * logoRatio;
+          const logoX = 1160 - logoW;
+          const logoY = 920 + (160 - logoH) / 2;
+
+          ctx.drawImage(logoImg, logoX, logoY, logoW, logoH);
+        } catch (logoError) {
+          console.warn("Logo failed", logoError);
+          drawTextLogoFallback(ctx);
+        }
+      } else {
+        drawTextLogoFallback(ctx);
+      }
+
+      const dataUrl = canvas.toDataURL('image/png', 1.0);
+      const safeName = (title || 'floorplan').toLowerCase().replace(/[^a-z0-9]/g, '-');
       const link = document.createElement('a');
-      link.download = 'branded-floorplan.png';
+      link.download = `marketing-${safeName}.png`;
       link.href = dataUrl;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
+
     } catch (err) {
       console.error(err);
+      alert("An error occurred compiling the high-res layout file. Please try again.");
     } finally {
       setIsExporting(false);
       setOpen(false);
