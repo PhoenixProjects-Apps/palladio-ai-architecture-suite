@@ -520,7 +520,7 @@ INSTRUCTIONS:
                         <CardContent>
                             <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="rounded-xl p-6 text-center cursor-pointer transition-all flex flex-col justify-center items-center min-h-[160px]"
+                  className="rounded-xl p-4 sm:p-6 text-center cursor-pointer transition-all flex flex-col justify-center items-center min-h-[160px] overflow-hidden"
                   style={{
                     border: `2px dashed ${fileUrl ? '#3b82f6' : '#334155'}`,
                     backgroundColor: '#0f172a'
@@ -534,9 +534,9 @@ INSTRUCTIONS:
                   previewUrl ?
                   <img src={previewUrl} alt="preview" className="mx-auto rounded-lg object-contain max-h-[140px]" /> :
                   file && !previewUrl ?
-                  <div className="flex flex-col items-center gap-2">
-                                        <FileText size={24} className="text-blue-500" />
-                                        <p className="text-white text-xs font-medium truncate w-full px-2">{file.name}</p>
+                  <div className="flex flex-col items-center gap-2 w-full px-2">
+                                        <FileText size={24} className="text-blue-500 shrink-0" />
+                                        <p className="text-white text-xs font-medium truncate w-full text-center">{file.name}</p>
                                     </div> :
 
                   <div className="flex flex-col items-center gap-2">
