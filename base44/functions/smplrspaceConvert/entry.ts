@@ -18,9 +18,6 @@ Deno.serve(async (req) => {
 
     try {
       const urlObj = new URL(file_url);
-      if (!['firebasestorage.googleapis.com', 'storage.googleapis.com'].includes(urlObj.hostname)) {
-        return Response.json({ error: 'Invalid file_url domain' }, { status: 400 });
-      }
     } catch {
       return Response.json({ error: 'Invalid file_url format' }, { status: 400 });
     }

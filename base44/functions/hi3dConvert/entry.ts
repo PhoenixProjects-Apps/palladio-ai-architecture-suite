@@ -18,10 +18,6 @@ Deno.serve(async (req) => {
     
     try {
       const urlObj = new URL(file_url);
-      if (!['firebasestorage.googleapis.com', 'storage.googleapis.com'].includes(urlObj.hostname)) {
-        return Response.json({ error: 'Invalid file_url domain' }, { status: 400 });
-      }
-
       // SSRF Mitigation: Resolve DNS and check if IP is private
       const ips = await Deno.resolveDns(urlObj.hostname, "A");
       for (const ip of ips) {
