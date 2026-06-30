@@ -77,8 +77,9 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
       let planH = floorplanImg.height;
       const ratio = Math.min(maxPlanW / planW, maxPlanH / planH);
       
-      planW = planW * ratio;
-      planH = planH * ratio;
+      const zoomScale = 1.45;
+      planW = planW * ratio * zoomScale;
+      planH = planH * ratio * zoomScale;
       const planX = 40 + (maxPlanW - planW) / 2;
       const planY = 40 + (maxPlanH - planH) / 2;
 
@@ -231,12 +232,14 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
                     display: flex;
                     align-items: center;
                     justify-content: center;
+                    overflow: hidden;
                   }
 
                   .b44-canvas-floorplan-area img {
                     max-width: 100%;
                     max-height: 100%;
                     object-fit: contain;
+                    transform: scale(1.45);
                   }
 
                   .b44-canvas-title-block {
