@@ -544,11 +544,11 @@ INSTRUCTIONS:
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-slate-900 border-slate-800">
+                    <Card className="bg-slate-900 border-slate-800 overflow-hidden">
                         <CardHeader>
                             <CardTitle className="text-white text-lg">Upload Plan / Render</CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="overflow-hidden">
                             <div
                   onClick={() => fileInputRef.current?.click()}
                   className="rounded-xl p-4 sm:p-6 text-center cursor-pointer transition-all flex flex-col justify-center items-center min-h-[160px] overflow-hidden w-full min-w-0 max-w-full"
@@ -565,9 +565,9 @@ INSTRUCTIONS:
                   previewUrl ?
                   <img src={previewUrl} alt="preview" className="mx-auto rounded-lg object-contain max-h-[140px]" /> :
                   file && !previewUrl ?
-                  <div className="flex flex-col items-center gap-2 w-full px-2 min-w-0">
+                  <div className="flex flex-col items-center gap-2 w-full px-4 overflow-hidden">
                                         <FileText size={24} className="text-blue-500 shrink-0" />
-                                        <p className="text-white text-xs font-medium truncate w-full max-w-full text-center">{file.name}</p>
+                                        <p className="text-white text-xs font-medium truncate w-full text-center">{file.name}</p>
                                     </div> :
 
                   <div className="flex flex-col items-center gap-2">
