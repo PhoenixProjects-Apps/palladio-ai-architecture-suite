@@ -36,8 +36,17 @@ Deno.serve(async (req) => {
     const countAssistant = (data) => getMessages(data).filter((m) => m.role === "assistant").length;
     const lastAssistant = (data) => {
       const msgs = getMessages(data);
-      for (let i = msgs.length - 1; i >= 0; i--) {
-        if (msgs[i].role === "assistant" && msgs[i].content) return msgs[i].content;
+      if (msgs.length === 0) return null;
+      
+      const lastMsg = msgs[msgs.length - 1];
+      // Only return the content if the very last message in the thread is the assistant's final response
+      if (lastMsg.role === "assistant" && lastMsg.content) {
+        // If the message has tool calls, it's not the final answer (it's mid-step)
+        if (lastMsg.tool_calls && lastMsg.tool_calls.length > 0) return null;
+        // If the message is explicitly marked as still generating, wait
+        if (lastMsg.status && ['pending', 'in_progress', 'running'].includes(lastMsg.status)) return null;
+        
+        return lastMsg.content;
       }
       return null;
     };
