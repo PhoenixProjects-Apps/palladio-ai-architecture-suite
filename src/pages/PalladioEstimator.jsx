@@ -450,6 +450,53 @@ INSTRUCTIONS:
 
                     <Card className="bg-slate-900 border-slate-800">
                         <CardHeader>
+                            <CardTitle className="text-white text-lg">Upload Plan / Render</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="rounded-xl p-6 text-center cursor-pointer transition-all flex flex-col justify-center items-center min-h-[160px]"
+                  style={{
+                    border: `2px dashed ${fileUrl ? '#3b82f6' : '#334155'}`,
+                    backgroundColor: '#0f172a'
+                  }}>
+                  
+                                {isUploading ?
+                  <div className="flex flex-col items-center gap-2">
+                                        <Loader2 size={24} className="animate-spin text-blue-500" />
+                                        <p className="text-gray-400 text-xs">Uploading...</p>
+                                    </div> :
+                  previewUrl ?
+                  <img src={previewUrl} alt="preview" className="mx-auto rounded-lg object-contain max-h-[140px]" /> :
+                  file && !previewUrl ?
+                  <div className="flex flex-col items-center gap-2">
+                                        <FileText size={24} className="text-blue-500" />
+                                        <p className="text-white text-xs font-medium truncate w-full px-2">{file.name}</p>
+                                    </div> :
+
+                  <div className="flex flex-col items-center gap-2">
+                                        <Upload size={24} className="text-slate-500" />
+                                        <div>
+                                            <p className="text-white text-sm font-medium">Upload File</p>
+                                            <p className="text-slate-500 text-[10px] mt-1">Image or PDF plan</p>
+                                        </div>
+                                    </div>
+                  }
+                                <input ref={fileInputRef} type="file" accept="image/*,.pdf" onChange={handleFileSelect} className="hidden" />
+                            </div>
+                            
+                            <Button
+                  onClick={handleAnalyze}
+                  disabled={!fileUrl || isAnalyzing}
+                  className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white h-11">
+                  
+                                {isAnalyzing ? <><Loader2 className="animate-spin mr-2" size={18} /> Analyzing...</> : <><Calculator className="mr-2" size={18} /> Generate Estimate</>}
+                            </Button>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-slate-900 border-slate-800">
+                        <CardHeader>
                             <CardTitle className="text-white text-lg">Quantities/Areas (mm/m)</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -567,52 +614,6 @@ INSTRUCTIONS:
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-slate-900 border-slate-800">
-                        <CardHeader>
-                            <CardTitle className="text-white text-lg">Upload Plan / Render</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="rounded-xl p-6 text-center cursor-pointer transition-all flex flex-col justify-center items-center min-h-[160px]"
-                  style={{
-                    border: `2px dashed ${fileUrl ? '#3b82f6' : '#334155'}`,
-                    backgroundColor: '#0f172a'
-                  }}>
-                  
-                                {isUploading ?
-                  <div className="flex flex-col items-center gap-2">
-                                        <Loader2 size={24} className="animate-spin text-blue-500" />
-                                        <p className="text-gray-400 text-xs">Uploading...</p>
-                                    </div> :
-                  previewUrl ?
-                  <img src={previewUrl} alt="preview" className="mx-auto rounded-lg object-contain max-h-[140px]" /> :
-                  file && !previewUrl ?
-                  <div className="flex flex-col items-center gap-2">
-                                        <FileText size={24} className="text-blue-500" />
-                                        <p className="text-white text-xs font-medium truncate w-full px-2">{file.name}</p>
-                                    </div> :
-
-                  <div className="flex flex-col items-center gap-2">
-                                        <Upload size={24} className="text-slate-500" />
-                                        <div>
-                                            <p className="text-white text-sm font-medium">Upload File</p>
-                                            <p className="text-slate-500 text-[10px] mt-1">Image or PDF plan</p>
-                                        </div>
-                                    </div>
-                  }
-                                <input ref={fileInputRef} type="file" accept="image/*,.pdf" onChange={handleFileSelect} className="hidden" />
-                            </div>
-                            
-                            <Button
-                  onClick={handleAnalyze}
-                  disabled={!fileUrl || isAnalyzing}
-                  className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white h-11">
-                  
-                                {isAnalyzing ? <><Loader2 className="animate-spin mr-2" size={18} /> Analyzing...</> : <><Calculator className="mr-2" size={18} /> Generate Estimate</>}
-                            </Button>
-                        </CardContent>
-                    </Card>
                 </div>
 
                 <div className="lg:col-span-2 min-w-0 overflow-hidden">
