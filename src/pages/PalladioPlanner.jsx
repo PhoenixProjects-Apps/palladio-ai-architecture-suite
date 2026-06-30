@@ -228,6 +228,7 @@ Return a valid JSON object matching this structure:
         input: jsonPrompt,
         fileUrls: [file_url]
       });
+      if (resData.data?.error) throw new Error(resData.data.error);
       const rawContent = resData.data?.output || "";
       const finalResult = extractJson(rawContent) || rawContent;
       

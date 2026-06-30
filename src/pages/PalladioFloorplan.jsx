@@ -90,6 +90,9 @@ export default function PalladioFloorplan() {
       base44.functions.invoke('superagentInvoke', { input: structuredPromptFull })]
       );
 
+      if (layoutResData.data?.error) throw new Error(layoutResData.data.error);
+      if (structuredResData.data?.error) throw new Error(structuredResData.data.error);
+
       const layoutRes = layoutResData.data?.output || "";
       const rawStruct = structuredResData.data?.output || "";
       const structuredRes = extractJson(rawStruct) || { rooms: [] };

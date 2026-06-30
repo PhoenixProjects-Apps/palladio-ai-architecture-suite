@@ -231,6 +231,9 @@ export default function PalladioEstimator() {
         input: jsonPrompt,
         fileUrls: [fileUrl]
       });
+      if (resData.data?.error) {
+        throw new Error(resData.data.error);
+      }
       const rawContent = resData.data?.output || "";
       const res = extractJson(rawContent);
 
@@ -245,10 +248,12 @@ export default function PalladioEstimator() {
         if (res.internalWallLength) setInternalWallLength(String(res.internalWallLength));
         if (res.ceilingHeight) setCeilingHeight(String(res.ceilingHeight));
         toast.success("Quantities auto-extracted from plan!");
+      } else {
+        toast.error("Quantities could not be determined. Check the file or try again.");
       }
     } catch (err) {
       console.error(err);
-      toast.error("Failed to extract quantities.");
+      toast.error("Failed to extract quantities: " + (err.message || 'Error'));
     } finally {
       setIsExtracting(false);
     }
@@ -382,6 +387,9 @@ INSTRUCTIONS:
         input: jsonPrompt,
         fileUrls: [fileUrl]
       });
+      if (resData.data?.error) {
+        throw new Error(resData.data.error);
+      }
       const rawContent = resData.data?.output || "";
       const res = extractJson(rawContent) || { line_items: [], subtotal: 0, scaffolding_included: false, site_difficulty_markup_cost: 0, grand_total: 0, assumptions: [] };
 
