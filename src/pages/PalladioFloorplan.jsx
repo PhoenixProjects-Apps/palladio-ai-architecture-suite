@@ -43,7 +43,7 @@ export default function PalladioFloorplan() {
         return;
       }
       const layoutPrompt = `Act as an architect. Create a detailed layout brief for: ${desc}. Include specific room dimensions (e.g. 4m x 5m) and relationships. The architectural style is ${style}.`;
-      const imagePrompt = `Architectural floorplan blueprint, top-down view, 2D layout, high quality, professional CAD drawing style. Description: ${desc}. Architectural aesthetic: ${style}. Do NOT include any title, heading, date, project name, designer name, watermark, or any text/labels on the drawing — only the floorplan itself with room labels.`;
+      const imagePrompt = `High-end 2D architectural floor plan blueprint, clean crisp vector lines, solid dark navy blue walls, pure white background, minimal vector furniture symbols, clean modern sans-serif typography, crisp room dimensions text labels, professional real estate layout. Architectural floorplan blueprint, top-down view, 2D layout, high quality, professional CAD drawing style. Description: ${desc}. Architectural aesthetic: ${style}. Do NOT include: Photorealistic textures, 3D elements, hand-drawn lines, sketch textures, shadows, gradients, colored floors, messy icons, grid lines, architectural hatching patterns, dark backgrounds, blurry text, title, heading, date, project name, designer name, watermark, or any text/labels on the drawing — only the floorplan itself with room labels.`;
       const structuredPrompt = `You are an architect designing a 2D floorplan layout. Based on this description: "${desc}", create a layout with rooms placed on a coordinate grid. "x" is the horizontal axis (width direction) and "z" is the depth axis. The x and z values represent the CENTER of each room in meters. The origin (0,0) is the center of the house. Rooms must NOT overlap and should be arranged in a realistic, coherent layout with adjacent rooms sharing walls where appropriate. Each room's "width" spans the x-axis and "depth" spans the z-axis, both in meters. Architectural style: ${style}.`;
 
       const layoutSchema = {
@@ -104,7 +104,7 @@ export default function PalladioFloorplan() {
         setIsGeneratingSketch(false);
         return;
       }
-      const imagePrompt = `A neat, professional, coloured 2D architectural floorplan with dimensions and furniture, top-down view, high quality. The layout should match the provided sketch perfectly. Architectural aesthetic: ${style}. Do NOT include any title, heading, date, project name, designer name, watermark, or any text/labels on the drawing — only the floorplan itself with room labels.`;
+      const imagePrompt = `High-end 2D architectural floor plan blueprint, clean crisp vector lines, solid dark navy blue walls, pure white background, minimal vector furniture symbols, clean modern sans-serif typography, crisp room dimensions text labels, professional real estate layout. A neat, professional, 2D architectural floorplan with dimensions and furniture, top-down view, high quality. The layout should match the provided sketch perfectly. Architectural aesthetic: ${style}. Do NOT include: Photorealistic textures, 3D elements, hand-drawn lines, sketch textures, shadows, gradients, colored floors, messy icons, grid lines, architectural hatching patterns, dark backgrounds, blurry text, title, heading, date, project name, designer name, watermark, or any text/labels on the drawing — only the floorplan itself with room labels.`;
 
       const imageRes = await base44.integrations.Core.GenerateImage({
         prompt: imagePrompt,
