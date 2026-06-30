@@ -7,7 +7,7 @@ import PalladioGate from '@/components/PalladioGate';
 
 export default function Floorplan3D() {
   const location = useLocation();
-  const rawLayoutData = location.state?.layoutData || { valid: true };
+  const rawLayoutData = location.state?.layoutData;
 
   const [perspective, setPerspective] = useState('Isometric');
   const [finish, setFinish] = useState('Photorealistic');
@@ -61,6 +61,29 @@ export default function Floorplan3D() {
 
   const isLoading = status === 'Structure_Passed' || status === 'Aesthetic_Rendering' || status === 'Error_Retrying';
   const isFailed = status === 'Failed';
+
+  if (!rawLayoutData) {
+    return (
+      <PalladioGate>
+        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] p-6 bg-[#0a0a14]">
+          <div className="bg-slate-900/50 p-10 rounded-3xl border border-white/10 text-center max-w-md">
+            <div className="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Box className="w-8 h-8 text-cyan-400" />
+            </div>
+            <h2 className="text-xl font-semibold text-white mb-3">No Layout Data Found</h2>
+            <p className="text-slate-400 mb-8">
+              You need to generate or import a 2D floorplan layout first before rendering it in 3D.
+            </p>
+            <Link to="/PalladioFloorplan">
+              <Button className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl">
+                Go to 2D Floorplan Generator
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </PalladioGate>
+    );
+  }
 
   return (
     <PalladioGate>
