@@ -32,19 +32,31 @@ Deno.serve(async (req) => {
 
     const headers = { "api_key": apiKey, "Content-Type": "application/json" };
 
-    const getMessages = (data) => Array.isArray(data) ? data : (data?.messages || []);
+    const getMessages = (data) => {
+      if (!data) return [];
+      if (Array.isArray(data)) return data;
+      if (Array.isArray([data.me](https://data.me)ssages)) return [data.me](https://data.me)ssages;
+      // If the POST returned a single message object, wrap it in an array
+      if (data.role) return [data]; 
+      return [];
+    };
+
     const countAssistant = (data) => getMessages(data).filter((m) => m.role === "assistant").length;
+
     const lastAssistant = (data) => {
       const msgs = getMessages(data);
       if (msgs.length === 0) return null;
       
       const lastMsg = msgs[msgs.length - 1];
-      // Only return the content if the very last message in the thread is the assistant's final response
+      
+      // Only process the last message if it's from the assistant
       if (lastMsg.role === "assistant" && lastMsg.content) {
-        // If the message has tool calls, it's not the final answer (it's mid-step)
+        // If it has tool calls, it's an intermediate step. Not done.
         if (lastMsg.tool_calls && lastMsg.tool_calls.length > 0) return null;
-        // If the message is explicitly marked as still generating, wait
-        if (lastMsg.status && ['pending', 'in_progress', 'running'].includes(lastMsg.status)) return null;
+        
+        // STRICT CHECK: Wait until the platform explicitly marks the message as done.
+        // This prevents the script from grabbing partial chunks while I stream the JSON!
+        if (lastMsg.status !== "completed") return null;
         
         return lastMsg.content;
       }
