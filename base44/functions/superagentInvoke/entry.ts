@@ -6,7 +6,7 @@ Deno.serve(async (req) => {
 
     let user;
     try {
-      user = await base44.auth["me"]();
+      user = await base44.auth.me();
     } catch (_) {
       user = null;
     }
@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
     const getMessages = (data) => {
       if (!data) return [];
       if (Array.isArray(data)) return data;
-      if (Array.isArray([data.me](https://data.me)ssages)) return [data.me](https://data.me)ssages;
+      if (Array.isArray(data.messages)) return data.messages;
       // If the POST returned a single message object, wrap it in an array
       if (data.role) return [data]; 
       return [];
@@ -141,6 +141,6 @@ Deno.serve(async (req) => {
     return Response.json({ output: reply, session_id: conversationId }, { status: 200 });
   } catch (error) {
     console.error("superagentInvoke error:", error);
-    return Response.json({ error: [error.me](https://error.me)ssage }, { status: 500 });
+    return Response.json({ error: error.message }, { status: 500 });
   }
 });
