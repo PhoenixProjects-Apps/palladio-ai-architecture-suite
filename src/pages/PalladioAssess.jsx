@@ -247,7 +247,7 @@ export default function PalladioAssess() {
                     className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium text-sm transition-all ${reviewTier === 'concept' ? 'bg-cyan-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
                   >
                     <Layers size={16} />
-                    Phase 1: Concept Stage
+                    Phase 1: Concept
                   </button>
                   <button
                     type="button"
@@ -255,7 +255,7 @@ export default function PalladioAssess() {
                     className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium text-sm transition-all ${reviewTier === 'construction' ? 'bg-cyan-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
                   >
                     <AlertCircle size={16} />
-                    Tier 2: Construction Audit
+                    Phase 2: Construction
                   </button>
                 </div>
 
