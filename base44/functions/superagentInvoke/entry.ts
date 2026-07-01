@@ -54,9 +54,9 @@ Deno.serve(async (req) => {
         // If it has tool calls, it's an intermediate step. Not done.
         if (lastMsg.tool_calls && lastMsg.tool_calls.length > 0) return null;
         
-        // STRICT CHECK: Wait until the platform explicitly marks the message as done.
-        // This prevents the script from grabbing partial chunks while I stream the JSON!
-        if (lastMsg.status !== "completed") return null;
+        // STRICT CHECK: Relaxed. Some APIs might not return 'completed' status
+        // or the status field might not exist on the message object itself.
+        if (lastMsg.status && lastMsg.status !== "completed") return null;
         
         return lastMsg.content;
       }
