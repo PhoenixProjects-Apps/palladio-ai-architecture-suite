@@ -247,7 +247,7 @@ export default function PalladioAssess() {
                     className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium text-sm transition-all ${reviewTier === 'concept' ? 'bg-cyan-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
                   >
                     <Layers size={16} />
-                    Tier 1: Concept & Pricing
+                    Phase 1: Concept Stage
                   </button>
                   <button
                     type="button"
