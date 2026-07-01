@@ -6,7 +6,7 @@ Deno.serve(async (req) => {
 
     let user;
     try {
-      user = await base44.auth.me();
+      user = await [base44.auth.me](https://base44.auth.me)();
     } catch (_) {
       user = null;
     }
@@ -141,6 +141,6 @@ Deno.serve(async (req) => {
     return Response.json({ output: reply, session_id: conversationId }, { status: 200 });
   } catch (error) {
     console.error("superagentInvoke error:", error);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: [error.me](https://error.me)ssage }, { status: 500 });
   }
 });
