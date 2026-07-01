@@ -244,18 +244,24 @@ export default function PalladioAssess() {
                   <button
                     type="button"
                     onClick={() => setReviewTier('concept')}
-                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium text-sm transition-all ${reviewTier === 'concept' ? 'bg-cyan-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+                    className={`flex-1 flex flex-col items-center justify-center py-3 rounded-xl font-medium transition-all ${reviewTier === 'concept' ? 'bg-cyan-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
                   >
-                    <Layers size={16} />
-                    Phase 1: Concept
+                    <div className="flex items-center gap-1 opacity-80 text-xs mb-0.5">
+                      <Layers size={14} />
+                      <span>Phase 1:</span>
+                    </div>
+                    <span className="text-base font-semibold">Concept</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setReviewTier('construction')}
-                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium text-sm transition-all ${reviewTier === 'construction' ? 'bg-cyan-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+                    className={`flex-1 flex flex-col items-center justify-center py-3 rounded-xl font-medium transition-all ${reviewTier === 'construction' ? 'bg-cyan-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
                   >
-                    <AlertCircle size={16} />
-                    Phase 2: Construction
+                    <div className="flex items-center gap-1 opacity-80 text-xs mb-0.5">
+                      <AlertCircle size={14} />
+                      <span>Phase 2:</span>
+                    </div>
+                    <span className="text-base font-semibold">Construction</span>
                   </button>
                 </div>
 
