@@ -14,18 +14,18 @@ import { toast } from 'sonner';
 import { exportPlanningToPdf } from '@/lib/exportPlanningPdf';
 
 const devTypes = [
-  "New Dwelling", "Extension/Addition", "Subdivision",
-  "Multi-unit Development", "Commercial/Retail", "Industrial",
-  "Change of Use", "Demolition", "Signage", "Other"];
+"New Dwelling", "Extension/Addition", "Subdivision",
+"Multi-unit Development", "Commercial/Retail", "Industrial",
+"Change of Use", "Demolition", "Signage", "Other"];
 
 function extractJson(text) {
   if (!text) return null;
   let s = String(text).trim().replace(/```json/gi, '').replace(/```/g, '').trim();
-  try { return JSON.parse(s); } catch (_) {}
+  try {return JSON.parse(s);} catch (_) {}
   const start = s.indexOf('{');
   const end = s.lastIndexOf('}');
   if (start !== -1 && end !== -1 && end > start) {
-    try { return JSON.parse(s.slice(start, end + 1)); } catch (_) {}
+    try {return JSON.parse(s.slice(start, end + 1));} catch (_) {}
   }
   return null;
 }
@@ -222,7 +222,7 @@ Return a valid JSON object matching this structure:
           requirements: { type: "array", items: { type: "string" } }
         }
       };
-      
+
       const jsonPrompt = prompt + `\n\nCRITICAL: Return ONLY valid JSON matching this schema: ${JSON.stringify(responseSchema)}`;
       const resData = await base44.functions.invoke('superagentInvoke', {
         input: jsonPrompt,
@@ -231,7 +231,7 @@ Return a valid JSON object matching this structure:
       if (resData.data?.error) throw new Error(resData.data.error);
       const rawContent = resData.data?.output || "";
       const finalResult = extractJson(rawContent) || rawContent;
-      
+
       setDocResult(finalResult);
     } catch (err) {
       console.error(err);
@@ -273,7 +273,7 @@ Return a valid JSON object matching this structure:
                         </button>
                         <button
               onClick={() => setActiveTab('document')}
-              className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'document' ? 'bg-rose-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
+              className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all hidden ${activeTab === 'document' ? 'bg-rose-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
               
                             Document Analysis
                         </button>
@@ -483,9 +483,9 @@ Return a valid JSON object matching this structure:
                                 <Button
                   onClick={() => {
                     setExporting(true);
-                    try { exportPlanningToPdf(result, { address, devType: selectedType, description, propertyData }); }
-                    catch (e) { console.error(e); toast.error('Could not generate PDF'); }
-                    finally { setExporting(false); }
+                    try {exportPlanningToPdf(result, { address, devType: selectedType, description, propertyData });}
+                    catch (e) {console.error(e);toast.error('Could not generate PDF');} finally
+                    {setExporting(false);}
                   }}
                   disabled={exporting}
                   className="w-full sm:flex-1 rounded-xl bg-rose-600 hover:bg-rose-700 text-white h-12">
