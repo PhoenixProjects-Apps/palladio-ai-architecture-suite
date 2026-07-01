@@ -6,7 +6,7 @@ Deno.serve(async (req) => {
 
     let user;
     try {
-      user = await [base44.auth.me](https://base44.auth.me));
+      user = await [base44.auth.me](https://base44.auth.me))
     } catch (_) {
       user = null;
     }
