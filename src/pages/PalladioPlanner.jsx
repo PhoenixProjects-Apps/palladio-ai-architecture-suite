@@ -271,12 +271,12 @@ Return a valid JSON object matching this structure:
               
                             Proposal Assessment
                         </button>
-                        <button
-              onClick={() => setActiveTab('document')}
-              className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all hidden ${activeTab === 'document' ? 'bg-rose-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
-              
-                            Document Analysis
-                        </button>
+                        
+
+
+
+
+            
                     </div>
 
                     {activeTab === 'assessment' &&
