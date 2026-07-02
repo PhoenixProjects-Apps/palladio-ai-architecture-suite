@@ -474,9 +474,12 @@ INSTRUCTIONS:
       const res = await base44.functions.invoke('generatePresentation', { presentation_data: presentationData });
       
       if (res.data?.url) {
-        toast.success("Presentation generated successfully!");
+        toast.success("Your presentation is ready!", {
+          duration: 5000,
+          position: "top-center",
+          style: { background: '#10b981', color: 'white', border: 'none', fontWeight: 'bold', fontSize: '1.1rem' }
+        });
         setPresentationUrl(res.data.url);
-        window.open(res.data.url, '_blank');
       } else {
         throw new Error(res.data?.error || "Unknown error");
       }
@@ -795,15 +798,15 @@ INSTRUCTIONS:
                                     {presentationUrl && (
                                         <>
                                             <a href={presentationUrl} target="_blank" rel="noreferrer">
-                                                <Button variant="outline" size="sm" className="border-blue-500 text-blue-400 hover:bg-blue-500/10 hover:text-blue-300">
-                                                    <Download size={16} className="mr-1" /> Download Slides
+                                                <Button size="lg" className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold animate-pulse shadow-[0_0_15px_rgba(16,185,129,0.5)] border-2 border-emerald-400">
+                                                    <Download size={18} className="mr-2" /> View & Download Presentation
                                                 </Button>
                                             </a>
                                             <SaveToProject
                                                 fileUrl={presentationUrl}
                                                 fileName="presentation-slides.pdf"
                                                 assetType="document"
-                                                className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50 h-8 rounded-md px-3 text-xs"
+                                                className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50 h-10 rounded-md px-4 text-sm"
                                             />
                                         </>
                                     )}
