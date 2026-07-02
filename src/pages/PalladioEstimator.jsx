@@ -517,12 +517,13 @@ INSTRUCTIONS:
     setIsGeneratingPresentation(true);
     try {
       const res = await base44.functions.invoke('generatePresentation', {
-        result,
-        silentCosts,
-        city,
-        state,
-        floorArea,
-        roofArea
+        presentation_data: {
+          ...result,
+          grand_total: result.grand_total + (silentCosts ? silentCosts.total : 0),
+          location_profile: `${city}, ${state}`,
+          total_floor_area_sqm: `${floorArea || 0} sqm`,
+          level_of_finish: finishLevel
+        }
       });
       
       if (res.data?.url) {
