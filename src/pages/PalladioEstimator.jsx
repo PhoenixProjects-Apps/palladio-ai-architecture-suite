@@ -446,7 +446,15 @@ INSTRUCTIONS:
         throw new Error(resData.data.error);
       }
       const rawContent = resData.data?.output || "";
-      const res = extractJson(rawContent) || { line_items: [], subtotal: 0, scaffolding_included: false, site_difficulty_markup_cost: 0, grand_total: 0, assumptions: [] };
+      const parsedRes = extractJson(rawContent) || {};
+      const res = {
+        line_items: Array.isArray(parsedRes.line_items) ? parsedRes.line_items : [],
+        subtotal: parsedRes.subtotal || 0,
+        scaffolding_included: parsedRes.scaffolding_included || false,
+        site_difficulty_markup_cost: parsedRes.site_difficulty_markup_cost || 0,
+        grand_total: parsedRes.grand_total || 0,
+        assumptions: Array.isArray(parsedRes.assumptions) ? parsedRes.assumptions : []
+      };
 
       setResult(res);
 
@@ -490,7 +498,7 @@ INSTRUCTIONS:
     text += '## Line Items\n\n';
     text += '| Category | Item | Qty | Unit | Rate | Total |\n';
     text += '|----------|------|-----|------|------|-------|\n';
-    result.line_items.forEach(item => {
+    (result.line_items || []).forEach(item => {
       text += `| ${item.category} | ${item.item_name} | ${item.quantity} | ${item.unit} | ${formatCurrency(item.unit_cost)} | ${formatCurrency(item.total_cost)} |\n`;
     });
     text += `\n**Subtotal:** ${formatCurrency(result.subtotal)}\n`;
@@ -498,7 +506,7 @@ INSTRUCTIONS:
       text += `**Site Difficulty Markup (${SITE_DIFFICULTY_RATES[difficulty]}%):** +${formatCurrency(result.site_difficulty_markup_cost)}\n`;
     }
     text += `\n## Assumptions\n\n`;
-    result.assumptions.forEach(a => { text += `- ${a}\n`; });
+    (result.assumptions || []).forEach(a => { text += `- ${a}\n`; });
     if (silentCosts) {
       text += `\n## Additional Costs (Auto-Calculated)\n\n`;
       text += `- Gutter & Fascia (${silentCosts.gutterLength.toFixed(1)} m): ${formatCurrency(silentCosts.gutter)}\n`;
@@ -547,7 +555,7 @@ INSTRUCTIONS:
     if (!result) return;
     const rows = [
       ['Category', 'Item', 'Quantity', 'Unit', 'Unit Cost', 'Total Cost'],
-      ...result.line_items.map(item => [item.category, item.item_name, item.quantity, item.unit, item.unit_cost, item.total_cost]),
+      ...(result.line_items || []).map(item => [item.category, item.item_name, item.quantity, item.unit, item.unit_cost, item.total_cost]),
       ['', '', '', '', 'Subtotal', result.subtotal],
     ];
     if (result.site_difficulty_markup_cost > 0) {
@@ -556,7 +564,7 @@ INSTRUCTIONS:
     rows.push(['', '', '', '', 'Grand Total', result.grand_total]);
     rows.push([]);
     rows.push(['Assumptions:']);
-    result.assumptions.forEach(a => rows.push([a]));
+    (result.assumptions || []).forEach(a => rows.push([a]));
     const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -882,7 +890,7 @@ INSTRUCTIONS:
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {result.line_items.map((item, i) =>
+                                            {(result.line_items || []).map((item, i) =>
                       <TableRow key={i} className="border-slate-800">
                                                     <TableCell className="text-slate-400 text-sm">{item.category}</TableCell>
                                                     <TableCell className="text-right text-slate-300">{item.quantity} {item.unit}</TableCell>
@@ -977,7 +985,7 @@ INSTRUCTIONS:
                                                         </TableRow>
                                                     </TableHeader>
                                                     <TableBody>
-                                                        {result.line_items.map((item, i) =>
+                                                        {(result.line_items || []).map((item, i) =>
                             <TableRow key={i} className="border-slate-800">
                                                             <TableCell className="text-slate-400 text-sm">{item.category}</TableCell>
                                                             <TableCell className="font-medium text-white">{item.item_name}</TableCell>
@@ -1010,7 +1018,7 @@ INSTRUCTIONS:
                                             <div>
                                                 <h3 className="text-white font-medium mb-3">AI Assumptions & Notes</h3>
                                                 <ul className="list-disc pl-5 space-y-1">
-                                                    {result.assumptions.map((a, i) =>
+                                                    {(result.assumptions || []).map((a, i) =>
                             <li key={i} className="text-sm text-slate-400">{a}</li>
                             )}
                                                 </ul>
