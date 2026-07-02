@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Upload, Wand2, Loader2, FileText, Download, RefreshCcw, CheckCircle, ChevronDown, ChevronUp, Save, Bookmark, Brush, Monitor } from 'lucide-react';
+import { ArrowLeft, Upload, Wand2, Loader2, FileText, Download, RefreshCcw, CheckCircle, ChevronDown, ChevronUp, Save, Bookmark, Brush, Monitor, Paintbrush } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Input } from '@/components/ui/input';
@@ -447,7 +447,9 @@ export default function Render3D() {
           <div>
             <div className="flex flex-wrap justify-between items-center mb-3">
               <h2 className="text-white text-sm font-semibold">2. Style Reference (Opt)</h2>
-              <p className="text-teal-400 text-[10px] font-medium mt-2">Match the style of an image</p>
+              <p className="text-teal-400 text-[10px] font-medium mt-2 flex items-center justify-center">
+                <Paintbrush size={10} className="mr-1" /> Match the style of an image
+              </p>
             </div>
             <div
                 onClick={() => styleInputRef.current?.click()}
