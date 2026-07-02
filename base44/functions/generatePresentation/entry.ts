@@ -8,7 +8,7 @@ export default Deno.serve(async (req) => {
   const requestBody = await req.json();
   
   // Use the new app-owned template ID!
-  const templateId = "19dmv1hbuH6Pffrws0o6cB3HPkf5aw8lTPSJZY70yPVE";
+  const templateId = "1x45E4JzxSXx-fK1MrXg7BgtcITcGuBfTETh9Cz8M7dQ";
   const presentationData = requestBody.presentation_data;
   
   if (!presentationData) {
