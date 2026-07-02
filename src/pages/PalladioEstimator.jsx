@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import SaveToProject from '@/components/SaveToProject';
+import ChooseProject from '@/components/ChooseProject';
 
 const SITE_DIFFICULTY_RATES = {
   'Level / Standard': 0,
@@ -146,7 +147,61 @@ export default function PalladioEstimator() {
 
   const [result, setResult] = useState(null);
   const [showFullEstimate, setShowFullEstimate] = useState(false);
+  const [isLoadingConfig, setIsLoadingConfig] = useState(false);
   const fileInputRef = useRef(null);
+
+  const buildEstimatorDataJson = () => {
+    return JSON.stringify({
+      state, city, storeys, difficulty,
+      floorArea, wetArea, ceilingArea, roofArea, externalWallArea, patioArea, porchArea, garageArea,
+      externalWallLength, internalWallLength, ceilingHeight,
+      roofMaterial, externalWallMaterial, floorFinish, finishLevel
+    }, null, 2);
+  };
+
+  const handleLoadFromProject = async (project) => {
+    if (!project) return;
+    setIsLoadingConfig(true);
+    try {
+      const assets = await base44.entities.ProjectAsset.filter({ project_id: project.id, file_name: 'estimator-data.json' });
+      if (assets.length > 0) {
+        const asset = assets[0];
+        const res = await fetch(asset.file_url);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.state) setState(data.state);
+          if (data.city) setCity(data.city);
+          if (data.storeys) setStoreys(data.storeys);
+          if (data.difficulty) setDifficulty(data.difficulty);
+          if (data.floorArea !== undefined) setFloorArea(data.floorArea);
+          if (data.wetArea !== undefined) setWetArea(data.wetArea);
+          if (data.ceilingArea !== undefined) setCeilingArea(data.ceilingArea);
+          if (data.roofArea !== undefined) setRoofArea(data.roofArea);
+          if (data.externalWallArea !== undefined) setExternalWallArea(data.externalWallArea);
+          if (data.patioArea !== undefined) setPatioArea(data.patioArea);
+          if (data.porchArea !== undefined) setPorchArea(data.porchArea);
+          if (data.garageArea !== undefined) setGarageArea(data.garageArea);
+          if (data.externalWallLength !== undefined) setExternalWallLength(data.externalWallLength);
+          if (data.internalWallLength !== undefined) setInternalWallLength(data.internalWallLength);
+          if (data.ceilingHeight !== undefined) setCeilingHeight(data.ceilingHeight);
+          if (data.roofMaterial) setRoofMaterial(data.roofMaterial);
+          if (data.externalWallMaterial) setExternalWallMaterial(data.externalWallMaterial);
+          if (data.floorFinish) setFloorFinish(data.floorFinish);
+          if (data.finishLevel) setFinishLevel(data.finishLevel);
+          toast.success("Loaded configuration from project");
+        } else {
+          throw new Error("Failed to fetch asset file");
+        }
+      } else {
+        toast.error("No saved estimator configuration found in this project");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load configuration");
+    } finally {
+      setIsLoadingConfig(false);
+    }
+  };
 
   useEffect(() => {
     const main = document.querySelector('main');
@@ -530,12 +585,20 @@ INSTRUCTIONS:
                         </div>
                         <h1 className="font-bold text-xl">Cost Estimator</h1>
                     </header>
-            <Link to={createPageUrl('CostDatabase')} className="self-start sm:self-end">
-                    <Button variant="outline" className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50">
-                        <Database className="w-4 h-4" />
-                        Manage Cost DB
+            <div className="flex flex-wrap items-center gap-2 self-start sm:self-end">
+                <ChooseProject onSelect={handleLoadFromProject} className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50 h-9 px-3 text-xs">
+                    {isLoadingConfig ? <Loader2 size={16} className="animate-spin mr-1" /> : "Load Config"}
+                </ChooseProject>
+                <SaveToProject textContent={buildEstimatorDataJson()} fileName="estimator-data.json" assetType="document" className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50 h-9 px-3 text-xs">
+                    Save Config
+                </SaveToProject>
+                <Link to={createPageUrl('CostDatabase')}>
+                    <Button variant="outline" className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50 h-9 px-3 text-xs">
+                        <Database className="w-4 h-4 mr-1" />
+                        Cost DB
                     </Button>
-            </Link>
+                </Link>
+            </div>
             </div>
 
             <div className="grid lg:grid-cols-3 gap-6">
