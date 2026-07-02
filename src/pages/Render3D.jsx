@@ -15,53 +15,26 @@ import SaveToProject from '@/components/SaveToProject';
 const PRESETS = [
 {
   key: 'architecturalStyle', label: 'Architectural Style',
-  options: ['Modern', 'Minimalist', 'Industrial', 'Heritage', 'Contemporary', 'Scandinavian', 'Mid-Century', 'Victorian', 'Art Deco', 'Coastal']
+  options: ['Mid-Century Modern', 'Brutalist', 'Japandi', 'Biophilic', 'Contemporary', 'Minimalist', 'Coastal']
 },
 {
-  key: 'wallMaterial', label: 'Wall Material',
-  options: [
-  'Red Brick', 'Exposed Concrete', 'Glass Curtain Wall', 'Timber / Wood Panel',
-  'Natural Stone', 'White Render / Stucco', 'Steel Cladding', 'Terracotta Panels',
-  'Limestone', 'Weathered Corten Steel']
-
+  key: 'environment', label: 'Environment & Setting',
+  options: ['Lush Pacific Northwest forest', 'Dense urban skyline', 'Suburban neighbourhood', 'Coastal waterfront', 'Desert landscape', 'Minimalist studio']
 },
 {
-  key: 'roofMaterial', label: 'Roof Material',
-  options: [
-  'Clay / Terracotta Tiles', 'Metal / Standing Seam', 'Green / Planted Roof',
-  'Flat White Concrete', 'Slate Tiles', 'Glass / Skylight', 'Asphalt Shingles', 'Copper Roof']
-
+  key: 'lighting', label: 'Lighting & Atmosphere',
+  options: ['Golden Hour', 'Blue Hour / Dusk', 'Midday', 'Overcast soft diffuse', 'Cinematic studio lighting', 'Moody atmospheric']
 },
 {
-  key: 'timeOfDay', label: 'Time of Day',
-  options: [
-  'Golden Hour (Sunrise)', 'Bright Midday Sun', 'Warm Sunset / Dusk',
-  'Blue Hour (Night)', 'Overcast / Soft Diffuse', 'Dramatic Storm Light']
-
-},
-{
-  key: 'background', label: 'Background',
-  options: [
-  'Urban Cityscape', 'Suburban Neighbourhood', 'Rural Countryside',
-  'Mountain Landscape', 'Coastal / Waterfront', 'Open Sky (Minimal)',
-  'Lush Garden / Park', 'Desert Landscape', 'Snowy Winter Scene']
-
+  key: 'camera', label: 'Camera & Framing',
+  options: ['Eye-level human perspective', 'Interior wide-angle shot', 'Aerial drone view', 'Low-angle architectural', 'Close-up detail shot']
 }];
 
+const MATERIAL_OPTIONS = [
+  'Matte black steel', 'White oak slats', 'Fluted glass', 'Exposed concrete', 'Red brick', 'Natural stone', 'Terrazzo', 'Brass accents', 'Linen fabric', 'Leather'
+];
 
-const ADVANCED_PRESETS = [
-{
-  key: 'cameraAngle', label: 'Camera Angle',
-  options: ['Eye Level', "Low Angle (Worm's Eye)", 'High Angle', "Bird's Eye", 'Aerial View', 'Drone Shot']
-},
-{
-  key: 'lightingStyle', label: 'Lighting Style',
-  options: ['Natural Light', 'Studio Lighting', 'Dramatic Shadows', 'Soft Ambient', 'Cinematic Lighting', 'High Contrast', 'Neon / Cyberpunk']
-},
-{
-  key: 'mood', label: 'Mood / Atmosphere',
-  options: ['Serene & Calm', 'Vibrant & Lively', 'Futuristic & Sci-Fi', 'Dark & Moody', 'Ethereal & Dreamy', 'Warm & Inviting']
-}];
+const ASPECT_RATIOS = ['16:9', '9:16', '1:1', '4:3', '3:4', '4:5'];
 
 
 export default function Render3D() {
@@ -72,7 +45,10 @@ export default function Render3D() {
   const [styleFileUrl, setStyleFileUrl] = useState(null);
   const [stylePreviewUrl, setStylePreviewUrl] = useState(null);
   const [isUploadingStyle, setIsUploadingStyle] = useState(false);
-  const [presets, setPresets] = useState({});
+  const [presets, setPresets] = useState({ materialPalette: [] });
+  const [aspectRatio, setAspectRatio] = useState('16:9');
+  const [seed, setSeed] = useState('');
+  const [lockSeed, setLockSeed] = useState(false);
   const [prompt, setPrompt] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [isRendering, setIsRendering] = useState(false);
@@ -301,41 +277,39 @@ export default function Render3D() {
 
     const typeText = type === 'interior' ? 'interior' : 'exterior';
 
-    const lines = [
-    `This is a strict image-to-image texture mapping task for an architectural ${typeText}.`,
-    'CRITICAL REQUIREMENT: You MUST maintain the EXACT 3D structure, lines, perspective, and geometry of the uploaded reference image.',
-    'DO NOT hallucinate, add, move, or remove any walls, floors, stairs, doors, windows, or structural elements.',
-    'Your ONLY job is to colorize and apply photorealistic materials, lighting, and textures to the existing surfaces in the provided drawing.',
-    presets.architecturalStyle ? `Architectural style/aesthetic: ${presets.architecturalStyle}.` : '',
-    presets.wallMaterial ? `Wall/Surface material: ${presets.wallMaterial}.` : '',
-    presets.roofMaterial && type === 'exterior' ? `Roof material: ${presets.roofMaterial}.` : '',
-    presets.timeOfDay ? `Lighting / time of day: ${presets.timeOfDay}.` : '',
-    presets.background && type === 'exterior' ? `Environment and background: ${presets.background}.` : '',
-    presets.cameraAngle ? `Camera angle: ${presets.cameraAngle}.` : '',
-    presets.lightingStyle ? `Lighting style: ${presets.lightingStyle}.` : '',
-    presets.mood ? `Mood/Atmosphere: ${presets.mood}.` : '',
-    'Again: DO NOT change the underlying drawing or architecture. Just apply realistic textures, shadows, and lighting directly over the existing lines.',
-    'Professional architectural visualisation quality. High detail, photorealistic.',
-    prompt ? `Additional instructions: ${prompt}` : '',
-    styleFileUrl ? 'CRITICAL INSTRUCTION: Match the aesthetic, colors, materials, style, and overall mood of the provided style reference image.' : ''].
-    filter(Boolean);
-
-    const constructedPrompt = lines.join('\n');
-    const isImage = file?.type?.startsWith('image/');
-    const params = { prompt: constructedPrompt };
-
-    const imageUrls = [];
-    if (isImage && fileUrl) imageUrls.push(fileUrl);
-    if (styleFileUrl) imageUrls.push(styleFileUrl);
-
-    if (imageUrls.length > 0) {
-      params.existing_image_urls = imageUrls;
-    }
-
     try {
-      const result = await base44.integrations.Core.GenerateImage(params);
-      setRenderedImage(result.url);
+      const payload = {
+        input_assets: {
+          base_structure_image: fileUrl,
+          style_reference_image: styleFileUrl
+        },
+        ui_selections: {
+          architecturalStyle: presets.architecturalStyle,
+          materialPalette: presets.materialPalette,
+          environment: presets.environment,
+          lighting: presets.lighting,
+          camera: presets.camera
+        },
+        aspect_ratio: aspectRatio,
+        seed: lockSeed && seed ? parseInt(seed) : undefined,
+        prompt_additions: prompt
+      };
+
+      // Call the custom backend function mapped to Gemini 2.5 Flash
+      const res = await base44.functions.invoke('geminiRender', payload);
+      
+      // If the backend actually returned text (because gemini-2.5-flash generates text)
+      // we might want to display it. For image generation, if it returned a url, set it.
+      if (res.data && res.data.url) {
+        setRenderedImage(res.data.url);
+      } else if (res.data && res.data.text) {
+        toast.success("AI Processed Prompt Successfully!");
+        console.log("AI Output:", res.data.text);
+      }
       setMagicEditMode(false);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to generate render.");
     } finally {
       setIsRendering(false);
     }
@@ -567,34 +541,81 @@ export default function Render3D() {
           </div>
 
           <div className="mb-4">
+            <label className="block text-xs mb-1.5" style={{ color: '#94a3b8' }}>Material Palette</label>
+            <div className="flex flex-wrap gap-2">
+              {MATERIAL_OPTIONS.map((mat) => {
+                const isSelected = presets.materialPalette?.includes(mat);
+                return (
+                  <button
+                    key={mat}
+                    onClick={() => {
+                      setPresets(p => {
+                        const current = p.materialPalette || [];
+                        return {
+                          ...p,
+                          materialPalette: isSelected
+                            ? current.filter(x => x !== mat)
+                            : [...current, mat]
+                        };
+                      });
+                    }}
+                    className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-colors ${isSelected ? 'bg-teal-500/20 text-teal-400 border border-teal-500/50' : 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700 hover:text-slate-200'}`}
+                  >
+                    {mat}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mb-4">
             <Button
                 variant="ghost"
                 onClick={() => setShowAdvanced(!showAdvanced)}
                 className="w-full text-xs text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl justify-between h-9">
                 
-              <span>Advanced Options</span>
+              <span>Advanced Generation Settings</span>
               {showAdvanced ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </Button>
             
             {showAdvanced &&
-              <div className="grid grid-cols-2 gap-3 mt-3 p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
-                {ADVANCED_PRESETS.map(({ key, label, options }) =>
-                <div key={key}>
-                    <label className="block text-xs mb-1.5" style={{ color: '#94a3b8' }}>{label}</label>
-                    <Select value={presets[key] || ''} onValueChange={(val) => setPresets((p) => ({ ...p, [key]: val }))}>
-                      <SelectTrigger className="bg-slate-900 border-slate-700 text-white text-xs h-9 rounded-xl">
-                        <SelectValue placeholder="Select..." />
-                      </SelectTrigger>
-                      <SelectContent className="bg-slate-900 border-slate-700">
-                        {options.map((opt) =>
-                      <SelectItem key={opt} value={opt} className="text-white text-xs focus:bg-slate-800 focus:text-white cursor-pointer">
-                            {opt}
-                          </SelectItem>
+              <div className="flex flex-col gap-3 mt-3 p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+                
+                <div>
+                  <label className="block text-xs mb-1.5 text-slate-400">Aspect Ratio</label>
+                  <Select value={aspectRatio} onValueChange={setAspectRatio}>
+                    <SelectTrigger className="bg-slate-900 border-slate-700 text-white text-xs h-9 rounded-xl">
+                      <SelectValue placeholder="Select..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-900 border-slate-700">
+                      {ASPECT_RATIOS.map((opt) =>
+                        <SelectItem key={opt} value={opt} className="text-white text-xs cursor-pointer">{opt}</SelectItem>
                       )}
-                      </SelectContent>
-                    </Select>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-xs mb-1.5 text-slate-400">Seed Configuration</label>
+                  <div className="flex gap-2 items-center">
+                    <Input 
+                      type="number" 
+                      placeholder="Random Seed (leave blank)" 
+                      value={seed} 
+                      onChange={(e) => setSeed(e.target.value)} 
+                      className="bg-slate-900 border-slate-700 text-white text-xs h-9 rounded-xl flex-1" 
+                      disabled={!lockSeed}
+                    />
+                    <button 
+                      onClick={() => setLockSeed(!lockSeed)}
+                      className={`h-9 px-3 rounded-xl text-xs font-medium border ${lockSeed ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300' : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700'}`}
+                    >
+                      {lockSeed ? 'Locked' : 'Unlocked'}
+                    </button>
                   </div>
-                )}
+                  <p className="text-[10px] text-slate-500 mt-1">Locking the seed helps maintain architectural consistency when only changing materials.</p>
+                </div>
+
               </div>
               }
           </div>
