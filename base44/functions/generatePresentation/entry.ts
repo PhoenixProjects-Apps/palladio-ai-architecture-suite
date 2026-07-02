@@ -1,58 +1,90 @@
-import { createClientFromRequest } from "npm:@base44/sdk@0.8.31";
-
 export default Deno.serve(async (req) => {
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });
   }
 
-  const requestBody = await req.json();
-  const formatCurrency = (val) => new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(val);
-  
-  const { result, silentCosts, city, state, floorArea, roofArea } = requestBody;
-  
-  if (!result) {
-    return new Response(JSON.stringify({ error: "Missing estimator result" }), { status: 400 });
-  }
-
   try {
-    const totalCost = result.grand_total + (silentCosts?.total || 0);
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch (e) {
+      requestBody = {};
+    }
     
-    // Map raw AI numbers to template tags
-    const presentationData = {
-      total_cost: formatCurrency(totalCost),
-      address: city && state ? `${city}, ${state}` : 'Address TBA',
-      floor_area: floorArea || '0',
-      roof_area: roofArea || '0',
-      bedrooms: 'TBA',
-      bathrooms: 'TBA',
-      living_areas: 'TBA',
+    const pData = requestBody.presentation_data || requestBody || {};
+    
+    const formatCurrency = (val) => {
+      if (typeof val === 'number') return new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(val);
+      return val || "$0.00";
     };
 
-    const appsScriptUrl = "https://script.google.com/macros/s/AKfycbxgO7CnmwFjlYvGfHlOWMohn5AFumQoNb1dnIlw4WTbeP3ozc9s0LfjeEm1Z6vI3ekr/exec";
-    
-    const response = await fetch(appsScriptUrl, {
-      method: 'POST',
+    const formattedData = {
+      "title": pData.title || "Preliminary Construction Estimate",
+      "subtitle": pData.subtitle || "Custom Tailored for Your Vision",
+      "project_type": pData.project_type || "New Build",
+      "location_profile": pData.location_profile || "Queensland",
+      "total_floor_area_sqm": pData.total_floor_area_sqm || "318 sqm",
+      "level_of_finish": pData.level_of_finish || "Medium/Premium",
+      "base_construction_cost": formatCurrency(pData.base_construction_cost || pData.subtotal),
+      "site_costs_and_prelims": formatCurrency(pData.site_costs_and_prelims || pData.site_difficulty_markup_cost),
+      "builders_margin": formatCurrency(pData.builders_margin || 120000), 
+      "subtotal_ex_gst": formatCurrency(pData.subtotal_ex_gst || pData.subtotal),
+      "gst_amount": formatCurrency(pData.gst_amount || (pData.grand_total ? pData.grand_total * 0.1 : 0)),
+      "total_estimated_investment": formatCurrency(pData.total_estimated_investment || pData.grand_total),
+      "key_inclusions": pData.key_inclusions || "• Standard Approvals\n• Earthworks\n• Selected Materials",
+      "key_exclusions": pData.key_exclusions || "• Landscaping\n• Pool Fencing\n• Window Furnishings",
+      "call_to_action": pData.call_to_action || "Let's turn these numbers into reality.",
+      "step_1": pData.step_1 || "Review this preliminary estimate.",
+      "step_2": pData.step_2 || "Finalize architectural plans and engineering.",
+      "step_3": pData.step_3 || "Generate a fixed-price master builder contract."
+    };
+
+    const deploymentId = Deno.env.get("APPSHEET_DEPLOYMENT_ID") || "AKfycbxgO7CnmwFjlYvGfHlOWMohn5AFumQoNb1dnIlw4WTbeP3ozc9s0LfjeEm1Z6vI3ekr";
+    const scriptUrl = `https://script.google.com/macros/s/${deploymentId}/exec`;
+
+    const response = await fetch(scriptUrl, {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(presentationData)
+      body: JSON.stringify({ presentation_data: formattedData }),
+      redirect: "follow"
     });
 
     if (!response.ok) {
-      const err = await response.text();
-      console.error("Apps Script Error:", err);
-      return new Response(JSON.stringify({ error: "Failed to generate presentation", details: err }), { status: 500 });
+       const errText = await response.text();
+       throw new Error(`Apps Script HTTP ${response.status}: ${errText}`);
     }
 
-    const result = await response.json();
+    const responseText = await response.text();
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch (parseError) {
+      throw new Error(`Apps Script returned non-JSON. Response preview: ${responseText.substring(0, 150)}`);
+    }
+    
+    if (result.success === false) {
+       throw new Error(`Apps Script Internal Error: ${result.error}`);
+    }
 
-    return new Response(JSON.stringify({
-      success: true,
-      url: result.pdf_download_url || result.presentation_url // Falling back to presentation_url if pdf_download_url is missing
-    }), { status: 200 });
+    if (result.success && result.presentation_url && !result.pdf_download_url) {
+      const parts = result.presentation_url.split('/d/');
+      if (parts.length > 1) {
+        const id = parts[1].split('/')[0];
+        result.pdf_download_url = `https://docs.google.com/presentation/d/${id}/export/pdf`;
+      }
+    }
+
+    return new Response(JSON.stringify(result), { 
+      headers: { "Content-Type": "application/json" }
+    });
 
   } catch (error) {
-    console.error("Presentation Generation Error:", error);
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+    console.error("Backend Error:", error.message);
+    return new Response(JSON.stringify({ success: false, error: String(error.message) }), { 
+      status: 500,
+      headers: { "Content-Type": "application/json" } 
+    });
   }
 });
