@@ -386,11 +386,11 @@ export default function Render3D() {
         {/* Upload Section */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <div className="flex flex-wrap justify-between items-center mb-3">
-              <h2 className="text-white text-sm font-semibold">1. 3D Building View</h2>
+            <div className="flex flex-col mb-3">
+              <h2 className="text-white text-sm font-semibold mb-2">1. 3D Building View</h2>
               <button
                   onClick={handleCaptureScreen}
-                  className="flex items-center text-[10px] font-medium text-teal-400 hover:text-teal-300 bg-teal-400/10 hover:bg-teal-400/20 px-2 py-1 rounded transition-colors">
+                  className="flex items-center w-fit text-[10px] font-medium text-teal-400 hover:text-teal-300 bg-teal-400/10 hover:bg-teal-400/20 px-2 py-1 rounded transition-colors">
                   
                 <Monitor size={12} className="mr-1" /> Screenshot
               </button>
