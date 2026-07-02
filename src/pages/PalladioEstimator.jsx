@@ -516,17 +516,14 @@ INSTRUCTIONS:
     if (!result) return;
     setIsGeneratingPresentation(true);
     try {
-      const presentationData = {
-        total_cost: formatCurrency(result.grand_total + (silentCosts?.total || 0)),
-        address: `${city}, ${state}`,
-        floor_area: floorArea,
-        roof_area: roofArea,
-        bedrooms: 'TBA',
-        bathrooms: 'TBA',
-        living_areas: 'TBA',
-      };
-      
-      const res = await base44.functions.invoke('generatePresentation', { presentation_data: presentationData });
+      const res = await base44.functions.invoke('generatePresentation', {
+        result,
+        silentCosts,
+        city,
+        state,
+        floorArea,
+        roofArea
+      });
       
       if (res.data?.url) {
         toast.success("Your presentation is ready!", {

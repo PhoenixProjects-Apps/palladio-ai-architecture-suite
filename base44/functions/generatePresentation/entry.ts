@@ -6,16 +6,28 @@ export default Deno.serve(async (req) => {
   }
 
   const requestBody = await req.json();
+  const formatCurrency = (val) => new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(val);
   
-  // Use the new app-owned template ID!
-  const templateId = "1x45E4JzxSXx-fK1MrXg7BgtcITcGuBfTETh9Cz8M7dQ";
-  const presentationData = requestBody.presentation_data;
+  const { result, silentCosts, city, state, floorArea, roofArea } = requestBody;
   
-  if (!presentationData) {
-    return new Response(JSON.stringify({ error: "Missing presentation_data" }), { status: 400 });
+  if (!result) {
+    return new Response(JSON.stringify({ error: "Missing estimator result" }), { status: 400 });
   }
 
   try {
+    const totalCost = result.grand_total + (silentCosts?.total || 0);
+    
+    // Map raw AI numbers to template tags
+    const presentationData = {
+      total_cost: formatCurrency(totalCost),
+      address: city && state ? `${city}, ${state}` : 'Address TBA',
+      floor_area: floorArea || '0',
+      roof_area: roofArea || '0',
+      bedrooms: 'TBA',
+      bathrooms: 'TBA',
+      living_areas: 'TBA',
+    };
+
     const appsScriptUrl = "https://script.google.com/macros/s/AKfycbxgO7CnmwFjlYvGfHlOWMohn5AFumQoNb1dnIlw4WTbeP3ozc9s0LfjeEm1Z6vI3ekr/exec";
     
     const response = await fetch(appsScriptUrl, {
