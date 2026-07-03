@@ -7,11 +7,25 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json().catch(() => ({}));
-    const { session_id, prev_count } = body || {};
-    if (!session_id) return Response.json({ error: "Missing session_id" }, { status: 400 });
+    let { session_id, prev_count } = body || {};
+
+    if (!session_id || typeof session_id !== "string") {
+      return Response.json({ error: "Missing session_id" }, { status: 400 });
+    }
+    // Sanitize - only allow characters a real conversation ID can contain, blocks path traversal
+    session_id = session_id.replace(/[^a-zA-Z0-9\-_]/g, "");
+    if (!session_id) return Response.json({ error: "Invalid session_id" }, { status: 400 });
+
+    // Ownership check - reject if this session wasn't created by the calling user
+    const owned = await base44.entities.SuperagentSession.filter({ session_id, owner_email: user.email });
+    if (!owned || owned.length === 0) {
+      return Response.json({ error: "Not found" }, { status: 404 });
+    }
 
     const apiKey = Deno.env.get("SUPERAGENT_API_KEY");
     const agentId = (Deno.env.get("SUPERAGENT_AGENT_ID") || "").replace(/[^a-f0-9]/gi, "");
+    if (!apiKey || !agentId) return Response.json({ error: "Superagent not configured" }, { status: 500 });
+
     const baseUrl = `https://app.base44.com/api/agents/${agentId}`;
     const headers = { "api_key": apiKey, "Content-Type": "application/json" };
 
@@ -24,14 +38,16 @@ Deno.serve(async (req) => {
       return null;
     };
 
-    const msgs = await fetch(`${baseUrl}/conversations/${session_id}/messages`, { headers })
-      .then((r) => (r.ok ? r.json() : null)).catch(() => null);
+    const msgsRes = await fetch(`${baseUrl}/conversations/${session_id}/messages`, { headers });
+    if (!msgsRes.ok) return Response.json({ error: `Superagent API error (${msgsRes.status})` }, { status: 502 });
+    const msgs = await msgsRes.json();
 
-    if (msgs && countAssistant(msgs) > (prev_count || 0)) {
+    if (countAssistant(msgs) > (prev_count || 0)) {
       return Response.json({ status: "done", output: lastAssistant(msgs) }, { status: 200 });
     }
     return Response.json({ status: "pending" }, { status: 200 });
   } catch (error) {
+    console.error("checkSuperagentTask error:", error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
