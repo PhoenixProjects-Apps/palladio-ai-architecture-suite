@@ -31,6 +31,10 @@ Deno.serve(async (req) => {
     if (!createRes.ok) return Response.json({ error: `Superagent API error (${createRes.status})` }, { status: 502 });
     const created = await createRes.json();
     const conversationId = created.id;
+    await base44.entities.SuperagentSession.create({
+      session_id: conversationId,
+      owner_email: user.email
+    });
     const prevCount = 0; // brand new conversation - no assistant messages exist yet
 
     const msgBody = { role: "user", content: input };

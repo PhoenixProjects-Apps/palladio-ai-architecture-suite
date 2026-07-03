@@ -1,0 +1,28 @@
+{
+  "name": "SuperagentSession",
+  "type": "object",
+  "properties": {
+    "session_id": {
+      "type": "string"
+    },
+    "owner_email": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "session_id",
+    "owner_email"
+  ],
+  "rls": {
+    "create": null,
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}
