@@ -18,23 +18,12 @@ Deno.serve(async (req) => {
     
     try {
       const urlObj = new URL(file_url);
-      // SSRF Mitigation: Resolve DNS and check if IP is private
-      const ips = await Deno.resolveDns(urlObj.hostname, "A");
-      for (const ip of ips) {
-        const parts = ip.split('.').map(Number);
-        const isPrivate = 
-          parts[0] === 10 || 
-          (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) || 
-          (parts[0] === 192 && parts[1] === 168) || 
-          parts[0] === 127 || 
-          parts[0] === 0 || 
-          (parts[0] === 169 && parts[1] === 254);
-        if (isPrivate) {
-          return Response.json({ error: 'Resolved IP points to internal network' }, { status: 400 });
-        }
+      const allowedDomains = ["media.base44.com", "firebasestorage.googleapis.com", "storage.googleapis.com"];
+      if (!allowedDomains.some(domain => urlObj.hostname === domain || urlObj.hostname.endsWith('.' + domain))) {
+        return Response.json({ error: 'Untrusted file domain. Only approved media sources are allowed.' }, { status: 400 });
       }
     } catch {
-      return Response.json({ error: 'Invalid file_url format or DNS resolution failed' }, { status: 400 });
+      return Response.json({ error: 'Invalid file_url format' }, { status: 400 });
     }
 
     try {

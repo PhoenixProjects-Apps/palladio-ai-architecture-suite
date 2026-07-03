@@ -28,7 +28,7 @@ export default function Admin() {
       if (u?.role === 'admin') {
         const [usersRes, subsRes] = await Promise.all([
           base44.entities.User.list(),
-          base44.entities.Subscription.list()
+          base44.functions.invoke('adminManageSubscription', { method: 'GET' }).then(r => r.data.subscriptions || [])
         ]);
         setUsers(usersRes);
         setSubscriptions(subsRes);
@@ -74,22 +74,12 @@ export default function Admin() {
   const handleSaveMembership = async () => {
     try {
       const existingSub = subscriptions.find(s => s.user_email === selectedUser.email);
-      if (editPlan === 'none') {
-        if (existingSub) {
-          await base44.entities.Subscription.update(existingSub.id, { status: 'canceled' });
-        }
-      } else {
-        if (existingSub) {
-          await base44.entities.Subscription.update(existingSub.id, { plan_type: editPlan, status: editStatus });
-        } else {
-          await base44.entities.Subscription.create({
-            user_email: selectedUser.email,
-            stripe_customer_id: 'manual_' + Date.now(),
-            plan_type: editPlan,
-            status: editStatus,
-          });
-        }
-      }
+      await base44.functions.invoke('adminManageSubscription', {
+        user_email: selectedUser.email,
+        plan_type: editPlan,
+        status: editStatus,
+        sub_id: existingSub ? existingSub.id : null
+      });
       await fetchData();
       setIsDialogOpen(false);
     } catch (e) {
