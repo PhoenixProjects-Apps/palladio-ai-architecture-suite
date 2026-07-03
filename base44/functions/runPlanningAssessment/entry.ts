@@ -15,14 +15,14 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json().catch(() => ({}));
-    
+
     const address = body?.address || 'Unknown Address';
     const devType = body?.devType || 'Unknown Development Type';
     const description = body?.description || 'No description provided';
     const propertyData = body?.propertyData || {};
 
-    const overlaysString = Array.isArray(propertyData.overlays) 
-      ? propertyData.overlays.join(', ') 
+    const overlaysString = Array.isArray(propertyData.overlays)
+      ? propertyData.overlays.join(', ')
       : (propertyData.overlays || 'N/A');
 
     const prompt = `You are a town planning assessor. Apply standard town planning assessment rules to assess this proposed development:
@@ -57,15 +57,15 @@ Known property context:
 
     const jsonPrompt = prompt + `\n\nCRITICAL: Return ONLY valid JSON matching this schema: ${JSON.stringify(responseSchema)}`;
 
-    const responseData = await base44.functions.invoke('superagentInvoke', {
-      input: jsonPrompt
-    });
-
-    if (responseData.data?.error) {
-      throw new Error(responseData.data.error);
+    const started = await base44.functions.invoke('startSuperagentTask', { input: jsonPrompt });
+    if (started.data?.error) {
+      throw new Error(started.data.error);
     }
 
-    return Response.json({ output: responseData.data?.output || "" }, { status: 200 });
+    return Response.json({
+      session_id: started.data?.session_id,
+      prev_count: started.data?.prev_count,
+    }, { status: 200 });
   } catch (error) {
     console.error("runPlanningAssessment error:", error);
     return Response.json({ error: "Internal Assessment Engine Exception" }, { status: 500 });
