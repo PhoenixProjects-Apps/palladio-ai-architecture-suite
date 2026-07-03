@@ -173,12 +173,8 @@ Return a valid JSON object matching this structure:
       });
       const data = response.data;
       if (data?.error) throw new Error(data.error);
-      if (!data?.session_id) throw new Error('No session returned by the superagent.');
-
-      const rawContent = data.output || await pollForResult(data.session_id, data.prev_count || 0);
-      if (!rawContent) throw new Error('No assessment was returned by the superagent.');
-      const finalResult = extractJson(rawContent) || rawContent;
-      setResult(finalResult);
+      if (!data?.output) throw new Error('No assessment was returned.');
+      setResult(data.output);
       toast.success("Assessment complete! Save to Project or Download PDF below.");
     } catch (err) {
       console.error(err);
@@ -222,38 +218,10 @@ Return a valid JSON object matching this structure:
       if (!file_url) throw new Error('Upload failed');
       setIsUploading(false);
 
-      const prompt = `Analyze this uploaded planning document (e.g. council report, property title, scheme code). 
-Extract the key information, provide a concise summary, and identify any potential compliance issues, red flags, or specific requirements mentioned.
-Return a valid JSON object matching this structure:
-{
-    "summary": "Concise summary of the document",
-    "key_information": ["Key point 1", "Key point 2"],
-    "compliance_issues": ["Potential issue 1", "Potential issue 2"],
-    "requirements": ["Requirement 1", "Requirement 2"]
-}`;
-      const responseSchema = {
-        type: "object",
-        properties: {
-          summary: { type: "string" },
-          key_information: { type: "array", items: { type: "string" } },
-          compliance_issues: { type: "array", items: { type: "string" } },
-          requirements: { type: "array", items: { type: "string" } }
-        }
-      };
-
-      const jsonPrompt = prompt + `\n\nCRITICAL: Return ONLY valid JSON matching this schema: ${JSON.stringify(responseSchema)}`;
-
-      const started = await base44.functions.invoke('startSuperagentTask', {
-        input: jsonPrompt,
-        fileUrls: [file_url]
-      });
-      if (started.data?.error) throw new Error(started.data.error);
-      if (!started.data?.session_id) throw new Error('No session returned by the superagent.');
-
-      const rawContent = started.data.output || await pollForResult(started.data.session_id, started.data.prev_count || 0);
-      const finalResult = extractJson(rawContent) || rawContent;
-
-      setDocResult(finalResult);
+      const analyzeRes = await base44.functions.invoke('analyzePlanDocument', { file_url });
+      const data = analyzeRes.data;
+      if (data?.error) throw new Error(data.error);
+      setDocResult(data.output);
     } catch (err) {
       console.error(err);
       toast.error("The document could not be analyzed. Please try again.");
