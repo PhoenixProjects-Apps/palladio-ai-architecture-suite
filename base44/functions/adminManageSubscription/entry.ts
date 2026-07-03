@@ -4,7 +4,12 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    if (!user || user.role !== 'admin') {
+    if (!user) {
+      return Response.json({ error: "Unauthorized" }, { status: 403 });
+    }
+    
+    const dbUser = await base44.asServiceRole.entities.User.get(user.id);
+    if (!dbUser || dbUser.role !== 'admin') {
       return Response.json({ error: "Unauthorized" }, { status: 403 });
     }
 

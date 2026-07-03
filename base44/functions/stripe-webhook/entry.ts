@@ -16,6 +16,10 @@ async function grantCredits(base44, email, amount) {
 }
 
 Deno.serve(async (req) => {
+    if (req.headers.get("authorization")) {
+        return new Response("Webhook endpoints do not accept user authorization", { status: 403 });
+    }
+
     const signature = req.headers.get("stripe-signature");
     const secret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
     

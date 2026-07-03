@@ -28,6 +28,10 @@ Deno.serve(async (req) => {
     if (!record) {
       return Response.json({ error: 'FloorplanGenerations record not found' }, { status: 404 });
     }
+    
+    if (record.created_by_id !== user.id) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     // ========================================================
     // PASS 1: Structural Verification
