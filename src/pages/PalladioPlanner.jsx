@@ -175,7 +175,7 @@ Return a valid JSON object matching this structure:
       if (data?.error) throw new Error(data.error);
       if (!data?.session_id) throw new Error('No session returned by the superagent.');
 
-      const rawContent = await pollForResult(data.session_id, data.prev_count || 0);
+      const rawContent = data.output || await pollForResult(data.session_id, data.prev_count || 0);
       if (!rawContent) throw new Error('No assessment was returned by the superagent.');
       const finalResult = extractJson(rawContent) || rawContent;
       setResult(finalResult);
@@ -250,7 +250,7 @@ Return a valid JSON object matching this structure:
       if (started.data?.error) throw new Error(started.data.error);
       if (!started.data?.session_id) throw new Error('No session returned by the superagent.');
 
-      const rawContent = await pollForResult(started.data.session_id, started.data.prev_count || 0);
+      const rawContent = started.data.output || await pollForResult(started.data.session_id, started.data.prev_count || 0);
       const finalResult = extractJson(rawContent) || rawContent;
 
       setDocResult(finalResult);

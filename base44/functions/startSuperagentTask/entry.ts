@@ -20,11 +20,18 @@ Deno.serve(async (req) => {
 
     const getMessages = (data) => Array.isArray(data) ? data : (Array.isArray(data?.messages) ? data.messages : (data?.role ? [data] : []));
     const countAssistant = (data) => getMessages(data).filter((m) => m.role === "assistant").length;
+    const lastAssistant = (data) => {
+      const msgs = getMessages(data);
+      const last = msgs[msgs.length - 1];
+      if (last?.role === "assistant" && last.content && !(last.tool_calls?.length)) return last.content;
+      return null;
+    };
 
     const createRes = await fetch(`${baseUrl}/conversations`, { method: "POST", headers, body: "{}" });
     if (!createRes.ok) return Response.json({ error: `Superagent API error (${createRes.status})` }, { status: 502 });
     const created = await createRes.json();
     const conversationId = created.id;
+    const prevCount = 0; // brand new conversation - no assistant messages exist yet
 
     const msgBody = { role: "user", content: input };
     if (fileUrls.length) msgBody.file_urls = fileUrls;
@@ -35,9 +42,16 @@ Deno.serve(async (req) => {
     if (!sendRes.ok) return Response.json({ error: `Superagent API error (${sendRes.status})` }, { status: 502 });
     const afterSend = await sendRes.json();
 
+    // If the reply already arrived synchronously, hand it straight back - no polling needed
+    let immediateOutput = null;
+    if (countAssistant(afterSend) > prevCount) {
+      immediateOutput = lastAssistant(afterSend);
+    }
+
     return Response.json({
       session_id: conversationId,
-      prev_count: countAssistant(afterSend),
+      prev_count: prevCount,
+      output: immediateOutput,
     }, { status: 200 });
   } catch (error) {
     console.error("startSuperagentTask error:", error);
