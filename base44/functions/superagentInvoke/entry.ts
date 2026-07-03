@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
       if (Array.isArray(existing)) {
         prevCount = countAssistant(existing);
       } else {
-        conversationId = "";
+        return Response.json({ error: "Forbidden or invalid conversation" }, { status: 403 });
       }
     }
 
