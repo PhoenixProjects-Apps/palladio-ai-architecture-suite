@@ -60,10 +60,11 @@ export default function PalladioAssess() {
   const [reviewTier, setReviewTier] = useState('concept');
   const fileInputRef = useRef(null);
 
-  const handleFileSelect = async (e) => {
+const handleFileSelect = async (e) => {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
 
+    // Hard limit for mobile to prevent OOM (Out of Memory) crashes
     if (selectedFile.size > 20 * 1024 * 1024) {
       toast.error("File is too large. Please upload a file smaller than 20MB.");
       return;
@@ -81,24 +82,35 @@ export default function PalladioAssess() {
 
     setIsUploading(true);
     try {
-      const fileBase64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result).split(',')[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(selectedFile);
-      });
-      const res = await base44.functions.invoke('uploadPlanFile', {
+      // Step 1: Ask the backend for a secure upload URL (Presigned URL)
+      // Note: You will need to update 'uploadPlanFile' on your backend to return a presigned URL 
+      // instead of accepting base64 data.
+      const authRes = await base44.functions.invoke('getUploadUrl', {
         fileName: selectedFile.name,
-        fileType: selectedFile.type,
-        fileBase64
+        fileType: selectedFile.type
       });
-      const url = res.data?.file_url;
-      if (!url) throw new Error(res.data?.error || 'Upload failed');
-      setFileUrl(url);
+      
+      const { uploadUrl, file_url } = authRes.data || {};
+      if (!uploadUrl || !file_url) throw new Error('Could not secure upload permission');
+
+      // Step 2: Upload directly to the storage bucket using standard Fetch (No Base64 overhead!)
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        body: selectedFile,
+        headers: {
+          'Content-Type': selectedFile.type,
+        },
+      });
+
+      if (!uploadRes.ok) throw new Error('Direct upload failed');
+
+      // Step 3: Save the final public/accessible URL for the AI to read
+      setFileUrl(file_url);
+      
     } catch (err) {
-      console.error(err);
+      console.error("Upload error:", err);
       const errMsg = err?.message?.includes("Network Error")
-        ? "Network Error: The file might be too large or your connection was interrupted."
+        ? "Network Error: Please check your connection."
         : "Failed to upload file. Please try again.";
       setUploadError(errMsg);
       toast.error(errMsg);
