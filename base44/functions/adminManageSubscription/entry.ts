@@ -20,6 +20,13 @@ Deno.serve(async (req) => {
 
     const { user_email, plan_type, status, sub_id } = await req.json();
     
+    if (user_email) {
+      const targetUser = await base44.asServiceRole.entities.User.filter({ email: user_email });
+      if (targetUser.length === 0) {
+        return Response.json({ error: "Target user not found" }, { status: 404 });
+      }
+    }
+
     if (plan_type === 'none') {
       if (sub_id) {
         await base44.asServiceRole.entities.Subscription.update(sub_id, { status: 'canceled' });

@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
         }
 
         // Fetch the file content
-        const fileRes = await fetch(fileUrl);
+        const fileRes = await fetch(fileUrl, { redirect: 'error' });
         if (!fileRes.ok) throw new Error("Failed to fetch file");
         const fileBlob = await fileRes.blob();
 

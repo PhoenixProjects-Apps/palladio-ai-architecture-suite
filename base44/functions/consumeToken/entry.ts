@@ -9,7 +9,10 @@ Deno.serve(async (req) => {
     let amount = 1;
     try {
       const body = await req.json();
-      if (body && typeof body.amount === 'number' && body.amount > 0) {
+      if (body && typeof body.amount === 'number') {
+        if (body.amount <= 0 || body.amount > 1000) {
+          return Response.json({ error: 'Invalid amount' }, { status: 400 });
+        }
         amount = body.amount;
       }
     } catch (_) {}
