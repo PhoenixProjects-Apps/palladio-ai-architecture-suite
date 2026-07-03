@@ -30,6 +30,22 @@ function extractJson(text) {
   return null;
 }
 
+async function pollForResult(sessionId, prevCount) {
+  const POLL_INTERVAL_MS = 3000;
+  const MAX_POLLS = 60; // ~3 minutes of polling, in small safe chunks
+  for (let i = 0; i < MAX_POLLS; i++) {
+    await new Promise((res) => setTimeout(res, POLL_INTERVAL_MS));
+    const checkRes = await base44.functions.invoke('checkSuperagentTask', {
+      session_id: sessionId,
+      prev_count: prevCount
+    });
+    const checkData = checkRes.data;
+    if (checkData?.error) throw new Error(checkData.error);
+    if (checkData?.status === 'done') return checkData.output;
+  }
+  throw new Error('The assessment is taking longer than expected. Please try again.');
+}
+
 export default function PalladioPlanner() {
   const [activeTab, setActiveTab] = useState('assessment');
 
@@ -157,7 +173,9 @@ Return a valid JSON object matching this structure:
       });
       const data = response.data;
       if (data?.error) throw new Error(data.error);
-      const rawContent = data?.output || '';
+      if (!data?.session_id) throw new Error('No session returned by the superagent.');
+
+      const rawContent = await pollForResult(data.session_id, data.prev_count || 0);
       if (!rawContent) throw new Error('No assessment was returned by the superagent.');
       const finalResult = extractJson(rawContent) || rawContent;
       setResult(finalResult);
@@ -224,17 +242,21 @@ Return a valid JSON object matching this structure:
       };
 
       const jsonPrompt = prompt + `\n\nCRITICAL: Return ONLY valid JSON matching this schema: ${JSON.stringify(responseSchema)}`;
-      const resData = await base44.functions.invoke('superagentInvoke', {
+
+      const started = await base44.functions.invoke('startSuperagentTask', {
         input: jsonPrompt,
         fileUrls: [file_url]
       });
-      if (resData.data?.error) throw new Error(resData.data.error);
-      const rawContent = resData.data?.output || "";
+      if (started.data?.error) throw new Error(started.data.error);
+      if (!started.data?.session_id) throw new Error('No session returned by the superagent.');
+
+      const rawContent = await pollForResult(started.data.session_id, started.data.prev_count || 0);
       const finalResult = extractJson(rawContent) || rawContent;
 
       setDocResult(finalResult);
     } catch (err) {
       console.error(err);
+      toast.error("The document could not be analyzed. Please try again.");
     } finally {
       setIsUploading(false);
       setIsAnalyzingDoc(false);
@@ -579,5 +601,4 @@ Return a valid JSON object matching this structure:
                 </div>
             </div>
         </PalladioGate>);
-
 }
