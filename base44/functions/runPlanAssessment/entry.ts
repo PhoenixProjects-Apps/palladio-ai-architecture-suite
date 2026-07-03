@@ -28,7 +28,10 @@ Deno.serve(async (req) => {
     
     try {
       const urlObj = new URL(fileUrl);
-      // Removed restrict domain check as it blocked base44 media domains and the LLM handles safety.
+      const allowedDomains = ['media.base44.com', 'firebasestorage.googleapis.com', 'storage.googleapis.com'];
+      if (!allowedDomains.includes(urlObj.hostname)) {
+        return Response.json({ error: 'Untrusted file source' }, { status: 400 });
+      }
     } catch {
       return Response.json({ error: 'Invalid fileUrl format' }, { status: 400 });
     }
