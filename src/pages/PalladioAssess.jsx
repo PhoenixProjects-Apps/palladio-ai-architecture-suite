@@ -8,12 +8,10 @@ import { useAuth } from '@/lib/AuthContext';
 import ReactMarkdown from 'react-markdown';
 import PalladioGate from '@/components/PalladioGate';
 import SaveToProject from '@/components/SaveToProject';
-import AgentThoughtProcess from '@/components/AgentThoughtProcess';
 import ProjectDetailsForm from '@/components/ProjectDetailsForm';
 import ChooseProject from '@/components/ChooseProject';
 import { exportAssessmentToPdf } from '@/lib/exportPdf';
 import { toast } from 'sonner';
-import { uploadToFirebase } from '@/lib/uploadHelper';
 
 function extractJson(text) {
   if (!text) return null;
@@ -50,22 +48,18 @@ export default function PalladioAssess() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
   const [uploadError, setUploadError] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [conversationId, setConversationId] = useState(null);
   const [exporting, setExporting] = useState(false);
   const [projectDetails, setProjectDetails] = useState({
     projectName: '', clientName: '', address: '', lotNo: '', rpNo: '', siteArea: '', councilOverlays: '', projectId: null
   });
-
-  // Tier state tracking: 'concept' vs 'construction'
   const [reviewTier, setReviewTier] = useState('concept');
   const fileInputRef = useRef(null);
 
-const handleFileSelect = async (e) => {
+  // Secure Direct Upload to Firebase
+  const handleFileSelect = async (e) => {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
 
-    // Hard limit for mobile to prevent OOM (Out of Memory) crashes
     if (selectedFile.size > 20 * 1024 * 1024) {
       toast.error("File is too large. Please upload a file smaller than 20MB.");
       return;
@@ -74,148 +68,101 @@ const handleFileSelect = async (e) => {
     setFile(selectedFile);
     setResult(null);
     setUploadError(null);
-
-    if (selectedFile.type.startsWith('image/')) {
-      setPreviewUrl(URL.createObjectURL(selectedFile));
-    } else {
-      setPreviewUrl(null);
-    }
-
+    setPreviewUrl(selectedFile.type.startsWith('image/') ? URL.createObjectURL(selectedFile) : null);
     setIsUploading(true);
+
     try {
-      const res = await uploadToFirebase(selectedFile);
-      if (!res?.file_url) throw new Error('Upload failed');
-      setFileUrl(res.file_url);
+      const authRes = await base44.functions.invoke('getUploadUrl', {
+        fileName: selectedFile.name,
+        fileType: selectedFile.type
+      });
+      
+      const { uploadUrl, file_url } = authRes.data || {};
+      if (!uploadUrl || !file_url) throw new Error('Could not secure upload permission');
+
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        body: selectedFile,
+        headers: { 'Content-Type': selectedFile.type },
+      });
+
+      if (!uploadRes.ok) throw new Error('Direct upload failed');
+      setFileUrl(file_url);
     } catch (err) {
-      console.error("Upload error:", err);
-      const errMsg = err?.message?.includes("Network Error")
-        ? "Network Error: Please check your connection."
-        : "Failed to upload file. Please try again.";
-      setUploadError(errMsg);
-      toast.error(errMsg);
+      console.error(err);
+      setUploadError("Failed to upload file. Please try again.");
+      toast.error("Upload failed.");
     } finally {
       setIsUploading(false);
     }
   };
 
-  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  // Safe Polling Helper
+  const pollAssessment = async (sessionId, prevCount = 0, attempts = 0) => {
+    if (attempts > 60) throw new Error("Assessment timed out.");
+    
+    await new Promise((resolve) => setTimeout(resolve, 5000)); // Poll every 5 seconds
+    
+    const checkRes = await base44.functions.invoke('checkSuperagentTask', { session_id: sessionId, prev_count: prevCount });
+    if (checkRes.data?.error) throw new Error(checkRes.data.error);
+    
+    if (checkRes.data?.status === 'done' && checkRes.data?.output) {
+      return checkRes.data.output;
+    }
+    
+    return pollAssessment(sessionId, prevCount, attempts + 1);
+  };
 
   const handleAnalyze = async () => {
-    if (!file) return;
-    if (!fileUrl) {
-      toast.error("Please wait for the file to finish uploading.");
-      return;
-    }
+    if (!fileUrl) return toast.error("Please wait for the file to finish uploading.");
 
     setIsAnalyzing(true);
-    setMessages([]);
     setResult(null);
-    setConversationId(null);
 
     try {
-      const tokenRes = await base44.functions.invoke('consumeToken', {});
+      const tokenRes = await base44.functions.invoke('consumeToken', { amount: 1 });
       if (tokenRes.data?.error) {
-        toast.error("You don't have enough AI tokens. Please upgrade your plan.");
+        toast.error(tokenRes.data.error || "Not enough AI tokens.");
         setIsAnalyzing(false);
         return;
       }
       if (tokenRes.data?.tokens !== undefined) setCredits(tokenRes.data.tokens);
 
-      // Settle delay to avoid immediate asset bucket propagation race conditions
-      await delay(1500);
-
+      // Trigger the backend to start the job
       const runRes = await base44.functions.invoke('runPlanAssessment', {
         action: 'run',
         fileUrl: fileUrl,
         tier: reviewTier,
         projectDetails
       });
-      if (runRes.data?.error) {
-        throw new Error(runRes.data.error);
-      }
-
-      let rawContent = runRes.data?.output || '';
       
-      // If the backend returns pending, we start polling
-      if (runRes.data?.status === 'pending' && runRes.data?.session_id) {
-        const sessionId = runRes.data.session_id;
-        let isDone = false;
-        let attempts = 0;
-        
-        while (!isDone && attempts < 60) { // Max 60 attempts = ~2-3 minutes
-          await delay(3000); // Poll every 3 seconds
-          attempts++;
-          
-          const checkRes = await base44.functions.invoke('checkSuperagentTask', {
-            session_id: sessionId,
-            prev_count: 0
-          });
-          
-          if (checkRes.data?.error) {
-             throw new Error(checkRes.data.error);
-          }
-          
-          if (checkRes.data?.status === 'done' && checkRes.data?.output) {
-            rawContent = checkRes.data.output;
-            isDone = true;
-          }
-        }
-        
-        if (!isDone) {
-          throw new Error("Assessment timed out after 3 minutes. Please try again.");
-        }
-      } else if (!rawContent) {
-        throw new Error("No assessment was returned by the superagent.");
-      }
+      if (runRes.data?.error) throw new Error(runRes.data.error);
+      const sessionId = runRes.data?.session_id;
+      if (!sessionId) throw new Error("Failed to start assessment session.");
 
+      // Start polling
+      const rawContent = await pollAssessment(sessionId, 0);
       const finalResult = extractJson(rawContent) || rawContent;
       setResult(finalResult);
 
-      const pi = finalResult.project_info || {};
-      const piRows = buildProjectInfoCard(pi);
-      const piSection = piRows
-        ? `## Project Information\n${piRows.map((r) => `- **${r.label}:** ${r.value}`).join('\n')}\n\n`
-        : '';
-      const markdownString = typeof finalResult === 'object'
-        ? `# Plan Assessment: ${finalResult.plan_type || 'Architectural Sheet'}\n**Overall Score:** ${finalResult.overall_score}/10\n**Assessment Tier:** ${reviewTier === 'concept' ? 'Tier 1 (Concept)' : 'Tier 2 (Construction)'}\n\n${piSection}## Overview\n${finalResult.overview}\n\n## Spatial Analysis\n${finalResult.spatial_analysis}\n\n## Design Observations\n${(finalResult.design_observations || []).map((o) => `- ${o}`).join('\n')}\n\n## Compliance Flags\n${(finalResult.compliance_flags || []).map((f) => `- ${f}`).join('\n')}\n\n## Recommendations\n${(finalResult.recommendations || []).map((r) => `- ${r}`).join('\n')}`
-        : String(finalResult);
-
       if (projectDetails.projectId) {
-        try {
-          const blob = new Blob([markdownString], { type: 'text/markdown' });
-          const file = new File([blob], `${reviewTier}-assessment.md`, { type: 'text/markdown' });
-          const up = await uploadToFirebase(file);
-          await base44.entities.ProjectAsset.create({
-            project_id: projectDetails.projectId,
-            file_url: up.file_url,
-            file_name: `${reviewTier}-assessment.md`,
-            asset_type: 'document'
-          });
-          toast.success("Assessment complete and saved to your project!");
-        } catch (saveErr) {
-          console.error("Failed to auto-save assessment:", saveErr);
-          toast.warning("Assessment complete, but it could not be auto-saved. Use Save to Project below.");
-        }
-      } else {
-        toast.success("Assessment complete! Save to Project or Download PDF below.");
+        toast.success("Assessment complete! Ready to save.");
       }
-
     } catch (err) {
-      console.error("Final Analysis Failure Chain:", err);
+      console.error(err);
+      toast.error("The assessment could not be completed.");
       setResult("An error occurred during analysis. Please try again.");
-      toast.error("The assessment could not be completed. Please try again.");
     } finally {
       setIsAnalyzing(false);
     }
   };
 
   const handleExportPdf = async () => {
-    if (typeof result !== 'object') { toast.error('Nothing to export'); return; }
+    if (typeof result !== 'object') return toast.error('Nothing to export');
     setExporting(true);
     try {
       exportAssessmentToPdf(result, reviewTier);
     } catch (e) {
-      console.error(e);
       toast.error('Could not generate PDF');
     } finally {
       setExporting(false);
@@ -260,7 +207,6 @@ const handleFileSelect = async (e) => {
                   onChange={(patch) => setProjectDetails((prev) => ({ ...prev, ...patch }))}
                 />
 
-                {/* TWO TIER STATE CONTROLLER TOGGLE */}
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-2 flex gap-2">
                   <button
                     type="button"
@@ -439,7 +385,7 @@ const handleFileSelect = async (e) => {
                   Download PDF
                 </Button>
                 <Button
-                  onClick={() => { setResult(null); setFile(null); setFileUrl(null); setPreviewUrl(null); setMessages([]); setConversationId(null); }}
+                  onClick={() => { setResult(null); setFile(null); setFileUrl(null); setPreviewUrl(null); }}
                   variant="outline"
                   className="w-full sm:flex-1 rounded-xl border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white h-12"
                 >
