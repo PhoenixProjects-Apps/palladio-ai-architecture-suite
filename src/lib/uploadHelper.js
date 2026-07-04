@@ -1,29 +1,37 @@
 import { base44 } from '@/api/base44Client';
 
 export async function uploadToFirebase(file) {
-  // 1. Get the pre-signed URL from our backend function
-  const authRes = await base44.functions.invoke('getUploadUrl', {
-    fileName: file.name || 'upload.bin',
-    fileType: file.type || 'application/octet-stream'
-  });
+  try {
+    // 1. Get the pre-signed URL from our backend function
+    const authRes = await base44.functions.invoke('getUploadUrl', {
+      fileName: file.name || 'upload.bin',
+      fileType: file.type || 'application/octet-stream'
+    });
 
-  const { uploadUrl, file_url, error } = authRes.data || {};
-  if (error) throw new Error(error);
-  if (!uploadUrl || !file_url) throw new Error('Could not secure upload permission');
+    const { uploadUrl, file_url, error } = authRes.data || {};
+    if (error) throw new Error(error);
+    if (!uploadUrl || !file_url) throw new Error('Could not secure upload permission');
 
-  // 2. Upload the file directly to the pre-signed URL
-  const uploadRes = await fetch(uploadUrl, {
-    method: 'PUT',
-    body: file,
-    headers: {
-      'Content-Type': file.type || 'application/octet-stream',
-    },
-  });
+    // 2. Upload the file directly to the pre-signed URL
+    const uploadRes = await fetch(uploadUrl, {
+      method: 'PUT',
+      body: file,
+      headers: {
+        'Content-Type': file.type || 'application/octet-stream',
+      },
+    });
 
-  if (!uploadRes.ok) {
-    throw new Error(`Direct upload failed with status: ${uploadRes.status}`);
+    if (!uploadRes.ok) {
+      throw new Error(`Direct upload failed with status: ${uploadRes.status}`);
+    }
+
+    // 3. Return the public URL
+    return { file_url };
+  } catch (err) {
+    console.warn("Direct upload failed (likely CORS), falling back to Base44 Core UploadFile:", err);
+    
+    // Fallback: Use Base44 internal storage integration if Firebase fails
+    const res = await base44.integrations.Core.UploadFile({ file });
+    return { file_url: res.file_url || res.url };
   }
-
-  // 3. Return the public URL
-  return { file_url };
 }
