@@ -604,27 +604,101 @@ Return ONLY valid JSON matching this exact structure:
                           
                                             </div>
                                             <div className="col-span-2">
-                                                <span className="text-slate-500 block text-xs mb-1">Zoning</span>
+                                                <span className="text-slate-500 text-xs mb-1 flex items-center gap-2">
+                                                    Zoning
+                                                    {propertyData.zoning_confidence && (
+                                                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${
+                                                        propertyData.zoning_confidence === 'HIGH' ? 'bg-emerald-500/20 text-emerald-400' :
+                                                        propertyData.zoning_confidence === 'MEDIUM' ? 'bg-amber-500/20 text-amber-400' :
+                                                        'bg-red-500/20 text-red-400'
+                                                    }`}>
+                                                        {propertyData.zoning_confidence} CONFIDENCE
+                                                    </span>
+                                                    )}
+                                                </span>
+
                                                 <input
-                            className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white"
-                            value={propertyData.zoning || ''}
-                            onChange={(e) => setPropertyData({ ...propertyData, zoning: e.target.value })}
-                            placeholder="e.g. Low Density Residential"
-                            disabled={isFetchingProperty} />
-                          
+                                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white mt-1"
+                                                    value={propertyData.zoning || ''}
+                                                    onChange={(e) => setPropertyData({ ...propertyData, zoning: e.target.value })}
+                                                    placeholder="e.g. Low density residential zone"
+                                                    disabled={isFetchingProperty}
+                                                />
+                                            </div>
+
+                                            <div className="col-span-2">
+                                                <span className="text-slate-500 text-xs mb-1 block">Neighbourhood / Local Plan</span>
+                                                <input
+                                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white mt-1"
+                                                    value={propertyData.neighbourhood_plan || ''}
+                                                    onChange={(e) => setPropertyData({ ...propertyData, neighbourhood_plan: e.target.value })}
+                                                    placeholder="e.g. Carina-Carindale neighbourhood plan"
+                                                    disabled={isFetchingProperty}
+                                                />
+                                            </div>
+
+                                            <div className="col-span-2">
+                                                <span className="text-slate-500 text-xs mb-1 flex items-center gap-2">
+                                                    Positive Overlays
+                                                    {propertyData.overlay_confidence && (
+                                                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${
+                                                        propertyData.overlay_confidence === 'HIGH' ? 'bg-emerald-500/20 text-emerald-400' :
+                                                        propertyData.overlay_confidence === 'MEDIUM' ? 'bg-amber-500/20 text-amber-400' :
+                                                        'bg-red-500/20 text-red-400'
+                                                    }`}>
+                                                        {propertyData.overlay_confidence} CONFIDENCE
+                                                    </span>
+                                                    )}
+                                                </span>
+
+                                                <textarea
+                                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white mt-1"
+                                                    value={Array.isArray(propertyData.overlays) ? propertyData.overlays.join('\n') : ''}
+                                                    onChange={(e) => setPropertyData({
+                                                    ...propertyData,
+                                                    overlays: e.target.value.split('\n').map(x => x.trim()).filter(Boolean)
+                                                    })}
+                                                    placeholder="One overlay per line"
+                                                    rows={3}
+                                                    disabled={isFetchingProperty}
+                                                />
+                                            </div>
+
+                                            <div className="col-span-2">
+                                                <span className="text-slate-500 text-xs mb-1 block">Negative Overlay Checks</span>
+                                                <textarea
+                                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white mt-1"
+                                                    value={Array.isArray(propertyData.negative_overlay_checks) ? propertyData.negative_overlay_checks.join('\n') : ''}
+                                                    onChange={(e) => setPropertyData({
+                                                    ...propertyData,
+                                                    negative_overlay_checks: e.target.value.split('\n').map(x => x.trim()).filter(Boolean)
+                                                    })}
+                                                    placeholder="e.g. No flood overlay detected"
+                                                    rows={3}
+                                                    disabled={isFetchingProperty}
+                                                />
+                                            </div>
+
+                                            {propertyData.verification_notes && (
+                                            <div className="col-span-2 text-[10px] text-amber-400 mt-1">
+                                                {propertyData.verification_notes}
+                                            </div>
+                                            )}
+                                        </div>
+
+                                        {propertyData.source_links?.length > 0 &&
+                                        <div className="pt-4 border-t border-white/5">
+                                            <span className="text-slate-500 block text-xs mb-2 flex items-center gap-1"><ExternalLink size={12} /> Source Links</span>
+                                            <div className="space-y-2">
+                                                {propertyData.source_links.map((link, idx) =>
+                                                    <a key={idx} href={link.link} target="_blank" rel="noreferrer" className="flex items-center justify-between group hover:bg-white/5 p-2 rounded-lg border border-white/5 bg-black/20 transition-colors text-xs">
+                                                        <span className="text-blue-400 group-hover:text-blue-300 transition-colors font-medium truncate pr-2">{link.name}</span>
+                                                        <ExternalLink size={12} className="text-slate-500 group-hover:text-blue-300 shrink-0" />
+                                                    </a>
+                                                )}
                                             </div>
                                         </div>
-                                        
-                                        {propertyData.overlays?.length > 0 &&
-                      <div className="pt-2 border-t border-white/5">
-                                                <span className="text-slate-500 block text-xs mb-1 flex items-center gap-1"><Layers size={12} /> Overlays</span>
-                                                <div className="flex flex-wrap gap-1.5">
-                                                    {propertyData.overlays.map((overlay, idx) =>
-                          <span key={idx} className="bg-white/10 px-2 py-0.5 rounded text-xs text-slate-300">{overlay}</span>
-                          )}
-                                                </div>
-                                            </div>
-                      }
+                                        }
 
                                         {propertyData.forms_and_applications?.length > 0 &&
                       <div className="pt-2 border-t border-white/5">
