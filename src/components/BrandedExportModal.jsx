@@ -72,19 +72,23 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
       
       const floorplanImg = await loadImage(imageUrl);
 
-      const maxPlanW = 1120;
-      const maxPlanH = 800;
-      let planW = floorplanImg.width;
-      let planH = floorplanImg.height;
-      const ratio = Math.min(maxPlanW / planW, maxPlanH / planH);
-      
-      const zoomScale = 1.45;
-      planW = planW * ratio * zoomScale;
-      planH = planH * ratio * zoomScale;
-      const planX = 40 + (maxPlanW - planW) / 2;
-      const planY = 40 + (maxPlanH - planH) / 2;
+      const fitImageContain = (imgW, imgH, boxW, boxH) => {
+        const scale = Math.min(boxW / imgW, boxH / imgH);
+        const drawW = imgW * scale;
+        const drawH = imgH * scale;
+        const drawX = (boxW - drawW) / 2;
+        const drawY = (boxH - drawH) / 2;
+        return { drawW, drawH, drawX, drawY };
+      };
 
-      ctx.drawImage(floorplanImg, planX, planY, planW, planH);
+      const boxX = 40;
+      const boxY = 40;
+      const boxW = canvas.width - 80;
+      const footerHeight = 160;
+      const boxH = canvas.height - footerHeight - 80;
+
+      const fit = fitImageContain(floorplanImg.width, floorplanImg.height, boxW, boxH);
+      ctx.drawImage(floorplanImg, boxX + fit.drawX, boxY + fit.drawY, fit.drawW, fit.drawH);
 
       const accent = accentColor || '#14213d'; 
       ctx.strokeStyle = accent;
@@ -97,7 +101,7 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
       ctx.fillStyle = '#111827';
       ctx.font = 'bold 32px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       const titleText = (title || "PROPOSED PROPERTY LAYOUT").toUpperCase();
-      ctx.fillText(titleText, 40, 970);
+      ctx.fillText(titleText, 40, 970, 750);
 
       ctx.fillStyle = '#4b5563';
       ctx.font = '22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
@@ -105,7 +109,7 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
       const lines = descriptionText.split('\n');
       let lineY = 1010;
       lines.forEach((line) => {
-        ctx.fillText(line, 40, lineY);
+        ctx.fillText(line, 40, lineY, 750);
         lineY += 32;
       });
 
@@ -221,30 +225,29 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
                     background: #ffffff;
                     padding: 40px;
                     box-sizing: border-box;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: space-between;
+                    display: grid;
+                    grid-template-rows: minmax(0, 1fr) auto;
+                    overflow: hidden;
                     border: 1px solid #e5e7eb;
                   }
 
                   .b44-canvas-floorplan-area {
-                    width: 100%;
-                    height: 800px;
+                    min-height: 0;
+                    overflow: hidden;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    overflow: hidden;
+                    padding-bottom: 40px;
                   }
 
                   .b44-canvas-floorplan-area img {
-                    max-width: 100%;
-                    max-height: 100%;
+                    width: 100%;
+                    height: 100%;
                     object-fit: contain;
-                    transform: scale(1.45);
                   }
 
                   .b44-canvas-title-block {
-                    width: 100%;
+                    flex-shrink: 0;
                     height: 160px;
                     padding-top: 28px;
                     display: flex;
@@ -258,6 +261,7 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
                     flex-direction: column;
                     justify-content: flex-start;
                     max-width: 70%;
+                    overflow: hidden;
                   }
 
                   .b44-title-block-meta h3 {
@@ -266,6 +270,9 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
                     color: #111827;
                     margin: 0 0 10px 0;
                     text-transform: uppercase;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
                   }
 
                   .b44-title-block-meta p {
@@ -274,6 +281,10 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
                     margin: 0;
                     line-height: 1.5;
                     white-space: pre-line;
+                    overflow: hidden;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
                   }
 
                   .b44-title-block-logo {
@@ -281,6 +292,7 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
                     display: flex;
                     align-items: center;
                     justify-content: flex-end;
+                    flex-shrink: 0;
                   }
 
                   .b44-title-block-logo img {
