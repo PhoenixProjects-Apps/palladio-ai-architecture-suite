@@ -13,10 +13,6 @@ Deno.serve(async (req) => {
     if (body?.action !== 'run') return Response.json({ error: "Invalid action" }, { status: 400 });
     if (!fileUrl) return Response.json({ error: "A valid file URL is required" }, { status: 400 });
 
-    const apiKey = Deno.env.get("SUPERAGENT_API_KEY");
-    const agentId = (Deno.env.get("SUPERAGENT_AGENT_ID") || "").trim();
-    if (!apiKey || !agentId) return Response.json({ error: "AI configuration missing" }, { status: 500 });
-
     const tierLabel = body?.tier === 'construction'
       ? 'Tier 2 (Construction & Compliance Documentation Review)'
       : 'Tier 1 (Concept & Pricing Review)';
@@ -59,48 +55,16 @@ Deno.serve(async (req) => {
       required: ["project_info", "plan_type", "overall_score", "overview", "spatial_analysis", "design_observations", "compliance_flags", "recommendations"]
     };
 
-    const instruction = `Please perform a ${tierLabel} assessment on the attached architectural plan.${projectContext}\n\nIf the attached file is clearly not a development layout or architectural sheet drawing, set overall_score to 0.\n\nCRITICAL: Return ONLY valid JSON matching this schema: ${JSON.stringify(responseSchema)}`;
+    const instruction = `Please perform a ${tierLabel} assessment on the attached architectural plan.${projectContext}\n\nIf the attached file is clearly not a development layout or architectural sheet drawing, set overall_score to 0.`;
 
-    let baseUrl = Deno.env.get("SUPERAGENT_BASE_URL");
-    if (!baseUrl) {
-      baseUrl = `https://api.superagent.sh/api/v1/agents/${agentId}`;
-    } else if (!baseUrl.includes("agents")) {
-      baseUrl = `${baseUrl.replace(/\/$/, '')}/agents/${agentId}`;
-    }
-
-    const headers = {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json"
-    };
-
-    // 1. Create Conversation
-    const createRes = await fetch(`${baseUrl}/conversations`, { method: "POST", headers, body: "{}" });
-    if (!createRes.ok) {
-      const errText = await createRes.text(); // Grab the exact error from Python
-      return Response.json({ error: `Create Error (${createRes.status}): ${errText}` }, { status: 502 });
-    }
-    const conversationId = (await createRes.json()).id;
-
-    // 2. Track ownership for polling security and associate with project
-    await base44.entities.SuperagentSession.create({
-      session_id: conversationId,
-      owner_email: user.email,
-      project_id: pd.projectId || null
+    const llmResult = await base44.integrations.Core.InvokeLLM({
+      prompt: instruction,
+      file_urls: [fileUrl],
+      response_json_schema: responseSchema,
+      model: "automatic"
     });
 
-    // 3. Await the POST request
-    const msgBody = { role: "user", content: instruction, file_urls: [fileUrl] };
-    const sendRes = await fetch(`${baseUrl}/conversations/${conversationId}/messages`, {
-      method: "POST", headers, body: JSON.stringify(msgBody),
-    });
-    
-    if (!sendRes.ok) {
-      const errText = await sendRes.text(); // Grab the exact error from Python
-      return Response.json({ error: `Send Error (${sendRes.status}): ${errText}` }, { status: 502 });
-    }
-
-    // 4. Return immediately to hand the polling duties over to the frontend
-    return Response.json({ status: "pending", session_id: conversationId }, { status: 200 });
+    return Response.json({ status: "done", output: llmResult }, { status: 200 });
 
   } catch (error) {
     console.error("runPlanAssessment fatal error:", error);

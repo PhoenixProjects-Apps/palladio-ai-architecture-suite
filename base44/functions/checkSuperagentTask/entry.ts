@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
       const validAssistants = assistants.filter(m => {
         if (!m.content || typeof m.content !== 'string' || m.content.trim().length === 0) return false;
         if (m.tool_calls?.length) return false;
-        if (m.status && !['completed', 'stop'].includes(m.status.toLowerCase())) return false;
+        if (m.status !== 'completed') return false;
         return true;
       });
       

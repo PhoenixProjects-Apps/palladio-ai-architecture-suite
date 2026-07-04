@@ -97,28 +97,6 @@ export default function PalladioAssess() {
     }
   };
 
-  // Safe Polling Helper with Exponential Backoff
-  const pollAssessment = async (sessionId, prevCount = 0, attempts = 0) => {
-    if (attempts > 60) throw new Error("Assessment timed out.");
-    
-    // Gradual backoff: starts at 5s and increases up to 10s intervals
-    const delay = Math.min(5000 + (attempts * 1000), 10000);
-    await new Promise((resolve) => setTimeout(resolve, delay));
-    
-    const checkRes = await base44.functions.invoke('checkSuperagentTask', { session_id: sessionId, prev_count: prevCount });
-    if (checkRes.data?.error) throw new Error(checkRes.data.error);
-    
-    if (checkRes.data?.status === 'done' && checkRes.data?.output) {
-      // Verify JSON completeness to prevent capturing a streaming string mid-way
-      const parsed = extractJson(checkRes.data.output);
-      if (parsed || attempts > 15) {
-        return checkRes.data.output;
-      }
-    }
-    
-    return pollAssessment(sessionId, prevCount, attempts + 1);
-  };
-
   const handleAnalyze = async () => {
     if (!fileUrl) return toast.error("Please wait for the file to finish uploading.");
 
@@ -134,7 +112,7 @@ export default function PalladioAssess() {
       }
       if (tokenRes.data?.tokens !== undefined) setCredits(tokenRes.data.tokens);
 
-      // Trigger the backend to start the job
+      // Call the synchronous assessment task
       const runRes = await base44.functions.invoke('runPlanAssessment', {
         action: 'run',
         fileUrl: fileUrl,
@@ -143,13 +121,9 @@ export default function PalladioAssess() {
       });
       
       if (runRes.data?.error) throw new Error(runRes.data.error);
-      const sessionId = runRes.data?.session_id;
-      if (!sessionId) throw new Error("Failed to start assessment session.");
+      if (!runRes.data?.output) throw new Error("No output received from the assessment.");
 
-      // Start polling
-      const rawContent = await pollAssessment(sessionId, 0);
-      const finalResult = extractJson(rawContent) || rawContent;
-      setResult(finalResult);
+      setResult(runRes.data.output);
 
       if (projectDetails.projectId) {
         toast.success("Assessment complete! Ready to save.");
