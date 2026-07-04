@@ -133,8 +133,38 @@ const handleFileSelect = async (e) => {
       if (runRes.data?.error) {
         throw new Error(runRes.data.error);
       }
-      const rawContent = runRes.data?.output || '';
-      if (!rawContent) {
+
+      let rawContent = runRes.data?.output || '';
+      
+      // If the backend returns pending, we start polling
+      if (runRes.data?.status === 'pending' && runRes.data?.session_id) {
+        const sessionId = runRes.data.session_id;
+        let isDone = false;
+        let attempts = 0;
+        
+        while (!isDone && attempts < 60) { // Max 60 attempts = ~2-3 minutes
+          await delay(3000); // Poll every 3 seconds
+          attempts++;
+          
+          const checkRes = await base44.functions.invoke('checkSuperagentTask', {
+            session_id: sessionId,
+            prev_count: 0
+          });
+          
+          if (checkRes.data?.error) {
+             throw new Error(checkRes.data.error);
+          }
+          
+          if (checkRes.data?.status === 'done' && checkRes.data?.output) {
+            rawContent = checkRes.data.output;
+            isDone = true;
+          }
+        }
+        
+        if (!isDone) {
+          throw new Error("Assessment timed out after 3 minutes. Please try again.");
+        }
+      } else if (!rawContent) {
         throw new Error("No assessment was returned by the superagent.");
       }
 

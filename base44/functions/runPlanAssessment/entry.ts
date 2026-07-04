@@ -46,6 +46,12 @@ Deno.serve(async (req) => {
     if (!createRes.ok) throw new Error(`Superagent API Error: ${createRes.status}`);
     const conversationId = (await createRes.json()).id;
 
+    // Track ownership so checkSuperagentTask can safely authorize polls
+    await base44.entities.SuperagentSession.create({
+      session_id: conversationId,
+      owner_email: user.email
+    });
+
     // Step 2: Send the prompt and the file URL directly to the AI
     const msgBody = { 
       role: "user", 
@@ -53,27 +59,18 @@ Deno.serve(async (req) => {
       file_urls: [fileUrl]
     };
 
-    const sendRes = await fetch(`${baseUrl}/conversations/${conversationId}/messages`, {
+    // Fire the request but DO NOT await the JSON response. This allows the backend
+    // function to return immediately, preventing the 10-second serverless timeout.
+    // Deno Deploy will allow this fetch to finish in the background if it's not awaited.
+    fetch(`${baseUrl}/conversations/${conversationId}/messages`, {
       method: "POST", headers, body: JSON.stringify(msgBody),
-    });
+    }).catch(console.error);
 
-    if (!sendRes.ok) throw new Error(`AI Provider failed to respond: ${sendRes.status}`);
-    
-    const afterSend = await sendRes.json();
-
-    // Step 3: Extract the AI's final response
-    const getMessages = (data) => Array.isArray(data) ? data : (Array.isArray(data?.messages) ? data.messages : (data?.role ? [data] : []));
-    const msgs = getMessages(afterSend);
-    const last = msgs[msgs.length - 1];
-    
-    let output = "";
-    if (last?.role === "assistant" && last.content) {
-      output = last.content;
-    } else {
-      return Response.json({ error: "AI is still processing. Timeout reached." }, { status: 504 });
-    }
-
-    return Response.json({ output }, { status: 200 });
+    // Return the conversation ID so the frontend can poll for the result
+    return Response.json({ 
+      status: "pending", 
+      session_id: conversationId 
+    }, { status: 200 });
 
   } catch (error) {
     console.error("runPlanAssessment fatal error:", error);
