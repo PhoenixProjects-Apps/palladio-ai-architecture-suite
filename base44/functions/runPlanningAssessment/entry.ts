@@ -25,16 +25,41 @@ Deno.serve(async (req) => {
       ? propertyData.overlays.join(', ')
       : (propertyData.overlays || 'N/A');
 
+    const negativeChecksString = Array.isArray(propertyData.negative_overlay_checks)
+      ? propertyData.negative_overlay_checks.join('; ')
+      : (propertyData.negative_overlay_checks || 'N/A');
+
+    const councilOverlaysText =
+      propertyData.council_overlays_text ||
+      [
+        propertyData.zoning ? `Zoning: ${propertyData.zoning}` : null,
+        propertyData.neighbourhood_plan ? `Neighbourhood / Local Plan: ${propertyData.neighbourhood_plan}` : null,
+        overlaysString && overlaysString !== 'N/A' ? `Positive Overlays: ${overlaysString}` : null,
+        negativeChecksString && negativeChecksString !== 'N/A' ? `Negative Overlay Checks: ${negativeChecksString}` : null,
+        propertyData.overlay_confidence ? `Overlay Confidence: ${propertyData.overlay_confidence}` : null
+      ].filter(Boolean).join('; ');
+
     const prompt = `You are a town planning assessor. Apply standard town planning assessment rules to assess this proposed development:
+
 Address: ${address}
 Development Type: ${devType}
 Description: ${description}
 
 Known property context:
 - Lot / RP: ${propertyData.lot_rp || 'N/A'}
+- Lot No.: ${propertyData.lot_no || 'N/A'}
+- RP No.: ${propertyData.rp_no || 'N/A'}
 - Site Area: ${propertyData.site_area || 'N/A'}
 - Zoning: ${propertyData.zoning || 'N/A'}
-- Property Overlays: ${overlaysString}
+- Zoning Confidence: ${propertyData.zoning_confidence || 'N/A'}
+- Neighbourhood / Local Plan: ${propertyData.neighbourhood_plan || 'N/A'}
+- Council Overlays Summary: ${councilOverlaysText}
+- Positive Overlays: ${overlaysString}
+- Negative Overlay Checks: ${negativeChecksString}
+
+Important:
+Do not treat "No flood, bushfire, or heritage overlays detected" as meaning no planning overlays exist.
+If overlay_confidence is LOW or overlays include "UNVERIFIED", explicitly flag that manual council mapping verification is required.
 `;
 
     const responseSchema = {
