@@ -61,10 +61,11 @@ Deno.serve(async (req) => {
 
     const instruction = `Please perform a ${tierLabel} assessment on the attached architectural plan.${projectContext}\n\nIf the attached file is clearly not a development layout or architectural sheet drawing, set overall_score to 0.\n\nCRITICAL: Return ONLY valid JSON matching this schema: ${JSON.stringify(responseSchema)}`;
 
-    const baseUrl = `https://app.base44.com/api/agents/${agentId}`;
+    const baseUrl = Deno.env.get("SUPERAGENT_BASE_URL") || `https://app.base44.com/api/agents/${agentId}`;
 
     const headers = {
       "api_key": apiKey,
+      "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json"
     };
 

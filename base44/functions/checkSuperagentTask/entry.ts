@@ -20,9 +20,10 @@ Deno.serve(async (req) => {
     
     if (!apiKey || !agentId) return Response.json({ error: "Superagent not configured" }, { status: 500 });
 
-    const baseUrl = `https://app.base44.com/api/agents/${agentId}`;
+    const baseUrl = Deno.env.get("SUPERAGENT_BASE_URL") || `https://app.base44.com/api/agents/${agentId}`;
 
     const headers = {
+      "api_key": apiKey,
       "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json"
     };
