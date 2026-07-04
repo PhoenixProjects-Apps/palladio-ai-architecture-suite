@@ -31,19 +31,123 @@ const PRESETS = [
   options: ['Eye-level human perspective', 'Interior wide-angle shot', 'Aerial drone view', 'Low-angle architectural', 'Close-up detail shot']
 }];
 
-const MATERIAL_OPTIONS = [
-  'Matte black steel', 'White oak slats', 'Fluted glass', 'Exposed concrete', 'Red brick', 'Natural stone', 'Terrazzo', 'Brass accents', 'Linen fabric', 'Leather'
-];
+const MATERIAL_LIBRARY = {
+  wood: [
+    {
+      label: 'Honed White Oak',
+      category: 'Wood',
+      prompt: 'wide-plank honed white oak with visible natural grain, matte low-sheen finish, pale warm tone, soft tactile timber texture',
+      bestUsedFor: 'Light, airy Scandinavian or modern minimalist flooring and millwork'
+    },
+    {
+      label: 'Ebonized Ash',
+      category: 'Wood',
+      prompt: 'ebonized ash timber with deep charcoal-black grain, matte finish, subtle open-pore texture, high-contrast contemporary detailing',
+      bestUsedFor: 'High-contrast, moody, or contemporary furniture accents'
+    },
+    {
+      label: 'Natural Walnut Burl',
+      category: 'Wood',
+      prompt: 'natural walnut burl with rich swirling grain, satin finish, warm brown tone, luxurious mid-century cabinetry texture',
+      bestUsedFor: 'Statement furniture and rich mid-century modern cabinetry'
+    }
+  ],
+  stoneMasonry: [
+    {
+      label: 'Honed Calacatta Marble',
+      category: 'Stone & Masonry',
+      prompt: 'honed Calacatta marble with soft grey veining, matte stone finish, natural variation, no glossy plastic glare',
+      bestUsedFor: 'Kitchen islands and vanities'
+    },
+    {
+      label: 'Unfilled Travertine',
+      category: 'Stone & Masonry',
+      prompt: 'unfilled travertine with natural pores, warm beige tone, honed matte surface, tactile earthy stone texture',
+      bestUsedFor: 'Warm, earthy floors, feature walls, or sculptural coffee tables'
+    },
+    {
+      label: 'Rough Zellige Tile',
+      category: 'Stone & Masonry',
+      prompt: 'handmade rough zellige tile with irregular edges, subtle glaze variation, imperfect organic surface, light-catching texture',
+      bestUsedFor: 'Backsplashes or showers to add organic, imperfect texture'
+    }
+  ],
+  metals: [
+    {
+      label: 'Brushed Brass',
+      category: 'Metals',
+      prompt: 'brushed brass with warm satin sheen, fine linear grain, subtle patina, no mirror-like gold glare',
+      bestUsedFor: 'Warm, modern hardware, lighting fixtures, and subtle accents'
+    },
+    {
+      label: 'Blackened Steel',
+      category: 'Metals',
+      prompt: 'blackened steel with matte dark finish, subtle edge highlights, industrial depth and restrained reflectivity',
+      bestUsedFor: 'Industrial window framing, staircases, and sleek fixtures'
+    },
+    {
+      label: 'Aged Copper',
+      category: 'Metals',
+      prompt: 'aged copper with natural patina, warm oxidised variation, realistic weathering and handcrafted character',
+      bestUsedFor: 'Vintage statement pieces with a natural, realistic patina'
+    }
+  ],
+  textiles: [
+    {
+      label: 'Heavyweight Bouclé',
+      category: 'Textiles',
+      prompt: 'heavyweight bouclé upholstery with nubby tactile texture, soft off-white woven surface, cozy high-end furniture finish',
+      bestUsedFor: 'Cozy, structured seating, sofas, and accent chairs'
+    },
+    {
+      label: 'Slubbed Linen',
+      category: 'Textiles',
+      prompt: 'slubbed linen fabric with natural weave variation, soft matte texture, relaxed organic drape',
+      bestUsedFor: 'Soft window treatments, natural bedding, and relaxed upholstery'
+    },
+    {
+      label: 'Worn Saddle Leather',
+      category: 'Textiles',
+      prompt: 'worn saddle leather with warm caramel tone, creases, natural patina and subtle sheen from age',
+      bestUsedFor: 'Adding warmth and character to lounge chairs or barstools'
+    }
+  ],
+  finishes: [
+    {
+      label: 'Limewash Plaster',
+      category: 'Finishes',
+      prompt: 'limewash plaster walls with soft matte finish, subtle mottling, hand-applied texture and natural tonal movement',
+      bestUsedFor: 'Walls and ceilings for a soft, matte, subtly mottled texture'
+    },
+    {
+      label: 'Microcement',
+      category: 'Finishes',
+      prompt: 'microcement surface with seamless matte finish, fine mineral texture, subtle trowel movement and soft tonal variation',
+      bestUsedFor: 'Minimalist, seamless floors or brutalist-inspired bathrooms'
+    }
+  ]
+};
+
+const flattenMaterials = Object.values(MATERIAL_LIBRARY).flat();
+const expandMaterial = (label) => {
+  const found = flattenMaterials.find(m => m.label === label);
+  return found ? found.prompt : label;
+};
 
 const ASPECT_RATIOS = ['16:9', '9:16', '1:1', '4:3', '3:4', '4:5'];
 
 
-const buildRenderPrompt = ({ renderType, presets, prompt, aspectRatio }) => `
+const buildRenderPrompt = ({ renderType, presets, prompt, aspectRatio }) => {
+  const materialText = Array.isArray(presets.materialPalette) && presets.materialPalette.length > 0 
+    ? presets.materialPalette.map(expandMaterial).join('; ') 
+    : 'balanced architectural materials';
+
+  return `
 Create a photorealistic ${renderType} architectural render from the supplied base image.
 Preserve the building geometry, roof form, openings, proportions, and camera angle from the base image.
 Apply the following design direction:
 - Architectural style: ${presets.architecturalStyle || 'Contemporary'}
-- Materials: ${Array.isArray(presets.materialPalette) ? presets.materialPalette.join(', ') : 'balanced architectural materials'}
+- Materials: ${materialText}
 - Environment: ${presets.environment || 'realistic Australian residential setting'}
 - Lighting: ${presets.lighting || 'natural daylight'}
 - Camera/framing: ${presets.camera || 'professional architectural photography'}
@@ -61,6 +165,7 @@ Quality requirements:
 - no logo
 - no title block
 `;
+};
 
 export default function Render3D() {
   const [file, setFile] = useState(null);
@@ -581,29 +686,37 @@ export default function Render3D() {
 
           <div className="mb-4">
             <label className="block text-xs mb-1.5" style={{ color: '#94a3b8' }}>Material Palette</label>
-            <div className="flex flex-wrap gap-2">
-              {MATERIAL_OPTIONS.map((mat) => {
-                const isSelected = presets.materialPalette?.includes(mat);
-                return (
-                  <button
-                    key={mat}
-                    onClick={() => {
-                      setPresets(p => {
-                        const current = p.materialPalette || [];
-                        return {
-                          ...p,
-                          materialPalette: isSelected
-                            ? current.filter(x => x !== mat)
-                            : [...current, mat]
-                        };
-                      });
-                    }}
-                    className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-colors ${isSelected ? 'bg-teal-500/20 text-teal-400 border border-teal-500/50' : 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700 hover:text-slate-200'}`}
-                  >
-                    {mat}
-                  </button>
-                );
-              })}
+            <div className="space-y-3">
+              {Object.entries(MATERIAL_LIBRARY).map(([catKey, items]) => (
+                <div key={catKey}>
+                  <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1.5">{items[0].category}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {items.map((mat) => {
+                      const isSelected = presets.materialPalette?.includes(mat.label);
+                      return (
+                        <button
+                          key={mat.label}
+                          onClick={() => {
+                            setPresets(p => {
+                              const current = p.materialPalette || [];
+                              return {
+                                ...p,
+                                materialPalette: isSelected
+                                  ? current.filter(x => x !== mat.label)
+                                  : [...current, mat.label]
+                              };
+                            });
+                          }}
+                          title={mat.bestUsedFor}
+                          className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-colors ${isSelected ? 'bg-teal-500/20 text-teal-400 border border-teal-500/50' : 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700 hover:text-slate-200'}`}
+                        >
+                          {mat.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
