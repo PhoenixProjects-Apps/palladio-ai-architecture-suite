@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Upload, Wand2, Loader2, FileText, Download, RefreshCcw, CheckCircle, ChevronDown, ChevronUp, Save, Bookmark, Brush, Monitor, Paintbrush } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { uploadToFirebase } from '@/lib/uploadHelper';
 import { createPageUrl } from '@/utils';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -199,7 +200,7 @@ export default function Render3D() {
 
         setIsUploading(true);
         try {
-          const { file_url } = await base44.integrations.Core.UploadFile({ file: capturedFile });
+          const { file_url } = await uploadToFirebase(capturedFile);
           setFileUrl(file_url);
         } finally {
           setIsUploading(false);
@@ -227,7 +228,7 @@ export default function Render3D() {
 
     setIsUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: selectedFile });
+      const { file_url } = await uploadToFirebase(selectedFile);
       setFileUrl(file_url);
     } catch (err) {
       console.error("Upload error:", err);
@@ -252,7 +253,7 @@ export default function Render3D() {
 
     setIsUploadingStyle(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: selectedFile });
+      const { file_url } = await uploadToFirebase(selectedFile);
       setStyleFileUrl(file_url);
     } catch (err) {
       console.error("Style upload error:", err);
@@ -330,7 +331,7 @@ export default function Render3D() {
         const blob = await new Promise((resolve) => canvasRef.current.toBlob(resolve, 'image/png'));
         if (blob) {
           const file = new File([blob], 'mask.png', { type: 'image/png' });
-          const uploadRes = await base44.integrations.Core.UploadFile({ file });
+          const uploadRes = await uploadToFirebase(file);
           maskUrl = uploadRes.file_url;
         }
       }

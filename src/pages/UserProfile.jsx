@@ -8,6 +8,7 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { uploadToFirebase } from '@/lib/uploadHelper';
 
 export default function UserProfile() {
   const { logout } = useAuth();
@@ -83,7 +84,7 @@ export default function UserProfile() {
     }
     try {
       setUploading(true);
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const { file_url } = await uploadToFirebase(file);
       await base44.auth.updateMe({ profile_picture: file_url });
       setUser(prev => ({ ...prev, profile_picture: file_url }));
       toast.success('Profile picture updated.');

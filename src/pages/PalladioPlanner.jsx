@@ -12,6 +12,7 @@ import PalladioGate from '../components/PalladioGate';
 import SaveToProject from '../components/SaveToProject';
 import { toast } from 'sonner';
 import { exportPlanningToPdf } from '@/lib/exportPlanningPdf';
+import { uploadToFirebase } from '@/lib/uploadHelper';
 
 const devTypes = [
 "New Dwelling", "Extension/Addition", "Subdivision",
@@ -203,18 +204,8 @@ Return a valid JSON object matching this structure:
         setIsAnalyzingDoc(false);
         return;
       }
-      const fileBase64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result).split(',')[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(docFile);
-      });
-      const resFile = await base44.functions.invoke('uploadPlanFile', {
-        fileName: docFile.name,
-        fileType: docFile.type,
-        fileBase64
-      });
-      const file_url = resFile.data?.file_url;
+      const resFile = await uploadToFirebase(docFile);
+      const file_url = resFile?.file_url;
       if (!file_url) throw new Error('Upload failed');
       setIsUploading(false);
 

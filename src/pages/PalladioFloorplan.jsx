@@ -13,6 +13,7 @@ import ChooseProject from '../components/ChooseProject';
 import Floorplan3DRenderer from '../components/Floorplan3DRenderer';
 import { toast } from 'sonner';
 import BrandedExportModal from '../components/BrandedExportModal';
+import { uploadToFirebase } from '@/lib/uploadHelper';
 
 function extractJson(text) {
   if (!text) return null;
@@ -111,7 +112,7 @@ export default function PalladioFloorplan() {
     if (!file) return;
     setCadFile(file);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const { file_url } = await uploadToFirebase(file);
       setCadFileUrl(file_url);
     } catch (err) {
       console.error(err);

@@ -13,6 +13,7 @@ import ProjectDetailsForm from '@/components/ProjectDetailsForm';
 import ChooseProject from '@/components/ChooseProject';
 import { exportAssessmentToPdf } from '@/lib/exportPdf';
 import { toast } from 'sonner';
+import { uploadToFirebase } from '@/lib/uploadHelper';
 
 function extractJson(text) {
   if (!text) return null;
@@ -82,31 +83,9 @@ const handleFileSelect = async (e) => {
 
     setIsUploading(true);
     try {
-      // Step 1: Ask the backend for a secure upload URL (Presigned URL)
-      // Note: You will need to update 'uploadPlanFile' on your backend to return a presigned URL 
-      // instead of accepting base64 data.
-      const authRes = await base44.functions.invoke('getUploadUrl', {
-        fileName: selectedFile.name,
-        fileType: selectedFile.type
-      });
-      
-      const { uploadUrl, file_url } = authRes.data || {};
-      if (!uploadUrl || !file_url) throw new Error('Could not secure upload permission');
-
-      // Step 2: Upload directly to the storage bucket using standard Fetch (No Base64 overhead!)
-      const uploadRes = await fetch(uploadUrl, {
-        method: 'PUT',
-        body: selectedFile,
-        headers: {
-          'Content-Type': selectedFile.type,
-        },
-      });
-
-      if (!uploadRes.ok) throw new Error('Direct upload failed');
-
-      // Step 3: Save the final public/accessible URL for the AI to read
-      setFileUrl(file_url);
-      
+      const res = await uploadToFirebase(selectedFile);
+      if (!res?.file_url) throw new Error('Upload failed');
+      setFileUrl(res.file_url);
     } catch (err) {
       console.error("Upload error:", err);
       const errMsg = err?.message?.includes("Network Error")
@@ -175,7 +154,7 @@ const handleFileSelect = async (e) => {
         try {
           const blob = new Blob([markdownString], { type: 'text/markdown' });
           const file = new File([blob], `${reviewTier}-assessment.md`, { type: 'text/markdown' });
-          const up = await base44.integrations.Core.UploadFile({ file });
+          const up = await uploadToFirebase(file);
           await base44.entities.ProjectAsset.create({
             project_id: projectDetails.projectId,
             file_url: up.file_url,

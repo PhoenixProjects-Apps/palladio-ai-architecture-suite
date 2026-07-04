@@ -8,6 +8,7 @@ import { ArrowLeft, Upload, Loader2, Calculator, Database, FileText, DollarSign,
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
+import { uploadToFirebase } from '@/lib/uploadHelper';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import SaveToProject from '@/components/SaveToProject';
@@ -328,19 +329,9 @@ export default function PalladioEstimator() {
 
     setIsUploading(true);
     try {
-      const fileBase64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result).split(',')[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(selectedFile);
-      });
-      const res = await base44.functions.invoke('uploadPlanFile', {
-        fileName: selectedFile.name,
-        fileType: selectedFile.type,
-        fileBase64
-      });
-      const url = res.data?.file_url;
-      if (!url) throw new Error(res.data?.error || 'Upload failed');
+      const res = await uploadToFirebase(selectedFile);
+      const url = res?.file_url;
+      if (!url) throw new Error('Upload failed');
       setFileUrl(url);
     } catch (err) {
       toast.error('Failed to upload file. ' + (err.message || ''));

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { uploadToFirebase } from '@/lib/uploadHelper';
 
 export default function SaveToProject({ fileUrl, textContent, fileName, assetType = 'other', disabled, children, className, variant = 'outline', onSave, projectId }) {
   const [open, setOpen] = useState(false);
@@ -39,7 +40,7 @@ export default function SaveToProject({ fileUrl, textContent, fileName, assetTyp
         if (!finalFileUrl && textContent) {
           const blob = new Blob([textContent], { type: 'text/markdown' });
           const file = new File([blob], fileName || 'report.md', { type: 'text/markdown' });
-          const res = await base44.integrations.Core.UploadFile({ file });
+          const res = await uploadToFirebase(file);
           finalFileUrl = res.file_url;
         }
         if (!finalFileUrl) { toast.error("Nothing to save."); return; }
