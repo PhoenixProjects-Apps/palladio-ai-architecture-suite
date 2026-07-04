@@ -238,6 +238,21 @@ Return ONLY valid JSON matching this exact structure:
     return parts.join('; ');
   };
 
+  const isShallowLegacyCache = (record) => {
+    const text = record?.council_overlays_text || '';
+
+    return (
+      (!record?.overlays || record.overlays.length === 0) &&
+      !record?.neighbourhood_plan &&
+      !record?.overlay_confidence &&
+      (
+        text.includes('No bushfire') ||
+        text.includes('No flood') ||
+        text.includes('No heritage')
+      )
+    );
+  };
+
   const handleAddressSelect = async (addr) => {
     setAddress(addr);
   
@@ -267,7 +282,7 @@ Return ONLY valid JSON matching this exact structure:
       // 1. Check cache first
       const cached = await base44.entities.PropertyCache.filter({ address: addr });
   
-      if (cached && cached.length > 0) {
+      if (cached && cached.length > 0 && !isShallowLegacyCache(cached[0])) {
         const record = cached[0];
   
         const hydrated = {

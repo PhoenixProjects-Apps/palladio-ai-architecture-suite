@@ -7,9 +7,23 @@ Deno.serve(async (req) => {
 
     if (!address) return Response.json({ error: "Address is required" }, { status: 400 });
 
+    const isShallowLegacyCache = (record) => {
+      const text = record?.council_overlays_text || '';
+      return (
+        (!record?.overlays || record.overlays.length === 0) &&
+        !record?.neighbourhood_plan &&
+        !record?.overlay_confidence &&
+        (
+          text.includes('No bushfire') ||
+          text.includes('No flood') ||
+          text.includes('No heritage')
+        )
+      );
+    };
+
     // Check if the property data is already cached
     const cached = await base44.asServiceRole.entities.PropertyCache.filter({ address });
-    if (cached && cached.length > 0) {
+    if (cached && cached.length > 0 && !isShallowLegacyCache(cached[0])) {
       return Response.json({ data: cached[0], cached: true });
     }
 
