@@ -30,6 +30,7 @@ Deno.serve(async (req) => {
     const bucket = storage.bucket(bucketName);
     const file = bucket.file(filePath);
 
+// 4. Generate the Signed URL for your app to UPLOAD the file (valid for 15 minutes)
     const [uploadUrl] = await file.getSignedUrl({
       version: 'v4',
       action: 'write',
@@ -37,10 +38,19 @@ Deno.serve(async (req) => {
       contentType: fileType,
     });
 
-    const encodedPath = encodeURIComponent(filePath);
-    const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodedPath}?alt=media`;
+    // 5. Generate a second Signed URL for the AI to READ the file (valid for 2 hours)
+    const [readUrl] = await file.getSignedUrl({
+      version: 'v4',
+      action: 'read',
+      expires: Date.now() + 2 * 60 * 60 * 1000, 
+    });
 
-    return Response.json({ uploadUrl, file_url: publicUrl }, { status: 200 });
+    // Send the secure read URL to the frontend so it can be passed to the AI
+    return Response.json({ 
+      uploadUrl, 
+      file_url: readUrl 
+    }, { status: 200 });
+
   } catch (error) {
     console.error("getUploadUrl fatal error:", error);
     return Response.json({ error: "Failed to generate upload URL" }, { status: 500 });
