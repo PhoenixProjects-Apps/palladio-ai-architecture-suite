@@ -5,6 +5,9 @@
     "address": {
       "type": "string"
     },
+    "lot_rp": {
+      "type": "string"
+    },
     "lot_no": {
       "type": "string"
     },
@@ -17,8 +20,14 @@
     "zoning": {
       "type": "string"
     },
-    "council_overlays": {
+    "council_overlays_text": {
       "type": "string"
+    },
+    "overlays": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     },
     "forms_and_applications": {
       "type": "array",
@@ -41,15 +50,7 @@
   "rls": {
     "create": null,
     "read": null,
-    "update": {
-      "user_condition": {
-        "role": "admin"
-      }
-    },
-    "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
-    }
+    "update": null,
+    "delete": null
   }
 }
