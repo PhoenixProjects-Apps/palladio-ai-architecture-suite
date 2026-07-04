@@ -14,30 +14,107 @@ Deno.serve(async (req) => {
     }
 
     // Not in cache, fetch using LLM and internet context
-    const prompt = `Search public council information and property databases for the Australian address: "${address}".
-Find and return:
-1. Lot Number
-2. Registered Plan (RP) number
-3. Combined Lot & RP (e.g., Lot 1 RP 12345)
-4. Site / lot area in square metres
-5. Exact zoning description and your confidence level in this zoning.
-6. Neighbourhood plan or local plan area.
-7. Positive overlays found (council planning overlays that actually apply to the site).
-8. Negative overlay checks (hazards you explicitly checked and confirmed DO NOT apply, e.g., 'No flood overlay', 'No bushfire').
-9. Overall overlay confidence.
-10. A fully assembled summary text (council_overlays_text) combining zoning, neighbourhood plan, positive overlays, and negative overlay checks into a comprehensive paragraph. Do NOT just list negative checks here.
-11. Links to relevant local council forms and applications for development.
-12. Links to the exact sources where you verified this information.
-13. Any verification notes (e.g., issues finding data) and a timestamp.
+    const buildPropertyResearchPrompt = (addr) => `
+You are a property research assistant retrieving OFFICIAL Australian planning scheme data.
 
-Return exactly what you find from official sources. Use an empty string for any field you cannot confirm. Do not invent values.`;
+Research this property address:
+${addr}
+
+Use current public sources where available, including:
+- the relevant local council planning scheme
+- the council interactive mapping / property search tool
+- state planning / title-style public information where available
+- official development application form pages
+
+CRITICAL REQUIREMENTS:
+
+1. ZONING
+Return the EXACT, SPECIFIC zone name used by the local planning scheme.
+For Brisbane City Council under City Plan 2014, examples include:
+- Low density residential zone
+- Low-medium density residential zone
+- Medium density residential zone
+- Character residential zone
+- Rural residential zone
+- Mixed use zone
+- Centre zone
+- Community facilities zone
+- Emerging community zone
+
+Do NOT return generic labels like:
+- Residential
+- General Residential
+- Housing
+- Urban
+
+If the exact zone cannot be verified, return:
+"UNVERIFIED - manual confirmation required"
+
+2. NEIGHBOURHOOD / LOCAL PLAN
+Check whether the address is inside a neighbourhood plan, local plan, precinct, locality plan, or equivalent local planning area.
+Return the exact name if verified.
+If none is found, return:
+"None verified"
+If uncertain, return:
+"UNVERIFIED - check council mapping tool"
+
+3. POSITIVE OVERLAYS
+Explicitly check these overlay categories one by one:
+- Flood
+- Bushfire
+- Heritage / Traditional building character
+- Airport environs / ANEF / OLS
+- Road hierarchy / transport corridor
+- Bicycle network
+- Waterway corridor
+- Biodiversity / environmental significance
+- Landslide / steep land / slope constraint
+- Coastal hazard
+- Extractive resources
+- Infrastructure / trunk infrastructure
+- Acid sulfate soils
+- Stormwater / overland flow
+- Any other mapped local council overlay
+
+Only include an overlay in "overlays" if there is genuine evidence it applies.
+
+4. NEGATIVE OVERLAY CHECKS
+If a major overlay category is checked and does NOT apply, store that as a negative check.
+Example:
+"No flood overlay detected"
+"No bushfire overlay detected"
+"No heritage overlay detected"
+
+Do not confuse negative checks with positive overlays.
+
+5. EMPTY OVERLAY RULE
+If positive overlays cannot be confidently verified, DO NOT return an empty overlays array without explanation.
+Instead:
+overlays: ["UNVERIFIED - check council mapping tool"]
+overlay_confidence: "LOW"
+
+6. LOT / RP / SITE AREA
+Return:
+- lot_rp
+- lot_no
+- rp_no
+- site_area
+
+7. FORMS AND APPLICATIONS
+Return links to the relevant local council's actual development application forms and property/planning search tools.
+
+8. SOURCE LINKS
+Return useful source links used or recommended, including council mapping/property search pages.
+
+Return ONLY valid JSON matching this exact structure.
+`;
 
     const responseSchema = {
       type: "object",
       properties: {
+        lot_rp: { type: "string" },
         lot_no: { type: "string" },
         rp_no: { type: "string" },
-        lot_rp: { type: "string" },
         site_area: { type: "string" },
         zoning: { type: "string" },
         zoning_confidence: { type: "string" },
@@ -45,7 +122,6 @@ Return exactly what you find from official sources. Use an empty string for any 
         overlays: { type: "array", items: { type: "string" } },
         negative_overlay_checks: { type: "array", items: { type: "string" } },
         overlay_confidence: { type: "string" },
-        council_overlays_text: { type: "string" },
         forms_and_applications: {
           type: "array",
           items: {
@@ -62,11 +138,12 @@ Return exactly what you find from official sources. Use an empty string for any 
             required: ["name", "link"]
           }
         },
-        last_verified_at: { type: "string" },
         verification_notes: { type: "string" }
       },
-      required: ["lot_no", "rp_no", "lot_rp", "site_area", "zoning", "zoning_confidence", "neighbourhood_plan", "overlays", "negative_overlay_checks", "overlay_confidence", "council_overlays_text", "forms_and_applications", "source_links", "last_verified_at", "verification_notes"]
+      required: ["lot_rp", "lot_no", "rp_no", "site_area", "zoning", "zoning_confidence", "neighbourhood_plan", "overlays", "negative_overlay_checks", "overlay_confidence", "forms_and_applications", "source_links", "verification_notes"]
     };
+
+    const prompt = buildPropertyResearchPrompt(address);
 
     const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt,
@@ -74,6 +151,14 @@ Return exactly what you find from official sources. Use an empty string for any 
       model: 'gemini_3_flash', // Standard fast model that supports internet context
       response_json_schema: responseSchema
     });
+
+    // Automatically assemble a comprehensive text summary for downstream features
+    const assembledCouncilText = [
+      `Zoning: ${result.zoning || 'Unverified'}`,
+      `Neighbourhood Plan: ${result.neighbourhood_plan || 'None'}`,
+      `Positive Overlays: ${(result.overlays || []).join(', ') || 'None mapped'}`,
+      `Negative Hazard Checks: ${(result.negative_overlay_checks || []).join(', ') || 'None'}`
+    ].join(' | ');
 
     const newData = {
       address,
@@ -87,10 +172,10 @@ Return exactly what you find from official sources. Use an empty string for any 
       overlays: result.overlays || [],
       negative_overlay_checks: result.negative_overlay_checks || [],
       overlay_confidence: result.overlay_confidence || '',
-      council_overlays_text: result.council_overlays_text || '',
+      council_overlays_text: assembledCouncilText,
       forms_and_applications: result.forms_and_applications || [],
       source_links: result.source_links || [],
-      last_verified_at: result.last_verified_at || new Date().toISOString(),
+      last_verified_at: new Date().toISOString(),
       verification_notes: result.verification_notes || ''
     };
 
