@@ -33,10 +33,6 @@ Deno.serve(async (req) => {
     if (pd.councilOverlays) pdLines.push(`- Council Overlays: ${sanitize(pd.councilOverlays)}`);
     const projectContext = pdLines.length ? `\n\nProject context:\n${pdLines.join('\n')}` : '';
 
-    // Restored: explicit response schema so the AI's JSON output keys match
-    // exactly what PalladioAssess.jsx reads (spatial_analysis, design_observations,
-    // compliance_flags, recommendations) instead of falling back to the agent's
-    // own default Tier 1 schema, which uses different key names.
     const responseSchema = {
       type: "object",
       properties: {
@@ -67,7 +63,6 @@ Deno.serve(async (req) => {
 
     const baseUrl = `https://app.base44.com/api/agents/${agentId}`;
 
-    // Using api_key exactly as Superagent's FastAPI expects
     const headers = {
       "api_key": apiKey,
       "Content-Type": "application/json"
@@ -84,13 +79,15 @@ Deno.serve(async (req) => {
       owner_email: user.email
     });
 
-    // 3. Fire and forget - DO NOT AWAIT THIS FETCH!
+    // 3. FIXED: Await the POST request so the Edge Server doesn't sever the connection
     const msgBody = { role: "user", content: instruction, file_urls: [fileUrl] };
-    fetch(`${baseUrl}/conversations/${conversationId}/messages`, {
+    const sendRes = await fetch(`${baseUrl}/conversations/${conversationId}/messages`, {
       method: "POST", headers, body: JSON.stringify(msgBody),
-    }).catch(console.error);
+    });
+    
+    if (!sendRes.ok) throw new Error(`Failed to transmit prompt to Superagent: ${sendRes.status}`);
 
-    // 4. Return immediately to prevent timeout
+    // 4. Return immediately to hand the polling duties over to the frontend
     return Response.json({ status: "pending", session_id: conversationId }, { status: 200 });
 
   } catch (error) {
