@@ -70,7 +70,10 @@ Deno.serve(async (req) => {
 
     // 1. Create Conversation
     const createRes = await fetch(`${baseUrl}/conversations`, { method: "POST", headers, body: "{}" });
-    if (!createRes.ok) throw new Error(`Superagent API Error: ${createRes.status}`);
+    if (!createRes.ok) {
+      const errText = await createRes.text(); // Grab the exact error from Python
+      return Response.json({ error: `Create Error (${createRes.status}): ${errText}` }, { status: 502 });
+    }
     const conversationId = (await createRes.json()).id;
 
     // 2. Track ownership for polling security
@@ -79,19 +82,23 @@ Deno.serve(async (req) => {
       owner_email: user.email
     });
 
-    // 3. FIXED: Await the POST request so the Edge Server doesn't sever the connection
+    // 3. Await the POST request
     const msgBody = { role: "user", content: instruction, file_urls: [fileUrl] };
     const sendRes = await fetch(`${baseUrl}/conversations/${conversationId}/messages`, {
       method: "POST", headers, body: JSON.stringify(msgBody),
     });
     
-    if (!sendRes.ok) throw new Error(`Failed to transmit prompt to Superagent: ${sendRes.status}`);
+    if (!sendRes.ok) {
+      const errText = await sendRes.text(); // Grab the exact error from Python
+      return Response.json({ error: `Send Error (${sendRes.status}): ${errText}` }, { status: 502 });
+    }
 
     // 4. Return immediately to hand the polling duties over to the frontend
     return Response.json({ status: "pending", session_id: conversationId }, { status: 200 });
 
   } catch (error) {
     console.error("runPlanAssessment fatal error:", error);
-    return Response.json({ error: "Internal Assessment Engine Exception" }, { status: 500 });
+    // Send the REAL error message to the frontend instead of a generic one
+    return Response.json({ error: error.message || "Unknown backend crash" }, { status: 500 });
   }
 });
