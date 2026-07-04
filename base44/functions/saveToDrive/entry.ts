@@ -17,8 +17,11 @@ Deno.serve(async (req) => {
         
         try {
             const urlObj = new URL(fileUrl);
-            if (!['firebasestorage.googleapis.com', 'storage.googleapis.com'].includes(urlObj.hostname)) {
-                return Response.json({ error: 'Invalid fileUrl domain' }, { status: 400 });
+            const isFirebase = urlObj.hostname === 'firebasestorage.googleapis.com' && urlObj.pathname.includes('/b/palladio-ai.firebasestorage.app/o/');
+            const isGoogleStorage = urlObj.hostname === 'storage.googleapis.com' && urlObj.pathname.startsWith('/palladio-ai.firebasestorage.app/');
+            
+            if (!isFirebase && !isGoogleStorage) {
+                return Response.json({ error: 'Invalid fileUrl domain or bucket' }, { status: 400 });
             }
         } catch {
             return Response.json({ error: 'Invalid fileUrl format' }, { status: 400 });

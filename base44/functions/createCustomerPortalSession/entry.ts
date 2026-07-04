@@ -15,7 +15,15 @@ Deno.serve(async (req) => {
         const { returnUrl } = await req.json();
 
         const originHeader = req.headers.get("origin") || "https://example.com";
-        const isValidOrigin = originHeader.startsWith("http://localhost") || originHeader.endsWith(".base44.app");
+        let isValidOrigin = false;
+        try {
+            const url = new URL(originHeader);
+            if (url.hostname === "localhost" || url.hostname === "base44.app" || url.hostname.endsWith(".base44.app")) {
+                isValidOrigin = true;
+            }
+        } catch (e) {
+            isValidOrigin = false;
+        }
         const safeOrigin = isValidOrigin ? originHeader : "https://example.com";
         
         let safeReturnUrl = safeOrigin;

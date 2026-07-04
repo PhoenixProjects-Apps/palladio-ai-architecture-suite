@@ -8,7 +8,19 @@ Deno.serve(async (req) => {
         const { event, data, internal_secret } = payload;
         
         const expectedSecret = Deno.env.get('INTERNAL_AUTOMATION_SECRET');
-        if (!expectedSecret || internal_secret !== expectedSecret) {
+        if (!expectedSecret || expectedSecret.length < 16) {
+            return Response.json({ error: "Unauthorized: Missing or weak internal secret" }, { status: 401 });
+        }
+        
+        if (!internal_secret || internal_secret.length !== expectedSecret.length) {
+            return Response.json({ error: "Unauthorized" }, { status: 401 });
+        }
+        
+        let match = 0;
+        for (let i = 0; i < expectedSecret.length; i++) {
+            match |= expectedSecret.charCodeAt(i) ^ internal_secret.charCodeAt(i);
+        }
+        if (match !== 0) {
             return Response.json({ error: "Unauthorized" }, { status: 401 });
         }
         
