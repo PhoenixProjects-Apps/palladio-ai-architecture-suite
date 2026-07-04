@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
     }
 
     const apiKey = Deno.env.get("SUPERAGENT_API_KEY");
-    const agentId = (Deno.env.get("SUPERAGENT_AGENT_ID") || "").replace(/[^a-f0-9\-]/gi, "");
+    const agentId = (Deno.env.get("SUPERAGENT_AGENT_ID") || "").trim();
     if (!apiKey || !agentId) {
       console.error("Superagent secrets missing");
       return Response.json({ error: "Superagent not configured" }, { status: 500 });

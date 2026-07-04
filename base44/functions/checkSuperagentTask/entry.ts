@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
     if (!owned || owned.length === 0) return Response.json({ error: "Conversation not found in database" }, { status: 404 });
 
     const apiKey = (Deno.env.get("SUPERAGENT_API_KEY") || "").trim();
-    const agentId = (Deno.env.get("SUPERAGENT_AGENT_ID") || "").replace(/[^a-f0-9]/gi, "");
+    const agentId = (Deno.env.get("SUPERAGENT_AGENT_ID") || "").trim();
     
     if (!apiKey || !agentId) return Response.json({ error: "Superagent not configured" }, { status: 500 });
 

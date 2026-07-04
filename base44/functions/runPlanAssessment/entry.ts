@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
     if (!fileUrl) return Response.json({ error: "A valid file URL is required" }, { status: 400 });
 
     const apiKey = Deno.env.get("SUPERAGENT_API_KEY");
-    const agentId = (Deno.env.get("SUPERAGENT_AGENT_ID") || "").replace(/[^a-f0-9\-]/gi, "");
+    const agentId = (Deno.env.get("SUPERAGENT_AGENT_ID") || "").trim();
     if (!apiKey || !agentId) return Response.json({ error: "AI configuration missing" }, { status: 500 });
 
     const tierLabel = body?.tier === 'construction'
@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
     const baseUrl = `https://app.base44.com/api/agents/${agentId}`;
 
     const headers = {
-      "api_key": apiKey,
+      "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json"
     };
 
