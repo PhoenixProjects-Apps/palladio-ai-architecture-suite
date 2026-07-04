@@ -152,13 +152,43 @@ Return ONLY valid JSON matching this exact structure.
       response_json_schema: responseSchema
     });
 
-    // Automatically assemble a comprehensive text summary for downstream features
-    const assembledCouncilText = [
-      `Zoning: ${result.zoning || 'Unverified'}`,
-      `Neighbourhood Plan: ${result.neighbourhood_plan || 'None'}`,
-      `Positive Overlays: ${(result.overlays || []).join(', ') || 'None mapped'}`,
-      `Negative Hazard Checks: ${(result.negative_overlay_checks || []).join(', ') || 'None'}`
-    ].join(' | ');
+    const buildCouncilOverlaysText = (data = {}) => {
+      const parts = [];
+
+      if (data.zoning) {
+        parts.push(`Zoning: ${data.zoning}`);
+      }
+
+      if (data.zoning_confidence) {
+        parts.push(`Zoning confidence: ${data.zoning_confidence}`);
+      }
+
+      if (data.neighbourhood_plan) {
+        parts.push(`Neighbourhood / Local Plan: ${data.neighbourhood_plan}`);
+      }
+
+      if (Array.isArray(data.overlays) && data.overlays.length > 0) {
+        parts.push(`Positive overlays: ${data.overlays.join(', ')}`);
+      } else {
+        parts.push(`Positive overlays: UNVERIFIED - check council mapping tool`);
+      }
+
+      if (Array.isArray(data.negative_overlay_checks) && data.negative_overlay_checks.length > 0) {
+        parts.push(`Negative overlay checks: ${data.negative_overlay_checks.join('; ')}`);
+      }
+
+      if (data.overlay_confidence) {
+        parts.push(`Overlay confidence: ${data.overlay_confidence}`);
+      }
+
+      if (data.verification_notes) {
+        parts.push(`Verification notes: ${data.verification_notes}`);
+      }
+
+      return parts.join('; ');
+    };
+
+    const assembledCouncilText = buildCouncilOverlaysText(result);
 
     const newData = {
       address,
