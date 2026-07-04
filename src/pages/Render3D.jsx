@@ -38,6 +38,30 @@ const MATERIAL_OPTIONS = [
 const ASPECT_RATIOS = ['16:9', '9:16', '1:1', '4:3', '3:4', '4:5'];
 
 
+const buildRenderPrompt = ({ renderType, presets, prompt, aspectRatio }) => `
+Create a photorealistic ${renderType} architectural render from the supplied base image.
+Preserve the building geometry, roof form, openings, proportions, and camera angle from the base image.
+Apply the following design direction:
+- Architectural style: ${presets.architecturalStyle || 'Contemporary'}
+- Materials: ${Array.isArray(presets.materialPalette) ? presets.materialPalette.join(', ') : 'balanced architectural materials'}
+- Environment: ${presets.environment || 'realistic Australian residential setting'}
+- Lighting: ${presets.lighting || 'natural daylight'}
+- Camera/framing: ${presets.camera || 'professional architectural photography'}
+- Aspect ratio: ${aspectRatio || '16:9'}
+Additional user instructions: ${prompt || 'none'}
+
+Quality requirements:
+- photorealistic architectural visualisation
+- clean professional real estate / design presentation quality
+- preserve original massing and layout
+- no warped geometry
+- no random extra buildings
+- no garbled text
+- no watermark
+- no logo
+- no title block
+`;
+
 export default function Render3D() {
   const [file, setFile] = useState(null);
   const [fileUrl, setFileUrl] = useState(null);
@@ -108,8 +132,8 @@ export default function Render3D() {
 
   useEffect(() => {
     if (magicEditMode && imageRef.current && canvasRef.current) {
-      canvasRef.current.width = imageRef.current.clientWidth;
-      canvasRef.current.height = imageRef.current.clientHeight;
+      canvasRef.current.width = imageRef.current.naturalWidth;
+      canvasRef.current.height = imageRef.current.naturalHeight;
       setHasDrawn(false);
     }
   }, [magicEditMode]);
@@ -217,6 +241,13 @@ export default function Render3D() {
   const handleFileSelect = async (e) => {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
+
+    if (selectedFile.type === 'application/pdf') {
+      toast.warning("Please upload an image or screenshot for 3D rendering. PDFs are better handled by Plan Assess.");
+      e.target.value = null;
+      return;
+    }
+
     setFile(selectedFile);
     setRenderedImage(null);
 
@@ -279,35 +310,40 @@ export default function Render3D() {
     const typeText = type === 'interior' ? 'interior' : 'exterior';
 
     try {
-      const payload = {
-        input_assets: {
-          base_structure_image: fileUrl,
-          style_reference_image: styleFileUrl
-        },
-        ui_selections: {
-          architecturalStyle: presets.architecturalStyle,
-          materialPalette: presets.materialPalette,
-          environment: presets.environment,
-          lighting: presets.lighting,
-          camera: presets.camera
-        },
-        aspect_ratio: aspectRatio,
-        seed: lockSeed && seed ? parseInt(seed) : undefined,
-        prompt_additions: prompt
-      };
+      const imageUrls = [fileUrl];
+      if (styleFileUrl) imageUrls.push(styleFileUrl);
 
-      // Call the custom backend function mapped to Gemini 2.5 Flash
-      const res = await base44.functions.invoke('geminiRender', payload);
-      
-      // If the backend actually returned text (because gemini-2.5-flash generates text)
-      // we might want to display it. For image generation, if it returned a url, set it.
-      if (res.data && res.data.url) {
-        setRenderedImage(res.data.url);
-      } else if (res.data && res.data.text) {
-        toast.success("AI Processed Prompt Successfully!");
-        console.log("AI Output:", res.data.text);
+      const finalPrompt = buildRenderPrompt({
+        renderType: typeText,
+        presets,
+        prompt,
+        aspectRatio
+      });
+
+      const result = await base44.integrations.Core.GenerateImage({
+        prompt: finalPrompt,
+        existing_image_urls: imageUrls
+      });
+
+      if (!result || !result.url) {
+        throw new Error('Image generation did not return a URL');
       }
+
+      setRenderedImage(result.url);
       setMagicEditMode(false);
+      
+      try {
+        await base44.entities.ProjectAsset.create({
+           project_id: 'generate-render-history', // pseudo id for history
+           file_url: result.url,
+           file_name: `render-${typeText}-${Date.now()}.jpg`,
+           asset_type: 'render',
+           description: finalPrompt.substring(0, 1000)
+        });
+      } catch (saveErr) {
+        console.error("Optional save failed:", saveErr);
+      }
+
     } catch (err) {
       console.error(err);
       toast.error("Failed to generate render.");
@@ -425,14 +461,14 @@ export default function Render3D() {
                   <Upload size={24} style={{ color: '#475569' }} />
                   <div>
                     <p className="text-white text-sm font-medium">Upload view</p>
-                    <p className="text-gray-500 text-[10px] mt-1">Image or PDF</p>
+                    <p className="text-gray-500 text-[10px] mt-1">Image (JPG, PNG)</p>
                   </div>
                 </div>
                 }
               <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*,.pdf"
+                  accept="image/*"
                   onChange={handleFileSelect}
                   className="hidden" />
                 
@@ -705,8 +741,8 @@ export default function Render3D() {
                 className="w-full block"
                 onLoad={() => {
                   if (magicEditMode && canvasRef.current && imageRef.current) {
-                    canvasRef.current.width = imageRef.current.clientWidth;
-                    canvasRef.current.height = imageRef.current.clientHeight;
+                    canvasRef.current.width = imageRef.current.naturalWidth;
+                    canvasRef.current.height = imageRef.current.naturalHeight;
                   }
                 }} />
               
