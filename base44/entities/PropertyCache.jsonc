@@ -1,0 +1,55 @@
+{
+  "name": "PropertyCache",
+  "type": "object",
+  "properties": {
+    "address": {
+      "type": "string"
+    },
+    "lot_no": {
+      "type": "string"
+    },
+    "rp_no": {
+      "type": "string"
+    },
+    "site_area": {
+      "type": "string"
+    },
+    "zoning": {
+      "type": "string"
+    },
+    "council_overlays": {
+      "type": "string"
+    },
+    "forms_and_applications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "link": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "address"
+  ],
+  "rls": {
+    "create": null,
+    "read": null,
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
