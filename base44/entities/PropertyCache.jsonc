@@ -83,9 +83,9 @@
     "address"
   ],
   "rls": {
-    "create": null,
-    "read": null,
-    "update": null,
-    "delete": null
+    "create": {},
+    "read": {},
+    "update": {},
+    "delete": {}
   }
 }
