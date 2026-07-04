@@ -29,13 +29,9 @@ Deno.serve(async (req) => {
       console.error("Superagent secrets missing");
       return Response.json({ error: "Superagent not configured" }, { status: 500 });
     }
-    const baseUrl = Deno.env.get("SUPERAGENT_BASE_URL") || `https://app.base44.com/api/agents/${agentId}`;
+    const baseUrl = `https://app.base44.com/api/agents/${agentId}`;
 
-    const headers = { 
-      "api_key": apiKey,
-      "Authorization": `Bearer ${apiKey}`, 
-      "Content-Type": "application/json" 
-    };
+    const headers = { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" };
 
     const getMessages = (data) => {
       if (!data) return [];

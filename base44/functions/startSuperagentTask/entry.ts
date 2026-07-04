@@ -15,12 +15,8 @@ Deno.serve(async (req) => {
     const agentId = (Deno.env.get("SUPERAGENT_AGENT_ID") || "").replace(/[^a-f0-9\-]/gi, "");
     if (!apiKey || !agentId) return Response.json({ error: "Superagent not configured" }, { status: 500 });
 
-    const baseUrl = Deno.env.get("SUPERAGENT_BASE_URL") || `https://app.base44.com/api/agents/${agentId}`;
-    const headers = { 
-      "api_key": apiKey,
-      "Authorization": `Bearer ${apiKey}`, 
-      "Content-Type": "application/json" 
-    };
+    const baseUrl = `https://app.base44.com/api/agents/${agentId}`;
+    const headers = { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" };
 
     const getMessages = (data) => Array.isArray(data) ? data : (Array.isArray(data?.messages) ? data.messages : (data?.role ? [data] : []));
     const countAssistant = (data) => getMessages(data).filter((m) => m.role === "assistant").length;
