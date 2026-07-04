@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
     }
     const baseUrl = `https://app.base44.com/api/agents/${agentId}`;
 
-    const headers = { "api_key": apiKey, "Content-Type": "application/json" };
+    const headers = { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" };
 
     const getMessages = (data) => {
       if (!data) return [];
