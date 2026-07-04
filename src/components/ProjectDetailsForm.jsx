@@ -32,35 +32,17 @@ export default function ProjectDetailsForm({ value, onChange }) {
     onChange({ address: addr, lotNo: '', rpNo: '', siteArea: '', councilOverlays: '' });
     setLookingUp(true);
     try {
-      const res = await base44.integrations.Core.InvokeLLM({
-        prompt: `Look up the following Australian property and land administration details for this site address: "${addr}".
-
-Find:
-1. Lot Number
-2. Registered Plan (RP) number
-3. Site / lot area in square metres
-4. Council planning overlays and zoning that apply to the site (e.g. flood overlay, bushfire, character, neighbourhood plan, etc.)
-
-Return exactly what you find from official sources. Use an empty string for any field you cannot confirm. Do not invent values.`,
-        add_context_from_internet: true,
-        model: 'gemini_3_flash',
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            lot_no: { type: 'string' },
-            rp_no: { type: 'string' },
-            site_area: { type: 'string' },
-            council_overlays: { type: 'string' }
-          }
-        }
-      });
+      const res = await base44.functions.invoke('lookupPropertyDetails', { address: addr });
+      if (res.data?.error) throw new Error(res.data.error);
+      const data = res.data?.data || {};
+      
       onChange({
-        lotNo: res?.lot_no || '',
-        rpNo: res?.rp_no || '',
-        siteArea: res?.site_area || '',
-        councilOverlays: res?.council_overlays || ''
+        lotNo: data.lot_no || '',
+        rpNo: data.rp_no || '',
+        siteArea: data.site_area || '',
+        councilOverlays: data.council_overlays_text || ''
       });
-      if (!res?.lot_no && !res?.rp_no && !res?.site_area && !res?.council_overlays) {
+      if (!data.lot_no && !data.rp_no && !data.site_area && !data.council_overlays_text) {
         toast.info('Could not auto-detect property details. Please enter them manually.');
       }
     } catch (e) {
