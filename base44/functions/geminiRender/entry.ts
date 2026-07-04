@@ -9,6 +9,15 @@ export default Deno.serve(async (req) => {
     const payload = await req.json();
     const { input_assets, ui_selections, aspect_ratio, seed, prompt_additions } = payload;
 
+    try {
+      const consumeRes = await base44.functions.invoke('consumeToken', { amount: 5 });
+      if (!consumeRes.data || !consumeRes.data.success) {
+        return Response.json({ error: "Insufficient tokens" }, { status: 403 });
+      }
+    } catch (err) {
+      return Response.json({ error: err.response?.data?.error || "Insufficient tokens" }, { status: 403 });
+    }
+
     const existing_image_urls = [];
     if (input_assets?.base_structure_image) existing_image_urls.push(input_assets.base_structure_image);
     if (input_assets?.style_reference_image) existing_image_urls.push(input_assets.style_reference_image);

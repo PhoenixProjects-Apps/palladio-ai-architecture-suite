@@ -14,6 +14,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    try {
+      const consumeRes = await base44.functions.invoke('consumeToken', { amount: 1 });
+      if (!consumeRes.data || !consumeRes.data.success) {
+        return Response.json({ error: "Insufficient tokens" }, { status: 403 });
+      }
+    } catch (err) {
+      return Response.json({ error: err.response?.data?.error || "Insufficient tokens" }, { status: 403 });
+    }
+
     const body = await req.json().catch(() => ({}));
 
     const address = body?.address || 'Unknown Address';
