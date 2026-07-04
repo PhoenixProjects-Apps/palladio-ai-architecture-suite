@@ -17,6 +17,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const input = body?.input;
     const sessionId = body?.sessionId || "";
+    const projectId = body?.projectId || null;
     const fileUrls = Array.isArray(body?.fileUrls) ? body.fileUrls : [];
     if (!input) {
       return Response.json({ error: "Missing input" }, { status: 400 });
@@ -101,6 +102,14 @@ Deno.serve(async (req) => {
       const created = await createRes.json();
       conversationId = created.id;
       prevCount = 0;
+
+      // Save new chat session to database
+      await base44.entities.SuperagentChat.create({
+        title: input.substring(0, 50) + "...",
+        session_id: conversationId,
+        project_id: projectId,
+        messages: []
+      });
     }
 
     const msgBody = { role: "user", content: input };

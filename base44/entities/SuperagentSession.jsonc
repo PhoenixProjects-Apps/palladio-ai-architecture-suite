@@ -7,6 +7,9 @@
     },
     "owner_email": {
       "type": "string"
+    },
+    "project_id": {
+      "type": "string"
     }
   },
   "required": [

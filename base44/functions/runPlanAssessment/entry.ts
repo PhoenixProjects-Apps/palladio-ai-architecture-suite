@@ -76,10 +76,11 @@ Deno.serve(async (req) => {
     }
     const conversationId = (await createRes.json()).id;
 
-    // 2. Track ownership for polling security
+    // 2. Track ownership for polling security and associate with project
     await base44.entities.SuperagentSession.create({
       session_id: conversationId,
-      owner_email: user.email
+      owner_email: user.email,
+      project_id: pd.projectId || null
     });
 
     // 3. Await the POST request
