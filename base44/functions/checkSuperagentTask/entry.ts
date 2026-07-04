@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
     if (!owned || owned.length === 0) return Response.json({ error: "Not found" }, { status: 404 });
 
     const apiKey = Deno.env.get("SUPERAGENT_API_KEY");
-    const agentId = (Deno.env.get("SUPERAGENT_AGENT_ID") || "").replace(/[^a-f0-9]/gi, "");
+    const agentId = (Deno.env.get("SUPERAGENT_AGENT_ID") || "").replace(/[^a-f0-9\-]/gi, "");
     if (!apiKey || !agentId) return Response.json({ error: "Superagent not configured" }, { status: 500 });
 
     const baseUrl = `https://app.base44.com/api/agents/${agentId}`;
