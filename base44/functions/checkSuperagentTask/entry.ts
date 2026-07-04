@@ -42,8 +42,13 @@ Deno.serve(async (req) => {
     const assistants = msgs.filter((m) => m.role === "assistant");
     
     if (assistants.length > (prev_count || 0)) {
-      // Find valid assistant messages (must have content, no tool calls)
-      const validAssistants = assistants.filter(m => m.content && typeof m.content === 'string' && m.content.trim().length > 0 && !(m.tool_calls?.length));
+      // Find valid assistant messages (must be fully generated, not streaming)
+      const validAssistants = assistants.filter(m => {
+        if (!m.content || typeof m.content !== 'string' || m.content.trim().length === 0) return false;
+        if (m.tool_calls?.length) return false;
+        if (m.status && !['completed', 'stop'].includes(m.status.toLowerCase())) return false;
+        return true;
+      });
       
       if (validAssistants.length > 0) {
         // Sort by created_at (ascending) to guarantee we grab the absolute newest message,

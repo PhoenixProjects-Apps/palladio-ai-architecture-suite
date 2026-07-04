@@ -109,7 +109,11 @@ export default function PalladioAssess() {
     if (checkRes.data?.error) throw new Error(checkRes.data.error);
     
     if (checkRes.data?.status === 'done' && checkRes.data?.output) {
-      return checkRes.data.output;
+      // Verify JSON completeness to prevent capturing a streaming string mid-way
+      const parsed = extractJson(checkRes.data.output);
+      if (parsed || attempts > 15) {
+        return checkRes.data.output;
+      }
     }
     
     return pollAssessment(sessionId, prevCount, attempts + 1);
