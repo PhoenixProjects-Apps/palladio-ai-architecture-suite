@@ -128,42 +128,82 @@ const MATERIAL_LIBRARY = {
   ]
 };
 
-const flattenMaterials = Object.values(MATERIAL_LIBRARY).flat();
-const expandMaterial = (label) => {
-  const found = flattenMaterials.find(m => m.label === label);
-  return found ? found.prompt : label;
+const getAllMaterials = () => Object.values(MATERIAL_LIBRARY || {}).flat();
+
+const expandSelectedMaterials = (selectedMaterials = []) => {
+  const allMaterials = getAllMaterials();
+
+  return selectedMaterials
+    .map((selected) => {
+      const selectedLabel = typeof selected === 'string' ? selected : selected?.label;
+      return allMaterials.find((m) => m.label === selectedLabel);
+    })
+    .filter(Boolean)
+    .map((m) => `${m.category}: ${m.label} — ${m.prompt}. Best used for: ${m.bestUsedFor}.`)
+    .join('\n');
 };
 
 const ASPECT_RATIOS = ['16:9', '9:16', '1:1', '4:3', '3:4', '4:5'];
 
+const buildRenderPrompt = ({
+  renderType,
+  presets,
+  userPrompt,
+  aspectRatio
+}) => {
+  const selectedMaterials = presets?.materialPalette || [];
+  const materialPrompt = expandSelectedMaterials(selectedMaterials);
 
-const buildRenderPrompt = ({ renderType, presets, prompt, aspectRatio }) => {
-  const materialText = Array.isArray(presets.materialPalette) && presets.materialPalette.length > 0 
-    ? presets.materialPalette.map(expandMaterial).join('; ') 
-    : 'balanced architectural materials';
+  const architecturalStyle = presets?.architecturalStyle || 'Contemporary Australian residential architecture';
+  const environment = presets?.environment || 'realistic high-end Australian residential setting';
+  const lighting = presets?.lighting || 'soft natural architectural daylight';
+  const camera = presets?.camera || 'professional architectural photography';
 
   return `
-Create a photorealistic ${renderType} architectural render from the supplied base image.
-Preserve the building geometry, roof form, openings, proportions, and camera angle from the base image.
-Apply the following design direction:
-- Architectural style: ${presets.architecturalStyle || 'Contemporary'}
-- Materials: ${materialText}
-- Environment: ${presets.environment || 'realistic Australian residential setting'}
-- Lighting: ${presets.lighting || 'natural daylight'}
-- Camera/framing: ${presets.camera || 'professional architectural photography'}
-- Aspect ratio: ${aspectRatio || '16:9'}
-Additional user instructions: ${prompt || 'none'}
+Create a photorealistic ${renderType || 'architectural'} render from the supplied base image.
 
-Quality requirements:
-- photorealistic architectural visualisation
-- clean professional real estate / design presentation quality
-- preserve original massing and layout
-- no warped geometry
-- no random extra buildings
-- no garbled text
-- no watermark
-- no logo
-- no title block
+Preserve the original design:
+- building geometry
+- roof form
+- window and door locations
+- walls and openings
+- massing and proportions
+- camera angle and perspective
+- site orientation
+- floorplan logic
+
+Architectural style:
+${architecturalStyle}
+
+Selected tactile material palette:
+${materialPrompt || 'Use restrained, high-end residential materials with matte, tactile, photorealistic finishes.'}
+
+Environment / background:
+${environment}
+
+Lighting:
+${lighting}
+
+Camera / framing:
+${camera}
+
+Aspect ratio:
+${aspectRatio || '16:9'}
+
+Additional user direction:
+${userPrompt || 'none'}
+
+Material realism rules:
+- Always specify the finish: matte, honed, brushed, woven, distressed, slubbed, patinated, mottled, weathered, or hand-applied where relevant.
+- Pair materials with light interaction, e.g. raking sunlight highlighting plaster texture or soft daylight catching brushed brass.
+- Embrace realistic imperfections: natural grain, slight patina, pores, tonal variation, organic irregularity, subtle wear.
+- Avoid fake glossy AI materials.
+- Avoid overly glossy marble or plastic-looking stone.
+- Avoid mirror-like gold unless explicitly requested.
+- Avoid warped geometry, distorted windows, random extra buildings, unreadable text, logos, watermarks, and signage.
+
+Output quality:
+High-end architectural visualisation, editorial real-estate photography, physically plausible materials, realistic shadows, refined detailing.
 `;
 };
 
@@ -421,7 +461,7 @@ export default function Render3D() {
       const finalPrompt = buildRenderPrompt({
         renderType: typeText,
         presets,
-        prompt,
+        userPrompt: prompt,
         aspectRatio
       });
 
