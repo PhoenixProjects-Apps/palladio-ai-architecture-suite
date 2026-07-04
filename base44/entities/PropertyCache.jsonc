@@ -20,7 +20,10 @@
     "zoning": {
       "type": "string"
     },
-    "council_overlays_text": {
+    "zoning_confidence": {
+      "type": "string"
+    },
+    "neighbourhood_plan": {
       "type": "string"
     },
     "overlays": {
@@ -28,6 +31,18 @@
       "items": {
         "type": "string"
       }
+    },
+    "negative_overlay_checks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "overlay_confidence": {
+      "type": "string"
+    },
+    "council_overlays_text": {
+      "type": "string"
     },
     "forms_and_applications": {
       "type": "array",
@@ -42,6 +57,26 @@
           }
         }
       }
+    },
+    "source_links": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "link": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "last_verified_at": {
+      "type": "string"
+    },
+    "verification_notes": {
+      "type": "string"
     }
   },
   "required": [

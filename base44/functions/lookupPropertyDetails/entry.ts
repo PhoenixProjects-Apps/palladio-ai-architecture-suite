@@ -20,9 +20,15 @@ Find and return:
 2. Registered Plan (RP) number
 3. Combined Lot & RP (e.g., Lot 1 RP 12345)
 4. Site / lot area in square metres
-5. Zoning description
-6. Council planning overlays and zoning that apply to the site (e.g. flood overlay, bushfire, character, neighbourhood plan, etc.) - provide a single combined string, and a separate array of strings.
-7. Links to relevant local council forms and applications for development.
+5. Exact zoning description and your confidence level in this zoning.
+6. Neighbourhood plan or local plan area.
+7. Positive overlays found (council planning overlays that actually apply to the site).
+8. Negative overlay checks (hazards you explicitly checked and confirmed DO NOT apply, e.g., 'No flood overlay', 'No bushfire').
+9. Overall overlay confidence.
+10. A fully assembled summary text (council_overlays_text) combining zoning, neighbourhood plan, positive overlays, and negative overlay checks into a comprehensive paragraph. Do NOT just list negative checks here.
+11. Links to relevant local council forms and applications for development.
+12. Links to the exact sources where you verified this information.
+13. Any verification notes (e.g., issues finding data) and a timestamp.
 
 Return exactly what you find from official sources. Use an empty string for any field you cannot confirm. Do not invent values.`;
 
@@ -34,8 +40,12 @@ Return exactly what you find from official sources. Use an empty string for any 
         lot_rp: { type: "string" },
         site_area: { type: "string" },
         zoning: { type: "string" },
-        council_overlays_text: { type: "string" },
+        zoning_confidence: { type: "string" },
+        neighbourhood_plan: { type: "string" },
         overlays: { type: "array", items: { type: "string" } },
+        negative_overlay_checks: { type: "array", items: { type: "string" } },
+        overlay_confidence: { type: "string" },
+        council_overlays_text: { type: "string" },
         forms_and_applications: {
           type: "array",
           items: {
@@ -43,9 +53,19 @@ Return exactly what you find from official sources. Use an empty string for any 
             properties: { name: { type: "string" }, link: { type: "string" } },
             required: ["name", "link"]
           }
-        }
+        },
+        source_links: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: { name: { type: "string" }, link: { type: "string" } },
+            required: ["name", "link"]
+          }
+        },
+        last_verified_at: { type: "string" },
+        verification_notes: { type: "string" }
       },
-      required: ["lot_no", "rp_no", "lot_rp", "site_area", "zoning", "council_overlays_text", "overlays", "forms_and_applications"]
+      required: ["lot_no", "rp_no", "lot_rp", "site_area", "zoning", "zoning_confidence", "neighbourhood_plan", "overlays", "negative_overlay_checks", "overlay_confidence", "council_overlays_text", "forms_and_applications", "source_links", "last_verified_at", "verification_notes"]
     };
 
     const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
@@ -62,9 +82,16 @@ Return exactly what you find from official sources. Use an empty string for any 
       lot_rp: result.lot_rp || '',
       site_area: result.site_area || '',
       zoning: result.zoning || '',
-      council_overlays_text: result.council_overlays_text || '',
+      zoning_confidence: result.zoning_confidence || '',
+      neighbourhood_plan: result.neighbourhood_plan || '',
       overlays: result.overlays || [],
-      forms_and_applications: result.forms_and_applications || []
+      negative_overlay_checks: result.negative_overlay_checks || [],
+      overlay_confidence: result.overlay_confidence || '',
+      council_overlays_text: result.council_overlays_text || '',
+      forms_and_applications: result.forms_and_applications || [],
+      source_links: result.source_links || [],
+      last_verified_at: result.last_verified_at || new Date().toISOString(),
+      verification_notes: result.verification_notes || ''
     };
 
     // Save to cache for future requests
