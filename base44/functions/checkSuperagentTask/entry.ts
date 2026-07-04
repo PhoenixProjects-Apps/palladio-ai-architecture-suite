@@ -13,16 +13,21 @@ Deno.serve(async (req) => {
     session_id = session_id.replace(/[^a-zA-Z0-9\-_]/g, "");
 
     const owned = await base44.entities.SuperagentSession.filter({ session_id, owner_email: user.email });
-    if (!owned || owned.length === 0) return Response.json({ error: "Not found" }, { status: 404 });
+    if (!owned || owned.length === 0) return Response.json({ error: "Conversation not found in database" }, { status: 404 });
 
-    const apiKey = Deno.env.get("SUPERAGENT_API_KEY");
-    const agentId = (Deno.env.get("SUPERAGENT_AGENT_ID") || "").replace(/[^a-f0-9\-]/gi, "");
+    // FIXED: Stripping hidden characters from the API key
+    const apiKey = (Deno.env.get("SUPERAGENT_API_KEY") || "").trim();
+    const agentId = (Deno.env.get("SUPERAGENT_AGENT_ID") || "").replace(/[^a-f0-9]/gi, "");
+    
     if (!apiKey || !agentId) return Response.json({ error: "Superagent not configured" }, { status: 500 });
 
     const baseUrl = `https://app.base44.com/api/agents/${agentId}`;
-    
-    // Fixed: Using api_key
-    const headers = { "api_key": apiKey, "Content-Type": "application/json" };
+
+    // FIXED: Using the exact Authorization header required by FastAPI
+    const headers = {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json"
+    };
 
     const getMessages = (data) => Array.isArray(data) ? data : (Array.isArray(data?.messages) ? data.messages : (data?.role ? [data] : []));
     const countAssistant = (data) => getMessages(data).filter((m) => m.role === "assistant").length;
@@ -34,17 +39,22 @@ Deno.serve(async (req) => {
     };
 
     const msgsRes = await fetch(`${baseUrl}/conversations/${session_id}/messages`, { headers });
-    if (!msgsRes.ok) return Response.json({ error: `Superagent API error (${msgsRes.status})` }, { status: 502 });
     
+    // FIXED: Print the ACTUAL error from the AI instead of a generic 502
+    if (!msgsRes.ok) {
+      const errText = await msgsRes.text().catch(() => "No error text provided");
+      return Response.json({ error: `Superagent Polling Error (${msgsRes.status}): ${errText}` }, { status: 502 });
+    }
+
     const msgs = await msgsRes.json();
 
     if (countAssistant(msgs) > (prev_count || 0)) {
       return Response.json({ status: "done", output: lastAssistant(msgs) }, { status: 200 });
     }
-    
+
     return Response.json({ status: "pending" }, { status: 200 });
   } catch (error) {
     console.error("checkSuperagentTask error:", error);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: error.message || "Unknown backend crash" }, { status: 500 });
   }
 });
