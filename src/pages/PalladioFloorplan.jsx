@@ -56,78 +56,76 @@ export default function PalladioFloorplan() {
         setIsGeneratingText(false);
         return;
       }
+      
       const llmPrompt = `Act as an architect and real estate marketing expert. Create a detailed layout brief for: "${desc}". The architectural style is ${style}.
       You must return a structured JSON response matching the required schema.
-      The 'floorplan_prompt' must be a highly detailed prompt for an image generator (like Midjourney/DALL-E) to create a clean, 2D architectural floor plan blueprint. Include instructions for crisp vector lines, metric room dimensions, and a pure white background. EXPLICITLY state what NOT to include: borders, frames, 3D elements, sketch textures, grid lines, or any external text blocks.
-      Ensure the layout_summary provides a readable brief of the design, and 'rooms' outlines the spaces. Provide realistic default values for the branding block if applicable.`;
+      The 'image_prompt' must be a highly detailed prompt for an image generator (like Midjourney/DALL-E) to create a top-down 2D architectural floor plan blueprint. Include instructions for crisp black/dark navy linework, white or warm off-white background, metric room dimensions, door swings, window openings, and minimal tasteful furniture symbols. EXPLICITLY state what NOT to include: borders, frames, logos, title blocks, 3D elements, sketch textures, grid lines, or any external text blocks in the generated raw image, because branding is handled separately.
+      Ensure the layout_markdown provides a readable brief of the design, and 'rooms' outlines the spaces with name, type, width, depth, x, and z coordinates.`;
 
       const schema = {
         type: "object",
         properties: {
-          project_name: { type: "string" },
-          floorplan_prompt: { type: "string" },
-          layout_summary: { type: "string" },
+          layout_markdown: { type: "string" },
+          image_prompt: { type: "string" },
           rooms: {
             type: "array",
             items: {
               type: "object",
               properties: {
                 name: { type: "string" },
-                approx_area: { type: "string" },
-                notes: { type: "string" }
+                type: { type: "string" },
+                width: { type: "number" },
+                depth: { type: "number" },
+                x: { type: "number" },
+                z: { type: "number" }
               },
-              required: ["name", "approx_area"]
+              required: ["name", "type", "width", "depth", "x", "z"]
             }
           },
-          style_notes: { type: "string" },
-          branding: {
-            type: "object",
-            properties: {
-              branded_border_enabled: { type: "boolean" },
-              company_logo_url: { type: ["string", "null"] },
-              listing_title: { type: ["string", "null"] },
-              listing_description: { type: ["string", "null"] },
-              accent_color: { type: ["string", "null"] }
-            }
-          }
+          design_notes: { type: "string" }
         },
-        required: ["project_name", "floorplan_prompt", "layout_summary", "rooms"]
+        required: ["layout_markdown", "image_prompt", "rooms"]
       };
 
-      const llmRes = await base44.integrations.Core.InvokeLLM({
+      const spec = await base44.integrations.Core.InvokeLLM({
         prompt: llmPrompt,
         response_json_schema: schema
       });
 
-      if (!llmRes || !llmRes.floorplan_prompt) {
+      if (!spec || !spec.image_prompt) {
         throw new Error("Failed to generate floorplan specification.");
       }
 
       const imageRes = await base44.integrations.Core.GenerateImage({
-        prompt: llmRes.floorplan_prompt
+        prompt: spec.image_prompt
       });
 
       if (!imageRes || !imageRes.url) {
         throw new Error("Failed to generate floorplan image.");
       }
 
-      // Save the generated output to the database to ensure persistence
-      await base44.entities.FloorplanGenerations.create({
-        project_name: llmRes.project_name || "Floorplan Generate",
-        raw_layout_data: llmRes,
-        ui_style_selection: 'Top-Down',
-        ui_finish_selection: 'Photorealistic',
-        ui_layout_selection: 'Standard 3D',
-        status: 'Completed',
-        output_image_url: imageRes.url,
-        company_logo_url: llmRes.branding?.company_logo_url,
-        listing_title: llmRes.branding?.listing_title,
-        listing_description: llmRes.branding?.listing_description,
-        accent_color: llmRes.branding?.accent_color || '#1e293b',
-        branded_border_enabled: llmRes.branding?.branded_border_enabled || false
+      setTextResult({
+        layout: spec.layout_markdown || '',
+        image: imageRes.url,
+        layoutData: { rooms: spec.rooms || [] }
       });
 
-      setTextResult({ layout: llmRes.layout_summary, image: imageRes.url, layoutData: llmRes });
+      try {
+        await base44.entities.FloorplanGenerations.create({
+          project_name: "Floorplan Generate",
+          raw_layout_data: { rooms: spec.rooms || [] },
+          ui_style_selection: 'Top-Down',
+          ui_finish_selection: 'Photorealistic',
+          ui_layout_selection: 'Standard 3D',
+          status: 'Completed',
+          output_image_url: imageRes.url,
+          accent_color: '#1e293b',
+          branded_border_enabled: false
+        });
+      } catch (saveErr) {
+        console.error("Failed to save FloorplanGenerations:", saveErr);
+        toast.warning("Floorplan generated, but failed to save to history.");
+      }
     } catch (err) {
       console.error(err);
       toast.error('Generation failed. Please try again.');
@@ -169,19 +167,24 @@ export default function PalladioFloorplan() {
         throw new Error("Failed to generate floorplan image.");
       }
 
-      await base44.entities.FloorplanGenerations.create({
-        project_name: "Floorplan Sketch Generate",
-        raw_layout_data: { imageUrl: imageRes.url },
-        ui_style_selection: 'Top-Down',
-        ui_finish_selection: 'Photorealistic',
-        ui_layout_selection: 'Standard 3D',
-        status: 'Completed',
-        output_image_url: imageRes.url,
-        accent_color: '#1e293b',
-        branded_border_enabled: false
-      });
-
       setSketchResult(imageRes.url);
+
+      try {
+        await base44.entities.FloorplanGenerations.create({
+          project_name: "Floorplan Sketch Generate",
+          raw_layout_data: { imageUrl: imageRes.url },
+          ui_style_selection: 'Top-Down',
+          ui_finish_selection: 'Photorealistic',
+          ui_layout_selection: 'Standard 3D',
+          status: 'Completed',
+          output_image_url: imageRes.url,
+          accent_color: '#1e293b',
+          branded_border_enabled: false
+        });
+      } catch (saveErr) {
+        console.error("Failed to save FloorplanGenerations:", saveErr);
+        toast.warning("Floorplan generated, but failed to save to history.");
+      }
     } catch (err) {
       console.error(err);
       toast.error('Generation failed. Please try again.');
