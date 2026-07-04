@@ -33,7 +33,10 @@ Deno.serve(async (req) => {
     };
 
     const createRes = await fetch(`${baseUrl}/conversations`, { method: "POST", headers, body: "{}" });
-    if (!createRes.ok) return Response.json({ error: `Superagent API error (${createRes.status})` }, { status: 502 });
+    if (!createRes.ok) {
+      const errText = await createRes.text();
+      return Response.json({ error: `Superagent API error (${createRes.status}) - ${errText}`, url: baseUrl }, { status: 502 });
+    }
     const created = await createRes.json();
     const conversationId = created.id;
     await base44.entities.SuperagentSession.create({

@@ -89,7 +89,9 @@ Deno.serve(async (req) => {
       if (Array.isArray(existing)) {
         prevCount = countAssistant(existing);
       } else {
-        return Response.json({ error: "Forbidden or invalid conversation" }, { status: 403 });
+        // The conversation no longer exists on Superagent's side (e.g. agent changed)
+        // Clear it so we create a new one below
+        conversationId = "";
       }
     }
 
