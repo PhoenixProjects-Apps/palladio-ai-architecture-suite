@@ -97,11 +97,13 @@ export default function PalladioAssess() {
     }
   };
 
-  // Safe Polling Helper
+  // Safe Polling Helper with Exponential Backoff
   const pollAssessment = async (sessionId, prevCount = 0, attempts = 0) => {
     if (attempts > 60) throw new Error("Assessment timed out.");
     
-    await new Promise((resolve) => setTimeout(resolve, 5000)); // Poll every 5 seconds
+    // Gradual backoff: starts at 5s and increases up to 10s intervals
+    const delay = Math.min(5000 + (attempts * 1000), 10000);
+    await new Promise((resolve) => setTimeout(resolve, delay));
     
     const checkRes = await base44.functions.invoke('checkSuperagentTask', { session_id: sessionId, prev_count: prevCount });
     if (checkRes.data?.error) throw new Error(checkRes.data.error);

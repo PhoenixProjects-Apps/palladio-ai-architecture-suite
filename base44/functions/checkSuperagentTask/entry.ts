@@ -15,7 +15,6 @@ Deno.serve(async (req) => {
     const owned = await base44.entities.SuperagentSession.filter({ session_id, owner_email: user.email });
     if (!owned || owned.length === 0) return Response.json({ error: "Conversation not found in database" }, { status: 404 });
 
-    // FIXED: Stripping hidden characters from the API key
     const apiKey = (Deno.env.get("SUPERAGENT_API_KEY") || "").trim();
     const agentId = (Deno.env.get("SUPERAGENT_AGENT_ID") || "").replace(/[^a-f0-9]/gi, "");
     
@@ -23,33 +22,42 @@ Deno.serve(async (req) => {
 
     const baseUrl = `https://app.base44.com/api/agents/${agentId}`;
 
-    // FIXED: Using the exact Authorization header required by FastAPI
     const headers = {
       "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json"
     };
 
     const getMessages = (data) => Array.isArray(data) ? data : (Array.isArray(data?.messages) ? data.messages : (data?.role ? [data] : []));
-    const countAssistant = (data) => getMessages(data).filter((m) => m.role === "assistant").length;
-    const lastAssistant = (data) => {
-      const msgs = getMessages(data);
-      const last = msgs[msgs.length - 1];
-      if (last?.role === "assistant" && last.content && !(last.tool_calls?.length)) return last.content;
-      return null;
-    };
-
+    
     const msgsRes = await fetch(`${baseUrl}/conversations/${session_id}/messages`, { headers });
     
-    // FIXED: Print the ACTUAL error from the AI instead of a generic 502
     if (!msgsRes.ok) {
       const errText = await msgsRes.text().catch(() => "No error text provided");
       return Response.json({ error: `Superagent Polling Error (${msgsRes.status}): ${errText}` }, { status: 502 });
     }
 
-    const msgs = await msgsRes.json();
-
-    if (countAssistant(msgs) > (prev_count || 0)) {
-      return Response.json({ status: "done", output: lastAssistant(msgs) }, { status: 200 });
+    const rawData = await msgsRes.json();
+    const msgs = getMessages(rawData);
+    
+    const assistants = msgs.filter((m) => m.role === "assistant");
+    
+    if (assistants.length > (prev_count || 0)) {
+      // Find valid assistant messages (must have content, no tool calls)
+      const validAssistants = assistants.filter(m => m.content && typeof m.content === 'string' && m.content.trim().length > 0 && !(m.tool_calls?.length));
+      
+      if (validAssistants.length > 0) {
+        // Sort by created_at (ascending) to guarantee we grab the absolute newest message,
+        // overcoming descending/ascending differences between Superagent API versions.
+        validAssistants.sort((a, b) => {
+          if (a.created_at && b.created_at) {
+             return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          }
+          return 0;
+        });
+        
+        const finalOutput = validAssistants[validAssistants.length - 1].content;
+        return Response.json({ status: "done", output: finalOutput }, { status: 200 });
+      }
     }
 
     return Response.json({ status: "pending" }, { status: 200 });
