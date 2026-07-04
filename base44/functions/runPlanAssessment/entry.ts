@@ -11,91 +11,70 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const action = body?.action || 'run';
-    
-    if (action !== 'run') {
-      return Response.json({ error: "Invalid action specified" }, { status: 400 });
-    }
-
     const fileUrl = body?.fileUrl;
-    const tier = body?.tier;
     
-    if (!fileUrl || typeof fileUrl !== 'string') {
-      return Response.json({ error: "A valid file URL is required" }, { status: 400 });
-    }
+    if (action !== 'run') return Response.json({ error: "Invalid action" }, { status: 400 });
+    if (!fileUrl) return Response.json({ error: "A valid file URL is required" }, { status: 400 });
     
-    // Security: Restrict allowed domains for the file source
-    try {
-      const urlObj = new URL(fileUrl);
-      const allowedDomains = ['media.base44.com', 'firebasestorage.googleapis.com', 'storage.googleapis.com'];
-      if (!allowedDomains.includes(urlObj.hostname)) {
-        return Response.json({ error: 'Untrusted file source domain' }, { status: 403 });
-      }
-    } catch {
-      return Response.json({ error: 'Malformed file URL' }, { status: 400 });
+    // Grab the credentials securely from the environment
+    const apiKey = Deno.env.get("SUPERAGENT_API_KEY");
+    const agentId = (Deno.env.get("SUPERAGENT_AGENT_ID") || "").replace(/[^a-f0-9]/gi, "");
+    
+    if (!apiKey || !agentId) {
+      return Response.json({ error: "AI configuration missing on server" }, { status: 500 });
     }
 
-    const tierLabel = tier === 'construction'
-      ? 'Tier 2 (Construction & Compliance Documentation Review)'
-      : 'Tier 1 (Concept & Pricing Review)';
-
+    // Build the Prompt Context (Truncated for security)
     const pd = body?.projectDetails || {};
-    const pdLines = [];
-    
-    // Security: Truncate inputs to prevent payload bloat/token exhaustion
     const sanitize = (str) => (str ? String(str).substring(0, 200) : '');
-    
+    const pdLines = [];
     if (pd.projectName) pdLines.push(`- Project Name: ${sanitize(pd.projectName)}`);
-    if (pd.clientName) pdLines.push(`- Client Name: ${sanitize(pd.clientName)}`);
-    if (pd.address) pdLines.push(`- Site Address: ${sanitize(pd.address)}`);
-    if (pd.lotNo) pdLines.push(`- Lot No.: ${sanitize(pd.lotNo)}`);
-    if (pd.rpNo) pdLines.push(`- RP No.: ${sanitize(pd.rpNo)}`);
     if (pd.siteArea) pdLines.push(`- Site Area: ${sanitize(pd.siteArea)}`);
-    if (pd.councilOverlays) pdLines.push(`- Council Overlays: ${sanitize(pd.councilOverlays)}`);
-    
     const projectContext = pdLines.length ? `\n\nProject context:\n${pdLines.join('\n')}` : '';
 
-    const instruction = `Please perform a ${tierLabel} assessment on the attached architectural plan.${projectContext}\n\nIf the attached file is clearly not a development layout or architectural sheet drawing, set overall_score to 0.`;
-
-    const responseSchema = {
-      type: "object",
-      properties: {
-        project_info: {
-          type: "object",
-          properties: {
-            project_name: { type: "string" },
-            client_name: { type: "string" },
-            address: { type: "string" },
-            lot_no: { type: "string" },
-            rp_no: { type: "string" },
-            site_area: { type: "string" },
-            council_overlays: { type: "string" }
-          }
-        },
-        plan_type: { type: "string", description: "string matching the drawing classification" },
-        overall_score: { type: "integer", description: "0-10" },
-        overview: { type: "string", description: "high-level overview text" },
-        spatial_analysis: { type: "string", description: "spatial utilisation details" },
-        design_observations: { type: "array", items: { type: "string" }, description: "bullet points of observations" },
-        compliance_flags: { type: "array", items: { type: "string" }, description: "list of explicit construction code issues or safety flags found" },
-        recommendations: { type: "array", items: { type: "string" }, description: "remediation suggestions" }
-      },
-      required: ["project_info", "plan_type", "overall_score", "overview", "spatial_analysis", "design_observations", "compliance_flags", "recommendations"]
+    const instruction = `Please perform an assessment on the attached architectural plan.${projectContext}`;
+    
+    // We must pass exactly what FastAPI is asking for:
+    const baseUrl = `https://app.base44.com/api/agents/${agentId}`;
+    const headers = { 
+      "Authorization": `Bearer ${apiKey}`, // Fixes the Auth Error!
+      "Content-Type": "application/json" 
     };
 
-    const jsonPrompt = instruction + `\n\nCRITICAL: Return ONLY valid JSON matching this schema: ${JSON.stringify(responseSchema)}`;
+    // Step 1: Create a direct conversation instance
+    const createRes = await fetch(`${baseUrl}/conversations`, { method: "POST", headers, body: "{}" });
+    if (!createRes.ok) throw new Error(`Superagent API Error: ${createRes.status}`);
+    const conversationId = (await createRes.json()).id;
 
-    // Pass to the internal AI agent
-    const responseData = await base44.functions.invoke('superagentInvoke', {
-      input: jsonPrompt,
-      fileUrls: [fileUrl]
+    // Step 2: Send the prompt and the file URL directly to the AI
+    const msgBody = { 
+      role: "user", 
+      content: instruction,
+      file_urls: [fileUrl]
+    };
+
+    const sendRes = await fetch(`${baseUrl}/conversations/${conversationId}/messages`, {
+      method: "POST", headers, body: JSON.stringify(msgBody),
     });
 
-    if (responseData.data?.error) {
-      console.error("Superagent Invocation Error:", responseData.data.error);
-      return Response.json({ error: "AI Engine failed to process the request" }, { status: 502 });
+    if (!sendRes.ok) throw new Error(`AI Provider failed to respond: ${sendRes.status}`);
+    
+    const afterSend = await sendRes.json();
+
+    // Step 3: Extract the AI's final response
+    const getMessages = (data) => Array.isArray(data) ? data : (Array.isArray(data?.messages) ? data.messages : (data?.role ? [data] : []));
+    const msgs = getMessages(afterSend);
+    const last = msgs[msgs.length - 1];
+    
+    let output = "";
+    if (last?.role === "assistant" && last.content) {
+      output = last.content;
+    } else {
+      return Response.json({ error: "AI is still processing. Timeout reached." }, { status: 504 });
     }
 
-    return Response.json({ output: responseData.data?.output || "" }, { status: 200 });
+    return Response.json({ output }, { status: 200 });
+
   } catch (error) {
     console.error("runPlanAssessment fatal error:", error);
     return Response.json({ error: "Internal Assessment Engine Exception" }, { status: 500 });
