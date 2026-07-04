@@ -1,9 +1,15 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+
 export default Deno.serve(async (req) => {
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });
   }
 
   try {
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+    if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } });
+
     let requestBody;
     try {
       requestBody = await req.json();
