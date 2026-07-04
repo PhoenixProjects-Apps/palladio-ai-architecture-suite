@@ -13,7 +13,7 @@ import ChooseProject from '../components/ChooseProject';
 import Floorplan3DRenderer from '../components/Floorplan3DRenderer';
 import { toast } from 'sonner';
 import BrandedExportModal from '../components/BrandedExportModal';
-import { uploadToFirebase } from '@/lib/uploadHelper';
+import { uploadToFirebase, validateUpload } from '@/lib/uploadHelper';
 
 function extractJson(text) {
   if (!text) return null;
@@ -137,6 +137,14 @@ export default function PalladioFloorplan() {
   const handleFileSelect = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    const vErr = validateUpload(file, ['image/', 'application/pdf'], 25);
+    if (vErr) {
+      toast.error(vErr);
+      e.target.value = '';
+      return;
+    }
+
     setCadFile(file);
     try {
       const { file_url } = await uploadToFirebase(file);

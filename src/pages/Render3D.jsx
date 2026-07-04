@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Upload, Wand2, Loader2, FileText, Download, RefreshCcw, CheckCircle, ChevronDown, ChevronUp, Save, Bookmark, Brush, Monitor, Paintbrush } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { uploadToFirebase } from '@/lib/uploadHelper';
+import { uploadToFirebase, validateUpload } from '@/lib/uploadHelper';
 import { createPageUrl } from '@/utils';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -387,6 +387,13 @@ export default function Render3D() {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
 
+    const vErr = validateUpload(selectedFile, ['image/', 'application/pdf'], 25);
+    if (vErr) {
+      toast.error(vErr);
+      e.target.value = '';
+      return;
+    }
+
     if (selectedFile.type === 'application/pdf') {
       toast.warning("Please upload an image or screenshot for 3D rendering. PDFs are better handled by Plan Assess.");
       e.target.value = null;
@@ -419,6 +426,14 @@ export default function Render3D() {
   const handleStyleSelect = async (e) => {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
+
+    const vErr = validateUpload(selectedFile, ['image/'], 25);
+    if (vErr) {
+      toast.error(vErr);
+      e.target.value = '';
+      return;
+    }
+
     setStyleFile(selectedFile);
 
     if (selectedFile.type.startsWith('image/')) {

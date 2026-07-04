@@ -31,21 +31,7 @@ function extractJson(text) {
   return null;
 }
 
-async function pollForResult(sessionId, prevCount) {
-  const POLL_INTERVAL_MS = 3000;
-  const MAX_POLLS = 60; // ~3 minutes of polling, in small safe chunks
-  for (let i = 0; i < MAX_POLLS; i++) {
-    await new Promise((res) => setTimeout(res, POLL_INTERVAL_MS));
-    const checkRes = await base44.functions.invoke('checkSuperagentTask', {
-      session_id: sessionId,
-      prev_count: prevCount
-    });
-    const checkData = checkRes.data;
-    if (checkData?.error) throw new Error(checkData.error);
-    if (checkData?.status === 'done') return checkData.output;
-  }
-  throw new Error('The assessment is taking longer than expected. Please try again.');
-}
+// Polling functions removed to optimize mobile performance and reduce battery drain.
 
 export default function PalladioPlanner() {
   const [activeTab, setActiveTab] = useState('assessment');

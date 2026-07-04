@@ -1,5 +1,16 @@
 import { base44 } from '@/api/base44Client';
 
+export const validateUpload = (file, allowedTypes, maxMb = 25) => {
+  if (!file) return 'No file selected.';
+  if (allowedTypes && !allowedTypes.some((type) => file.type === type || file.type.startsWith(type))) {
+    return 'Unsupported file type.';
+  }
+  if (file.size > maxMb * 1024 * 1024) {
+    return `File is too large. Maximum size is ${maxMb}MB.`;
+  }
+  return null;
+};
+
 export async function uploadToFirebase(file) {
   try {
     // 1. Get the pre-signed URL from our backend function
