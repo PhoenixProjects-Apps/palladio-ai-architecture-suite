@@ -56,49 +56,78 @@ export default function PalladioFloorplan() {
         setIsGeneratingText(false);
         return;
       }
-      const layoutPrompt = `Act as an architect. Create a detailed layout brief for: ${desc}. Include specific room dimensions (e.g. 4m x 5m) and relationships. The architectural style is ${style}.`;
-      const imagePrompt = `High-end 2D architectural floor plan blueprint, clean crisp vector lines, solid dark navy blue walls, pure white background, minimal vector furniture symbols, clean modern sans-serif typography, crisp METRIC room dimensions (e.g. 5m x 4m), professional real estate layout. Architectural floorplan blueprint, top-down view, 2D layout, high quality, professional CAD drawing style. Description: ${desc}. Architectural aesthetic: ${style}. Do NOT include: Borders, frames, margin lines, framing rectangles around the image, Imperial measurements, feet, inches, Photorealistic textures, 3D elements, hand-drawn lines, sketch textures, shadows, gradients, colored floors, messy icons, grid lines, architectural hatching patterns, dark backgrounds, blurry text, title, heading, date, project name, designer name, watermark, logos, stamps, signatures, or any text blocks outside the drawing — absolutely no text, lines, or watermarks at the bottom/edges, only the floorplan itself floating on a pure white background with clear room labels in metric.`;
-      const structuredPrompt = `You are an architect designing a 2D floorplan layout. Based on this description: "${desc}", create a layout with rooms placed on a coordinate grid. "x" is the horizontal axis (width direction) and "z" is the depth axis. The x and z values represent the CENTER of each room in meters. The origin (0,0) is the center of the house. Rooms must NOT overlap and should be arranged in a realistic, coherent layout with adjacent rooms sharing walls where appropriate. Each room's "width" spans the x-axis and "depth" spans the z-axis, both in meters. Architectural style: ${style}.`;
+      const llmPrompt = `Act as an architect and real estate marketing expert. Create a detailed layout brief for: "${desc}". The architectural style is ${style}.
+      You must return a structured JSON response matching the required schema.
+      The 'floorplan_prompt' must be a highly detailed prompt for an image generator (like Midjourney/DALL-E) to create a clean, 2D architectural floor plan blueprint. Include instructions for crisp vector lines, metric room dimensions, and a pure white background. EXPLICITLY state what NOT to include: borders, frames, 3D elements, sketch textures, grid lines, or any external text blocks.
+      Ensure the layout_summary provides a readable brief of the design, and 'rooms' outlines the spaces. Provide realistic default values for the branding block if applicable.`;
 
-      const layoutSchema = {
+      const schema = {
         type: "object",
         properties: {
+          project_name: { type: "string" },
+          floorplan_prompt: { type: "string" },
+          layout_summary: { type: "string" },
           rooms: {
             type: "array",
             items: {
               type: "object",
               properties: {
                 name: { type: "string" },
-                type: { type: "string", enum: ["living", "bedroom", "kitchen", "bathroom", "dining", "office", "laundry", "garage", "hallway", "balcony", "other"] },
-                width: { type: "number" },
-                depth: { type: "number" },
-                x: { type: "number" },
-                z: { type: "number" }
+                approx_area: { type: "string" },
+                notes: { type: "string" }
               },
-              required: ["name", "type", "width", "depth", "x", "z"]
+              required: ["name", "approx_area"]
+            }
+          },
+          style_notes: { type: "string" },
+          branding: {
+            type: "object",
+            properties: {
+              branded_border_enabled: { type: "boolean" },
+              company_logo_url: { type: ["string", "null"] },
+              listing_title: { type: ["string", "null"] },
+              listing_description: { type: ["string", "null"] },
+              accent_color: { type: ["string", "null"] }
             }
           }
         },
-        required: ["rooms"]
+        required: ["project_name", "floorplan_prompt", "layout_summary", "rooms"]
       };
 
-      const layoutPromptFull = layoutPrompt + " CRITICAL: Ensure you include an entry door and clear entrance area.";
-      const structuredPromptFull = structuredPrompt + `\n\nCRITICAL: Return ONLY valid JSON matching this schema: ${JSON.stringify(layoutSchema)}. MUST include an entry door space.`;
+      const llmRes = await base44.integrations.Core.InvokeLLM({
+        prompt: llmPrompt,
+        response_json_schema: schema
+      });
 
-      const [layoutResData, imageRes, structuredResData] = await Promise.all([
-      base44.functions.invoke('superagentInvoke', { input: layoutPromptFull }),
-      base44.integrations.Core.GenerateImage({ prompt: imagePrompt }),
-      base44.functions.invoke('superagentInvoke', { input: structuredPromptFull })]
-      );
+      if (!llmRes || !llmRes.floorplan_prompt) {
+        throw new Error("Failed to generate floorplan specification.");
+      }
 
-      if (layoutResData.data?.error) throw new Error(layoutResData.data.error);
-      if (structuredResData.data?.error) throw new Error(structuredResData.data.error);
+      const imageRes = await base44.integrations.Core.GenerateImage({
+        prompt: llmRes.floorplan_prompt
+      });
 
-      const layoutRes = layoutResData.data?.output || "";
-      const rawStruct = structuredResData.data?.output || "";
-      const structuredRes = extractJson(rawStruct) || { rooms: [] };
+      if (!imageRes || !imageRes.url) {
+        throw new Error("Failed to generate floorplan image.");
+      }
 
-      setTextResult({ layout: layoutRes, image: imageRes.url, layoutData: structuredRes });
+      // Save the generated output to the database to ensure persistence
+      await base44.entities.FloorplanGenerations.create({
+        project_name: llmRes.project_name || "Floorplan Generate",
+        raw_layout_data: llmRes,
+        ui_style_selection: 'Top-Down',
+        ui_finish_selection: 'Photorealistic',
+        ui_layout_selection: 'Standard 3D',
+        status: 'Completed',
+        output_image_url: imageRes.url,
+        company_logo_url: llmRes.branding?.company_logo_url,
+        listing_title: llmRes.branding?.listing_title,
+        listing_description: llmRes.branding?.listing_description,
+        accent_color: llmRes.branding?.accent_color || '#1e293b',
+        branded_border_enabled: llmRes.branding?.branded_border_enabled || false
+      });
+
+      setTextResult({ layout: llmRes.layout_summary, image: imageRes.url, layoutData: llmRes });
     } catch (err) {
       console.error(err);
       toast.error('Generation failed. Please try again.');
@@ -134,6 +163,22 @@ export default function PalladioFloorplan() {
       const imageRes = await base44.integrations.Core.GenerateImage({
         prompt: imagePrompt,
         existing_image_urls: [cadFileUrl]
+      });
+
+      if (!imageRes || !imageRes.url) {
+        throw new Error("Failed to generate floorplan image.");
+      }
+
+      await base44.entities.FloorplanGenerations.create({
+        project_name: "Floorplan Sketch Generate",
+        raw_layout_data: { imageUrl: imageRes.url },
+        ui_style_selection: 'Top-Down',
+        ui_finish_selection: 'Photorealistic',
+        ui_layout_selection: 'Standard 3D',
+        status: 'Completed',
+        output_image_url: imageRes.url,
+        accent_color: '#1e293b',
+        branded_border_enabled: false
       });
 
       setSketchResult(imageRes.url);

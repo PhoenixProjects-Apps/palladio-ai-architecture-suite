@@ -65,6 +65,10 @@
     "accent_color": {
       "type": "string",
       "default": "#1e293b"
+    },
+    "branded_border_enabled": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [
