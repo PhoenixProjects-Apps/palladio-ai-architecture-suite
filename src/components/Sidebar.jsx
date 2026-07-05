@@ -72,13 +72,13 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
       title: "Overview",
       items: [
         { name: 'Dashboard', icon: Home, path: 'Home' },
-        { name: 'Projects', icon: Folder, path: '/Projects' },
+        { name: 'Projects', icon: Folder, path: 'Projects' },
       ]
     },
     {
       title: "Tools",
       items: [
-        { name: 'AI Assistant', icon: MessageSquare, path: '/SavedChats' },
+        { name: 'AI Assistant', icon: MessageSquare, path: 'SavedChats' },
         { name: 'Floorplans', icon: Layers, path: 'PalladioFloorplan' },
         { name: '3D Renders', icon: Building2, path: 'Render3D' },
         { name: 'Property Intel', icon: MapPin, path: 'PalladioProperty' },
@@ -93,7 +93,7 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
   const bottomItems = user
     ? [
         { name: `Tokens: ${user.tokens !== undefined ? user.tokens : 5}`, icon: CreditCard, path: 'PalladioPricing', isTokenDisplay: true },
-        { name: 'Settings', icon: Settings, path: '/UserProfile' },
+        { name: 'Settings', icon: Settings, path: 'UserProfile' },
         { name: 'Notifications', icon: Bell, path: 'Notifications', badge: unreadCount },
         { name: 'About', icon: Building2, path: 'About' },
         { name: 'Contact', icon: MessageSquare, path: 'Contact' },
