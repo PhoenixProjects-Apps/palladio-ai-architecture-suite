@@ -584,7 +584,7 @@ export default function Render3D() {
               <h2 className="text-white text-sm font-semibold mb-2">1. 3D Building View</h2>
               <button
                   onClick={handleCaptureScreen}
-                  className="flex items-center w-fit text-[10px] font-medium text-teal-400 hover:text-teal-300 bg-teal-400/10 hover:bg-teal-400/20 px-2 py-1 rounded transition-colors">
+                  className="flex items-center w-fit text-xs font-medium text-teal-400 hover:text-teal-300 bg-teal-400/10 hover:bg-teal-400/20 px-2 py-1 rounded transition-colors">
                   
                 <Monitor size={12} className="mr-1" /> Screenshot
               </button>
@@ -618,7 +618,7 @@ export default function Render3D() {
                   <Upload size={24} style={{ color: '#475569' }} />
                   <div>
                     <p className="text-white text-sm font-medium">Upload view</p>
-                    <p className="text-gray-500 text-[10px] mt-1">Image (JPG, PNG)</p>
+                    <p className="text-gray-500 text-xs mt-1">Image (JPG, PNG)</p>
                   </div>
                 </div>
                 }
@@ -633,7 +633,7 @@ export default function Render3D() {
             {fileUrl && !isUploading &&
               <div className="flex items-center gap-1 mt-2">
                 <CheckCircle size={12} style={{ color: '#14b8a6' }} />
-                <span className="text-[10px]" style={{ color: '#14b8a6' }}>Main view ready</span>
+                <span className="text-xs" style={{ color: '#14b8a6' }}>Main view ready</span>
               </div>
               }
           </div>
@@ -641,7 +641,7 @@ export default function Render3D() {
           <div>
             <div className="flex flex-wrap justify-between items-center mb-3">
               <h2 className="text-white text-sm font-semibold">2. Style Reference (Opt)</h2>
-              <p className="text-teal-400 text-[10px] font-medium mt-2 flex items-center justify-center">
+              <p className="text-teal-400 text-xs font-medium mt-2 flex items-center justify-center">
                 <Paintbrush size={10} className="mr-1" /> Match the style of an image
               </p>
             </div>
@@ -674,7 +674,7 @@ export default function Render3D() {
                   <Upload size={24} style={{ color: '#475569' }} />
                   <div>
                     <p className="text-white text-sm font-medium">Style inspiration</p>
-                    <p className="text-gray-500 text-[10px] mt-1">Image (e.g. materials)</p>
+                    <p className="text-gray-500 text-xs mt-1">Image (e.g. materials)</p>
                   </div>
                 </div>
                 }
@@ -689,7 +689,7 @@ export default function Render3D() {
             {styleFileUrl && !isUploadingStyle &&
               <div className="flex items-center gap-1 mt-2">
                 <CheckCircle size={12} style={{ color: '#14b8a6' }} />
-                <span className="text-[10px]" style={{ color: '#14b8a6' }}>Style applied</span>
+                <span className="text-xs" style={{ color: '#14b8a6' }}>Style applied</span>
               </div>
               }
           </div>
@@ -701,7 +701,7 @@ export default function Render3D() {
             <h2 className="text-white text-sm font-semibold">Rendering Presets</h2>
             {savedPresetsList.length > 0 &&
               <Select onValueChange={(id) => applyPreset(savedPresetsList.find((p) => p.id === id))}>
-                <SelectTrigger className="bg-slate-900 border-slate-700 text-white text-xs h-8 w-[160px]">
+                <SelectTrigger className="bg-slate-900 border-slate-700 text-white text-xs min-h-11 w-[160px]">
                   <Bookmark size={14} className="mr-2 text-teal-400" />
                   <SelectValue placeholder="Load preset..." />
                 </SelectTrigger>
@@ -721,7 +721,7 @@ export default function Render3D() {
               <div key={key}>
                 <label className="block text-xs mb-1.5" style={{ color: '#94a3b8' }}>{label}</label>
                 <Select value={presets[key] || ''} onValueChange={(val) => setPresets((p) => ({ ...p, [key]: val }))}>
-                  <SelectTrigger className="bg-slate-900 border-slate-700 text-white text-xs h-9 rounded-xl">
+                  <SelectTrigger className="bg-slate-900 border-slate-700 text-white text-sm min-h-11 rounded-xl">
                     <SelectValue placeholder="Select..." />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-slate-700">
@@ -741,7 +741,7 @@ export default function Render3D() {
             <div className="space-y-3">
               {Object.entries(MATERIAL_LIBRARY).map(([catKey, items]) => (
                 <div key={catKey}>
-                  <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1.5">{items[0].category}</p>
+                  <p className="text-xs text-slate-500 uppercase tracking-wider mb-1.5">{items[0].category}</p>
                   <div className="flex flex-wrap gap-2">
                     {items.map((mat) => {
                       const isSelected = presets.materialPalette?.includes(mat.label);
@@ -761,7 +761,7 @@ export default function Render3D() {
                             });
                           }}
                           title={mat.bestUsedFor}
-                          className={`px-4 py-2 rounded-full text-[10px] font-medium transition-colors ${isSelected ? 'bg-teal-500/20 text-teal-400 border border-teal-500/50' : 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700 hover:text-slate-200'}`}
+                          className={`px-4 py-2 rounded-full text-xs font-medium transition-colors ${isSelected ? 'bg-teal-500/20 text-teal-400 border border-teal-500/50' : 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700 hover:text-slate-200'}`}
                         >
                           {mat.label}
                         </button>
@@ -789,7 +789,7 @@ export default function Render3D() {
                 <div>
                   <label className="block text-xs mb-1.5 text-slate-400">Aspect Ratio</label>
                   <Select value={aspectRatio} onValueChange={setAspectRatio}>
-                    <SelectTrigger className="bg-slate-900 border-slate-700 text-white text-xs h-9 rounded-xl">
+                    <SelectTrigger className="bg-slate-900 border-slate-700 text-white text-sm min-h-11 rounded-xl">
                       <SelectValue placeholder="Select..." />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-900 border-slate-700">
@@ -808,7 +808,7 @@ export default function Render3D() {
                       placeholder="Random Seed (leave blank)" 
                       value={seed} 
                       onChange={(e) => setSeed(e.target.value)} 
-                      className="bg-slate-900 border-slate-700 text-white text-xs h-9 rounded-xl flex-1" 
+                      className="bg-slate-900 border-slate-700 text-white text-sm min-h-11 rounded-xl flex-1" 
                       disabled={!lockSeed}
                     />
                     <button 
@@ -819,7 +819,7 @@ export default function Render3D() {
                       {lockSeed ? 'Locked' : 'Unlocked'}
                     </button>
                   </div>
-                  <p className="text-[10px] text-slate-500 mt-1">Locking the seed helps maintain architectural consistency when only changing materials.</p>
+                  <p className="text-xs text-slate-500 mt-1">Locking the seed helps maintain architectural consistency when only changing materials.</p>
                 </div>
 
               </div>
@@ -842,7 +842,7 @@ export default function Render3D() {
                 placeholder="Preset name (e.g. My Custom Villa)"
                 value={presetName}
                 onChange={(e) => setPresetName(e.target.value)}
-                className="bg-slate-900 border-slate-700 text-white text-xs h-9 rounded-xl" />
+                className="bg-slate-900 border-slate-700 text-white text-sm min-h-11 rounded-xl" />
               
             <Button
                 onClick={handleSavePreset}

@@ -678,7 +678,7 @@ Return ONLY valid JSON matching this exact structure:
                                             </div>
 
                                             {propertyData.verification_notes && (
-                                            <div className="col-span-2 text-[10px] text-amber-400 mt-1">
+                                            <div className="col-span-2 text-xs text-amber-400 mt-1">
                                                 {propertyData.verification_notes}
                                             </div>
                                             )}

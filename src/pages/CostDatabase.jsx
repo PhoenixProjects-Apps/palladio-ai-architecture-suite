@@ -106,7 +106,7 @@ export default function CostDatabase() {
                     <div className="col-span-1">
                         <label className="text-xs text-slate-400 mb-1 block">State</label>
                         <Select value={newState} onValueChange={setState}>
-                            <SelectTrigger className="bg-slate-800 border-slate-700 h-9"><SelectValue /></SelectTrigger>
+                            <SelectTrigger className="bg-slate-800 border-slate-700 min-h-11"><SelectValue /></SelectTrigger>
                             <SelectContent className="bg-slate-800 border-slate-700 text-white">
                                 {['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                             </SelectContent>
@@ -127,7 +127,7 @@ export default function CostDatabase() {
                     <div className="col-span-1">
                         <label className="text-xs text-slate-400 mb-1 block">Unit</label>
                         <Select value={newUnit} onValueChange={setUnit}>
-                            <SelectTrigger className="bg-slate-800 border-slate-700 h-9"><SelectValue /></SelectTrigger>
+                            <SelectTrigger className="bg-slate-800 border-slate-700 min-h-11"><SelectValue /></SelectTrigger>
                             <SelectContent className="bg-slate-800 border-slate-700 text-white">
                                 {['sqm', 'lm', 'm3', 'item', 'hr'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                             </SelectContent>

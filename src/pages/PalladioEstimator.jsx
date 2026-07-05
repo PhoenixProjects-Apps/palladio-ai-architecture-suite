@@ -663,7 +663,7 @@ INSTRUCTIONS:
                                         <Upload size={24} className="text-slate-500" />
                                         <div>
                                             <p className="text-white text-sm font-medium">Upload File</p>
-                                            <p className="text-slate-500 text-[10px] mt-1">Image or PDF plan</p>
+                                            <p className="text-slate-500 text-xs mt-1">Image or PDF plan</p>
                                         </div>
                                     </div>
                   }
