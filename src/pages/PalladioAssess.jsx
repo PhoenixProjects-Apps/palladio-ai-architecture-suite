@@ -162,7 +162,7 @@ export default function PalladioAssess() {
                 <ArrowLeft size={20} />
               </Button>
             </Link>
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-700 flex items-center justify-center shadow-lg">
+            <div className="w-10 min-h-11 h-auto rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-700 flex items-center justify-center shadow-lg">
               <FileImage size={20} />
             </div>
             <h1 className="font-bold text-xl">Assess Plans</h1>

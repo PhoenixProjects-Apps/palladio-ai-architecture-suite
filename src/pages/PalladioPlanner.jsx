@@ -544,7 +544,7 @@ Return ONLY valid JSON matching this exact structure:
                             <ArrowLeft size={20} />
                         </Button>
                     </Link>
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center shadow-lg">
+                        <div className="w-10 min-h-11 h-auto rounded-lg bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center shadow-lg">
                             <ClipboardList size={20} />
                         </div>
                         <h1 className="font-bold text-xl">Town Planner AI</h1>
@@ -734,7 +734,7 @@ Return ONLY valid JSON matching this exact structure:
                       <button
                         key={t}
                         onClick={() => setSelectedType(t)}
-                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors border ${selectedType === t ? 'bg-rose-600 border-rose-500 text-white shadow-lg shadow-rose-500/20' : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'}`}>
+                        className={`min-h-11 px-4 py-2 rounded-full text-sm font-medium transition-colors border ${selectedType === t ? 'bg-rose-600 border-rose-500 text-white shadow-lg shadow-rose-500/20' : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'}`}>
                         
                                                 {t}
                                             </button>
@@ -867,9 +867,9 @@ Return ONLY valid JSON matching this exact structure:
                                         <div className="border-2 border-dashed border-white/10 hover:border-rose-500/50 rounded-2xl p-8 text-center transition-colors bg-slate-900 mb-6 relative group">
                                             {docFile ?
                     <div className="flex flex-col items-center">
-                                                    <File size={32} className="text-rose-500 mb-2" />
-                                                    <p className="text-white text-sm">{docFile.name}</p>
-                                                </div> :
+                        <File size={32} className="text-rose-500 mb-2" />
+                        <p className="text-white text-sm max-w-[200px] truncate">{docFile.name}</p>
+                    </div> :
 
                     <div className="flex flex-col items-center">
                                                     <Upload size={32} className="text-slate-500 mb-2 group-hover:text-rose-400 transition-colors" />

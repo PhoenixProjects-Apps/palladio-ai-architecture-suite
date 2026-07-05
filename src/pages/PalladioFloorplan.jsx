@@ -228,19 +228,19 @@ export default function PalladioFloorplan() {
                     <div className="flex flex-col sm:flex-row gap-1 bg-slate-900 rounded-xl p-1 mb-8 w-full sm:w-max">
                         <button
               onClick={() => setTab('text')}
-              className={`w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${tab === 'text' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
+              className={`min-h-11 w-full sm:w-auto px-4 sm:px-6 py-2 rounded-lg text-sm font-medium transition-all ${tab === 'text' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
 
                             Generate from Text
                         </button>
                         <button
               onClick={() => setTab('sketch')}
-              className={`w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${tab === 'sketch' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
+              className={`min-h-11 w-full sm:w-auto px-4 sm:px-6 py-2 rounded-lg text-sm font-medium transition-all ${tab === 'sketch' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
 
                             Sketch to Floorplan
                         </button>
                         <Link
               to="/Floorplan3D" state={{ layoutData: textResult?.layoutData || (sketchResult ? { imageUrl: sketchResult } : null), sourceImage: textResult?.image || sketchResult }}
-              className={`w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white flex items-center justify-center`}>
+              className={`min-h-11 w-full sm:w-auto px-4 sm:px-6 py-2 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white flex items-center justify-center`}>
 
                             3D Floorplan Renderer
                         </Link>
@@ -274,7 +274,7 @@ export default function PalladioFloorplan() {
                                         {['3 bed 2 bath family home', 'Modern studio apartment', 'Commercial office space', 'Cafe fitout'].map((p) =>
                   <button
                     key={p} onClick={() => setDesc(p)}
-                    className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-full transition-colors">
+                    className="min-h-11 text-sm bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-full transition-colors">
                     
                                                 {p}
                                             </button>
@@ -364,7 +364,7 @@ export default function PalladioFloorplan() {
                                         {cadFile ?
                   <div className="flex flex-col items-center">
                                                 <ImageIcon size={32} className="text-violet-500 mb-2" />
-                                                <p className="text-white text-sm">{cadFile.name}</p>
+                                                <p className="text-white text-sm max-w-[200px] truncate">{cadFile.name}</p>
                                             </div> :
 
                   <div className="flex flex-col items-center">

@@ -750,7 +750,8 @@ export default function Render3D() {
                       const isSelected = presets.materialPalette?.includes(mat.label);
                       return (
                         <button
-                          key={mat.label}
+                  type="button"
+                  key={mat.label}
                           onClick={() => {
                             setPresets(p => {
                               const current = p.materialPalette || [];
@@ -763,7 +764,7 @@ export default function Render3D() {
                             });
                           }}
                           title={mat.bestUsedFor}
-                          className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-colors ${isSelected ? 'bg-teal-500/20 text-teal-400 border border-teal-500/50' : 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700 hover:text-slate-200'}`}
+                          className={`px-4 py-2 rounded-full text-[10px] font-medium transition-colors ${isSelected ? 'bg-teal-500/20 text-teal-400 border border-teal-500/50' : 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700 hover:text-slate-200'}`}
                         >
                           {mat.label}
                         </button>

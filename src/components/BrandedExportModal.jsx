@@ -189,7 +189,7 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
             <div>
               <Label>Accent Color</Label>
               <div className="flex gap-2 mt-1">
-                <Input type="color" value={accentColor} onChange={e => setAccentColor(e.target.value)} className="w-12 h-10 p-1 bg-slate-800 border-slate-700" />
+                <Input type="color" value={accentColor} onChange={e => setAccentColor(e.target.value)} className="w-12 min-h-11 h-auto p-1 bg-slate-800 border-slate-700" />
                 <Input value={accentColor} onChange={e => setAccentColor(e.target.value)} className="flex-1 bg-slate-800 border-slate-700 text-white" />
               </div>
             </div>
