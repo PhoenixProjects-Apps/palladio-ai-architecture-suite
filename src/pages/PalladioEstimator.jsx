@@ -677,6 +677,7 @@ INSTRUCTIONS:
                                 <Button
                                   onClick={handleAutoExtract}
                                   disabled={isExtracting || isAnalyzing}
+                                  aria-busy={isExtracting}
                                   variant="secondary"
                                   className="w-full mt-4 mb-2 border border-slate-700 text-cyan-400 hover:text-cyan-300 hover:bg-slate-800 bg-slate-800/50 h-11">
                                   {isExtracting ? <><Loader2 className="animate-spin mr-2" size={18} /> Extracting Quantities...</> : <><Sparkles className="mr-2" size={18} /> Auto-Extract Quantities</>}
@@ -807,6 +808,7 @@ INSTRUCTIONS:
                     <Button
                       onClick={handleAnalyze}
                       disabled={!fileUrl || isAnalyzing || isExtracting}
+                      aria-busy={isAnalyzing}
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white h-14 text-lg font-semibold shadow-lg shadow-blue-900/20">
                       {isAnalyzing ? <><Loader2 className="animate-spin mr-2" size={24} /> Analyzing Project...</> : <><Calculator className="mr-2" size={24} /> Generate Estimate</>}
                     </Button>
@@ -844,6 +846,7 @@ INSTRUCTIONS:
                                       size="sm" 
                                       onClick={handleGeneratePresentation} 
                                       disabled={isGeneratingPresentation}
+                                      aria-busy={isGeneratingPresentation}
                                       className="border-blue-700/50 text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 bg-blue-900/20">
                                         {isGeneratingPresentation ? <><Loader2 size={16} className="mr-1 animate-spin" /> Generating...</> : <><Presentation size={16} className="mr-1" /> Presentation Slide</>}
                                     </Button>

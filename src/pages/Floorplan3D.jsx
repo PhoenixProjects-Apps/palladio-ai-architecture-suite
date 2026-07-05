@@ -213,9 +213,11 @@ export default function Floorplan3D() {
           </div>
 
           <button 
-            className={`b44-btn-generate ${isLoading ? 'is-loading' : ''}`}
+            type="button"
+            className={`b44-btn-generate ${isLoading ? 'is-loading' : ''} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`}
             onClick={() => handleGenerate()}
             disabled={isLoading}
+            aria-busy={isLoading}
           >
             {isLoading ? (
               <>

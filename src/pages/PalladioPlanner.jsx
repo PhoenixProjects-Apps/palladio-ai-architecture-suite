@@ -755,6 +755,7 @@ Return ONLY valid JSON matching this exact structure:
                                 <Button
                     onClick={handleAnalyze}
                     disabled={!address || !selectedType || !description || isAnalyzing}
+                    aria-busy={isAnalyzing}
                     className="w-full bg-rose-600 hover:bg-rose-700 text-white h-12 rounded-xl shadow-lg shadow-rose-500/20">
                     
                                     {isAnalyzing ? <><Loader2 size={18} className="animate-spin mr-2" /> Assessing Proposal...</> : "Assess Proposal"}
@@ -848,6 +849,7 @@ Return ONLY valid JSON matching this exact structure:
                     {setExporting(false);}
                   }}
                   disabled={exporting}
+                  aria-busy={exporting}
                   className="w-full sm:flex-1 rounded-xl bg-rose-600 hover:bg-rose-700 text-white h-12">
                   {exporting ? <Loader2 size={16} className="animate-spin mr-2" /> : <Download size={16} className="mr-2" />}
                   Download PDF
@@ -884,6 +886,7 @@ Return ONLY valid JSON matching this exact structure:
                                     <Button
                   onClick={handleAnalyzeDoc}
                   disabled={!docFile || isAnalyzingDoc}
+                  aria-busy={isAnalyzingDoc}
                   className="w-full bg-rose-600 hover:bg-rose-700 text-white h-12 rounded-xl shadow-lg shadow-rose-500/20">
                   
                                         {isAnalyzingDoc ? <><Loader2 size={18} className="animate-spin mr-2" /> {isUploading ? 'Uploading...' : 'Analyzing Document...'}</> : "Analyze Document"}

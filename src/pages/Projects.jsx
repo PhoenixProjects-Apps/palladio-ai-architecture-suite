@@ -242,19 +242,23 @@ export default function Projects() {
                                                 </a>
                                                 <div className="flex items-center gap-1">
                                                     <button 
+                                                        type="button"
+                                                        aria-label="Save to Google Drive"
                                                         onClick={() => handleSaveToDrive(asset)} 
                                                         disabled={savingToDrive === asset.id}
-                                                        className="text-slate-500 hover:text-cyan-400 p-1.5 transition-colors rounded-lg hover:bg-slate-700/50 disabled:opacity-50"
+                                                        className="inline-flex items-center justify-center min-w-[44px] min-h-[44px] text-slate-500 hover:text-cyan-400 transition-colors rounded-lg hover:bg-slate-700/50 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                                         title="Save to Google Drive"
                                                     >
-                                                        {savingToDrive === asset.id ? <Loader2 size={16} className="animate-spin" /> : <Cloud size={16} />}
+                                                        {savingToDrive === asset.id ? <Loader2 size={18} className="animate-spin" /> : <Cloud size={18} />}
                                                     </button>
                                                     <button 
+                                                        type="button"
+                                                        aria-label="Delete File"
                                                         onClick={() => handleDeleteAsset(asset.id)} 
-                                                        className="text-slate-500 hover:text-red-400 p-1.5 transition-colors rounded-lg hover:bg-slate-700/50"
+                                                        className="inline-flex items-center justify-center min-w-[44px] min-h-[44px] text-slate-500 hover:text-red-400 transition-colors rounded-lg hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                                         title="Delete File"
                                                     >
-                                                        <Trash2 size={16} />
+                                                        <Trash2 size={18} />
                                                     </button>
                                                 </div>
                                             </div>
@@ -355,11 +359,13 @@ export default function Projects() {
                                     <h3 className="text-lg font-semibold text-amber-500 mb-2 truncate">{project.name}</h3>
                                     <p className="text-xs text-slate-500 font-medium">Created {new Date(project.created_date).toLocaleDateString()}</p>
                                     <button 
+                                        type="button"
+                                        aria-label="Delete Project"
                                         onClick={(e) => handleDeleteProject(e, project.id)}
-                                        className="absolute top-4 right-4 p-2 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                                        className="absolute top-2 right-2 inline-flex items-center justify-center min-w-[44px] min-h-[44px] text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                         title="Delete Project"
                                     >
-                                        <Trash2 size={16} />
+                                        <Trash2 size={18} />
                                     </button>
                                 </div>
                             ))}

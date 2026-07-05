@@ -289,6 +289,7 @@ export default function PalladioFloorplan() {
                                 <Button
                 onClick={handleTextGenerate}
                 disabled={!desc || isGeneratingText}
+                aria-busy={isGeneratingText}
                 className="w-full bg-violet-600 hover:bg-violet-700 text-white h-12 rounded-xl shadow-lg shadow-violet-500/20">
                 
                                     {isGeneratingText ? <><Loader2 size={18} className="animate-spin mr-2" /> Generating...</> : "Generate Floorplan"}
@@ -383,6 +384,7 @@ export default function PalladioFloorplan() {
                                 <Button
                 onClick={handleSketchGenerate}
                 disabled={!cadFileUrl || isGeneratingSketch}
+                aria-busy={isGeneratingSketch}
                 className="w-full bg-violet-600 hover:bg-violet-700 text-white h-12 rounded-xl shadow-lg shadow-violet-500/20">
                 
                                     {isGeneratingSketch ? <><Loader2 size={18} className="animate-spin mr-2" /> Generating...</> : "Generate Professional Floorplan"}

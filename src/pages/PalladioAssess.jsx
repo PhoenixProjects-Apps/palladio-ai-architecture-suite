@@ -251,6 +251,7 @@ export default function PalladioAssess() {
                 <Button
                   onClick={handleAnalyze}
                   disabled={!file || isUploading || isAnalyzing || !formValid}
+                  aria-busy={isAnalyzing || isUploading}
                   className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-6 text-lg rounded-xl shadow-lg shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isAnalyzing ? (
@@ -359,6 +360,7 @@ export default function PalladioAssess() {
                 <Button
                   onClick={handleExportPdf}
                   disabled={exporting}
+                  aria-busy={exporting}
                   className="w-full sm:flex-1 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white h-12"
                 >
                   {exporting ? <Loader2 size={16} className="animate-spin mr-2" /> : <Download size={16} className="mr-2" />}

@@ -126,10 +126,10 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
         {isCollapsed && (
           <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69997bf8be3f3bf35cbd8147/e93fde36f_Lumii_20260222_021318181.png" alt="Logo" className="w-8 h-8 rounded-lg object-cover mx-auto" />
         )}
-        <button onClick={() => setIsCollapsed(!isCollapsed)} className="hidden md:flex p-1.5 hover:bg-white/10 rounded-md text-slate-400">
+        <button type="button" aria-label={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"} onClick={() => setIsCollapsed(!isCollapsed)} className="hidden md:flex p-1.5 hover:bg-white/10 rounded-md text-slate-400 min-w-[44px] min-h-[44px] items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           {isCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
         </button>
-        <button onClick={() => setIsMobileOpen(false)} className="md:hidden p-1.5 hover:bg-white/10 rounded-md text-slate-400">
+        <button type="button" aria-label="Close Sidebar" onClick={() => setIsMobileOpen(false)} className="md:hidden p-1.5 hover:bg-white/10 rounded-md text-slate-400 min-w-[44px] min-h-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <X size={20} />
         </button>
       </div>
