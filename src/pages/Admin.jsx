@@ -145,8 +145,8 @@ export default function Admin() {
           <div className="p-6 border-b border-white/10 bg-white/[0.02]">
             <h2 className="text-lg font-semibold">User Management</h2>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+          <div className="overflow-x-auto max-w-full">
+            <table className="w-full text-left text-sm min-w-[600px]">
               <thead className="bg-white/5 text-slate-400">
                 <tr>
                   <th className="px-6 py-4 font-medium">User</th>

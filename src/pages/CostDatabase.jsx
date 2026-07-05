@@ -156,8 +156,8 @@ export default function CostDatabase() {
                 ) : (
                     <>
                         {/* Desktop Table */}
-                        <div className="hidden sm:block bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
-                            <Table>
+                        <div className="hidden sm:block bg-slate-900 rounded-xl border border-slate-800 overflow-x-auto max-w-full">
+                            <Table className="min-w-[800px]">
                                 <TableHeader className="bg-slate-800/50">
                                     <TableRow className="border-slate-800">
                                         <TableHead className="text-slate-300">Location</TableHead>

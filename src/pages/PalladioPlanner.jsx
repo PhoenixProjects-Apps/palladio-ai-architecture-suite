@@ -583,7 +583,7 @@ Return ONLY valid JSON matching this exact structure:
 
                                     <div className="mt-4 space-y-3 bg-slate-900/50 p-4 rounded-xl border border-white/5 text-sm">
                                         <h4 className="font-semibold text-slate-200 flex items-center gap-2"><MapPin size={16} className="text-rose-500" /> Property Details</h4>
-                                        <div className="grid grid-cols-2 gap-3 text-slate-300">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-slate-300">
                                             <div>
                                                 <span className="text-slate-500 block text-xs mb-1">Lot / RP</span>
                                                 <input

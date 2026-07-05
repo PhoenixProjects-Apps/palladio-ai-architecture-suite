@@ -274,8 +274,8 @@ export default function PalladioAssess() {
                       <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
                         {piRows.map((r, i) => (
                           <div key={i} className="flex gap-2">
-                            <span className="text-slate-500 min-w-[120px]">{r.label}</span>
-                            <span className="text-slate-200">{r.value}</span>
+                            <span className="text-slate-500 min-w-[100px] shrink-0">{r.label}</span>
+                            <span className="text-slate-200 break-words min-w-0">{r.value}</span>
                           </div>
                         ))}
                       </div>

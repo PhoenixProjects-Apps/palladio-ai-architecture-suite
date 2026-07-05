@@ -215,8 +215,14 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
             </Button>
           </div>
 
-          <div className="overflow-auto bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-start justify-center max-h-[600px] w-full">
-            <div style={{ transform: 'scale(0.35)', transformOrigin: 'top center', width: '1200px', height: '1080px', marginBottom: '-702px' }} className="bg-white shrink-0">
+          <style>{`
+            :root { --export-scale: 0.35; }
+            @media (max-width: 640px) {
+              :root { --export-scale: 0.22; }
+            }
+          `}</style>
+          <div className="overflow-x-auto bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-start justify-center max-h-[60vh] md:max-h-[600px] w-full max-w-full">
+            <div style={{ transform: 'scale(var(--export-scale))', transformOrigin: 'top center', width: '1200px', height: '1080px', marginBottom: 'calc(-1080px * (1 - var(--export-scale)))' }} className="bg-white shrink-0">
               <div ref={canvasRef} className="b44-marketing-canvas">
                 <style>{`
                   .b44-marketing-canvas {
