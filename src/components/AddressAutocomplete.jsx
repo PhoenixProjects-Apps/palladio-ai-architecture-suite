@@ -58,7 +58,11 @@ export default function AddressAutocomplete({ value, onChange, onSelect }) {
             }
         };
         document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
+        document.addEventListener('touchstart', handler);
+        return () => {
+            document.removeEventListener('mousedown', handler);
+            document.removeEventListener('touchstart', handler);
+        };
     }, []);
 
     return (

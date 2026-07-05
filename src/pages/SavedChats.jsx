@@ -193,7 +193,7 @@ export default function SavedChats() {
                   </button>
                   <button
                     onClick={() => handleDeleteChat(c.id)}
-                    className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 ml-2 shrink-0"
+                    className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 ml-2 shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center p-2"
                     title="Delete chat"
                   >
                     <Trash2 size={14} />
@@ -237,7 +237,7 @@ export default function SavedChats() {
                           </button>
                           <button
                             onClick={() => handleDeleteChat(c.id)}
-                            className="text-slate-500 hover:text-red-400 ml-2 shrink-0 p-2"
+                            className="text-slate-500 hover:text-red-400 ml-2 shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center p-2"
                             title="Delete chat"
                           >
                             <Trash2 size={16} />

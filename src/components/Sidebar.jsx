@@ -156,7 +156,7 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
                   </>
                 );
                 
-                const className = `relative flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${active ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'} ${isCollapsed ? 'justify-center' : ''}`;
+                const className = `relative flex items-center justify-between px-3 py-3 rounded-xl transition-colors ${active ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'} ${isCollapsed ? 'justify-center' : ''}`;
 
                 if (item.isExternal) {
                   return (
@@ -192,7 +192,7 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
             {bottomItems.map((item, idx) => {
               if (item.action === 'login') {
                 return (
-                  <button key="login" onClick={() => { base44.auth.redirectToLogin(); setShowInfo(false); }} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors w-full text-left hover:bg-muted/50 text-muted-foreground hover:text-foreground ${isCollapsed ? 'justify-center' : ''}`} title={isCollapsed ? item.name : ''}>
+                  <button key="login" onClick={() => { base44.auth.redirectToLogin(); setShowInfo(false); }} className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-colors w-full text-left hover:bg-muted/50 text-muted-foreground hover:text-foreground ${isCollapsed ? 'justify-center' : ''}`} title={isCollapsed ? item.name : ''}>
                     <item.icon size={20} />
                     {!isCollapsed && <span className="font-medium text-sm">{item.name}</span>}
                   </button>
@@ -200,7 +200,7 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
               }
               const active = isActive(item.path);
               return (
-                <Link key={item.path} to={createPageUrl(item.path)} onClick={() => { setIsMobileOpen(false); setShowInfo(false); }} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${active ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'} ${isCollapsed ? 'justify-center' : ''}`} title={isCollapsed ? item.name : ''}>
+                <Link key={item.path} to={createPageUrl(item.path)} onClick={() => { setIsMobileOpen(false); setShowInfo(false); }} className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-colors ${active ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'} ${isCollapsed ? 'justify-center' : ''}`} title={isCollapsed ? item.name : ''}>
                   <item.icon size={20} className={active ? 'text-primary' : ''} />
                   {!isCollapsed && <span className="font-medium text-sm">{item.name}</span>}
                 </Link>

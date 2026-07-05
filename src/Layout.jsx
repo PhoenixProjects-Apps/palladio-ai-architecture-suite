@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useTheme } from 'next-themes';
 import Sidebar from '@/components/Sidebar';
 import UserHeader from '@/components/UserHeader';
 import { Toaster } from 'sonner';
@@ -7,6 +8,7 @@ import MobileBottomNav from '@/components/MobileBottomNav';
 import { useMobileBack } from '@/hooks/useMobileBack';
 
 export default function Layout({ children }) {
+  const { theme } = useTheme();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const location = useLocation();
 
@@ -47,7 +49,7 @@ export default function Layout({ children }) {
         
       </main>
       <MobileBottomNav />
-      <Toaster theme="dark" position="bottom-right" />
+      <Toaster theme={theme === 'dark' ? 'dark' : 'light'} position="bottom-right" />
     </div>
   );
 }

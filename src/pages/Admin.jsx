@@ -179,7 +179,7 @@ export default function Admin() {
                         )}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <Button variant="ghost" size="sm" onClick={() => handleEditClick(u)} className="text-slate-400 hover:text-white hover:bg-white/10">
+                        <Button aria-label={`Edit membership for ${u.email}`} variant="ghost" size="sm" onClick={() => handleEditClick(u)} className="text-slate-400 hover:text-white hover:bg-white/10">
                           Edit Plan
                         </Button>
                       </td>

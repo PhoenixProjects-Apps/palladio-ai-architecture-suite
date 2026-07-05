@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { base44 } from '@/api/base44Client';
 import { uploadToFirebase } from '@/lib/uploadHelper';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 import { Loader2, Download, Upload } from 'lucide-react';
 
@@ -19,6 +20,7 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
   const [isUploading, setIsUploading] = useState(false);
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
+  const isMobile = useIsMobile();
 
   const handleLogoUpload = async (e) => {
     const file = e.target.files[0];
@@ -221,9 +223,11 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
               :root { --export-scale: 0.22; }
             }
           `}</style>
-          <div className="overflow-x-auto bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-start justify-center max-h-[60vh] md:max-h-[600px] w-full max-w-full">
-            <div style={{ transform: 'scale(var(--export-scale))', transformOrigin: 'top center', width: '1200px', height: '1080px', marginBottom: 'calc(-1080px * (1 - var(--export-scale)))' }} className="bg-white shrink-0">
-              <div ref={canvasRef} className="b44-marketing-canvas">
+          {isMobile && <p className="text-slate-400 text-sm text-center py-8">Preview available on desktop. Click Export to generate the branded layout.</p>}
+          {!isMobile && (
+            <div className="overflow-x-auto bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-start justify-center max-h-[60vh] md:max-h-[600px] w-full max-w-full">
+              <div style={{ transform: 'scale(var(--export-scale))', transformOrigin: 'top center', width: '1200px', height: '1080px', marginBottom: 'calc(-1080px * (1 - var(--export-scale)))' }} className="bg-white shrink-0">
+                <div ref={canvasRef} className="b44-marketing-canvas">
                 <style>{`
                   .b44-marketing-canvas {
                     width: 1200px;
@@ -335,6 +339,7 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
               </div>
             </div>
           </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

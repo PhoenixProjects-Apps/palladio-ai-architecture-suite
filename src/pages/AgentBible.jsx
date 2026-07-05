@@ -171,10 +171,10 @@ export default function AgentBible() {
                       {e.source && <span className="text-xs text-slate-500">via {e.source}</span>}
                     </div>
                     <div className="flex gap-1">
-                      <Button aria-label="Edit" variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-white hover:bg-white/10" onClick={() => openEdit(e)}>
+                      <Button aria-label="Edit" variant="ghost" size="icon" className="h-11 w-11 text-slate-400 hover:text-white hover:bg-white/10" onClick={() => openEdit(e)}>
                         <Pencil size={14} />
                       </Button>
-                      <Button aria-label="Delete" variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-red-400 hover:bg-red-500/10" onClick={() => handleDelete(e.id)}>
+                      <Button aria-label="Delete" variant="ghost" size="icon" className="h-11 w-11 text-slate-400 hover:text-red-400 hover:bg-red-500/10" onClick={() => handleDelete(e.id)}>
                         <Trash2 size={14} />
                       </Button>
                     </div>
