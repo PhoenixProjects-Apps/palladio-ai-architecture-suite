@@ -187,6 +187,7 @@ export default function PalladioAssess() {
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-2 flex gap-2">
                   <button
                     type="button"
+                    aria-label="Select Concept Review Tier"
                     onClick={() => setReviewTier('concept')}
                     className={`flex-1 flex flex-col items-center justify-center py-3 rounded-xl font-medium transition-all ${reviewTier === 'concept' ? 'bg-cyan-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
                   >
@@ -198,6 +199,7 @@ export default function PalladioAssess() {
                   </button>
                   <button
                     type="button"
+                    aria-label="Select Construction Review Tier"
                     onClick={() => setReviewTier('construction')}
                     className={`flex-1 flex flex-col items-center justify-center py-3 rounded-xl font-medium transition-all ${reviewTier === 'construction' ? 'bg-cyan-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
                   >

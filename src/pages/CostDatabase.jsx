@@ -102,7 +102,7 @@ export default function CostDatabase() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-7 gap-3 bg-slate-900 p-4 rounded-xl border border-slate-800 items-end">
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 bg-slate-900 p-4 rounded-xl border border-slate-800 items-end">
                     <div className="col-span-1">
                         <label className="text-xs text-slate-400 mb-1 block">State</label>
                         <Select value={newState} onValueChange={setState}>
