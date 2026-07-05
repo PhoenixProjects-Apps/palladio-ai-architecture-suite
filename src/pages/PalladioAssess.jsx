@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import BackButton from "@/components/BackButton";
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, Upload, Loader2, FileImage, AlertCircle, Layers, Building, Download } from 'lucide-react';
@@ -157,11 +158,7 @@ export default function PalladioAssess() {
       <div className="min-h-screen bg-[#0f1117] text-white p-4 sm:p-6 pb-12">
         <div className="max-w-3xl mx-auto">
           <header className="flex items-center gap-4 mb-8 border-b border-white/10 pb-4">
-            <Link to={createPageUrl('Home')}>
-              <Button aria-label="Go Back" variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
-                <ArrowLeft size={20} />
-              </Button>
-            </Link>
+            <BackButton aria-label="Go Back" className="hover:bg-white/10 rounded-full" />
             <div className="w-10 min-h-11 h-auto rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-700 flex items-center justify-center shadow-lg">
               <FileImage size={20} />
             </div>

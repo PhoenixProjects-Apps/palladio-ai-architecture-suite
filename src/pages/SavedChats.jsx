@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, Send, Plus, Loader2, Trash2 } from 'lucide-react';
+import { MessageSquare, Send, Plus, Loader2, Trash2, List } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { Drawer, DrawerContent, DrawerTrigger, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import MessageBubble from '@/components/MessageBubble';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +26,8 @@ export default function SavedChats() {
     loadConversations();
     base44.auth.me().then(u => setIsAdmin(u?.role === 'admin')).catch(() => {});
   }, []);
+
+  usePullToRefresh(async () => { await loadConversations(); });
 
   const loadConversations = async () => {
     try {
@@ -207,7 +211,48 @@ export default function SavedChats() {
         <div className="flex-1 flex flex-col relative bg-[#0f1117]">
           {/* Mobile Header */}
           <div className="md:hidden p-4 border-b border-slate-800 flex justify-between items-center bg-[#0a0c10]">
-            <h2 className="font-semibold text-white">AI Assistant</h2>
+            <div className="flex items-center gap-2">
+              <Drawer>
+                <DrawerTrigger asChild>
+                  <Button variant="ghost" size="icon" className="text-slate-300 hover:text-white mr-1 -ml-2">
+                    <List size={20} />
+                  </Button>
+                </DrawerTrigger>
+                <DrawerContent className="bg-[#0a0c10] border-slate-800 text-white max-h-[85vh]">
+                  <DrawerHeader className="text-left border-b border-slate-800 pb-4">
+                    <DrawerTitle>Your Chats</DrawerTitle>
+                  </DrawerHeader>
+                  <ScrollArea className="p-4 overflow-y-auto">
+                    <div className="space-y-1 pb-8">
+                      {conversations.map(c => (
+                        <div
+                          key={c.id}
+                          className={cn(
+                            "flex items-center justify-between p-3 rounded-lg text-sm transition-all group",
+                            activeChat?.id === c.id ? "bg-indigo-600/20 text-indigo-400 border border-indigo-500/30" : "hover:bg-slate-800/50 text-slate-200 border border-transparent"
+                          )}
+                        >
+                          <button onClick={() => selectConversation(c)} className="flex-1 truncate text-left">
+                            {c.title || "New Discussion"}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteChat(c.id)}
+                            className="text-slate-500 hover:text-red-400 ml-2 shrink-0 p-2"
+                            title="Delete chat"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      ))}
+                      {conversations.length === 0 && (
+                        <p className="text-slate-500 text-sm text-center py-8">No chats yet</p>
+                      )}
+                    </div>
+                  </ScrollArea>
+                </DrawerContent>
+              </Drawer>
+              <h2 className="font-semibold text-white">AI Assistant</h2>
+            </div>
             <div className="flex items-center gap-2">
               <SaveToProject textContent={buildChatMarkdown()} fileName={chatFileName} assetType="document" disabled={!activeChat || !messages.length} variant="outline" size="sm" className="bg-slate-800 border-slate-700 text-slate-300 h-8 text-xs">
                 Save to Project

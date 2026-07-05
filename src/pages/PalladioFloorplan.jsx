@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, Layers, Loader2, Upload, Box, Download, Image as ImageIcon } from 'lucide-react';
+import BackButton from '@/components/BackButton';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -211,11 +212,7 @@ export default function PalladioFloorplan() {
             <div className="min-h-screen bg-[#0f1117] text-white p-4 sm:p-6 pb-12 sm:pb-24">
                 <div className="max-w-5xl mx-auto">
                     <header className="flex flex-wrap items-center gap-3 sm:gap-4 mb-8 border-b border-white/10 pb-4">
-                        <Link to={createPageUrl('Home')} className="shrink-0">
-                            <Button aria-label="Go Back" variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
-                                <ArrowLeft size={20} />
-                            </Button>
-                        </Link>
+                        <BackButton aria-label="Go Back" className="hover:bg-white/10 rounded-full shrink-0" />
                         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center shadow-lg shrink-0">
                             <Layers size={20} />
                         </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import BackButton from "@/components/BackButton";
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, ClipboardList, Loader2, AlertCircle, CheckCircle2, XCircle, HelpCircle, MapPin, ExternalLink, FileText, Layers, Download, Upload, File } from 'lucide-react';
@@ -539,11 +540,7 @@ Return ONLY valid JSON matching this exact structure:
             <div className="min-h-screen bg-[#0f1117] text-white p-4 sm:p-6 pb-8">
                 <div className="max-w-4xl mx-auto">
                     <header className="flex items-center gap-4 mb-8 border-b border-white/10 pb-4">
-                    <Link to={createPageUrl('Home')}>
-                        <Button aria-label="Go Back" variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
-                            <ArrowLeft size={20} />
-                        </Button>
-                    </Link>
+                    <BackButton aria-label="Go Back" className="hover:bg-white/10 rounded-full" />
                         <div className="w-10 min-h-11 h-auto rounded-lg bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center shadow-lg">
                             <ClipboardList size={20} />
                         </div>

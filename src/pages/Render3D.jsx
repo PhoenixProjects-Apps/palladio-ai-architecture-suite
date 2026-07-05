@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import BackButton from "@/components/BackButton";
 import { base44 } from '@/api/base44Client';
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -567,11 +568,7 @@ export default function Render3D() {
           position: 'sticky', top: 0, zIndex: 10,
           backgroundColor: '#0a0a14', borderBottom: '1px solid #1e293b'
         }}>
-        <Link to={createPageUrl('Home')}>
-          <Button aria-label="Go Back" variant="ghost" size="icon" className="hover:text-white hover:bg-gray-800 rounded-xl">
-            <ArrowLeft size={20} />
-          </Button>
-        </Link>
+        <BackButton aria-label="Go Back" className="hover:text-white hover:bg-gray-800 rounded-xl" />
         <div>
           <h1 className="text-white font-semibold text-xl">3D Architectural Renderer</h1>
           <p className="text-sm text-teal-400">AI-Powered Photorealistic Visualisation</p>

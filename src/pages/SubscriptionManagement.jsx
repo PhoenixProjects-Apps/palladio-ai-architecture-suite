@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import BackButton from "@/components/BackButton";
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, CreditCard, Calendar, Settings, ExternalLink, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
@@ -80,11 +81,7 @@ export default function SubscriptionManagement() {
     <div className="min-h-screen bg-[#0f1117] text-white p-6 pb-12">
       <div className="max-w-2xl mx-auto">
         <header className="flex items-center gap-4 mb-8 border-b border-white/10 pb-4">
-          <Link to={createPageUrl('UserProfile')}>
-            <Button aria-label="Go Back" variant="ghost" size="icon" className="hover:bg-white/10 rounded-full text-slate-400 hover:text-white">
-              <ArrowLeft size={20} />
-            </Button>
-          </Link>
+          <BackButton aria-label="Go Back" className="hover:bg-white/10 rounded-full text-slate-400 hover:text-white" />
           <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center shadow-lg border border-amber-500/20">
             <Settings size={20} className="text-amber-500" />
           </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import BackButton from "@/components/BackButton";
 import { Folder, Plus, File, MessageSquare, Trash2, ArrowLeft, Upload, Loader2, Cloud } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
@@ -306,11 +307,7 @@ export default function Projects() {
                 <div className="max-w-6xl mx-auto">
                     <div className="flex items-center justify-between mb-3">
                         <h1 className="text-3xl font-bold flex items-center gap-3">
-                      <Link to={createPageUrl('Home')}>
-                        <Button aria-label="Go Back" variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
-                            <ArrowLeft size={20} />
-                        </Button>
-                      </Link>
+                      <BackButton aria-label="Go Back" className="hover:bg-white/10 rounded-full" />
                             <Folder className="text-amber-500" size={32} />
                             Projects
                         </h1>

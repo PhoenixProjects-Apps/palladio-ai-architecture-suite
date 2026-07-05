@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import BackButton from "@/components/BackButton";
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -564,11 +565,7 @@ INSTRUCTIONS:
         <div className="max-w-6xl mx-auto space-y-6">
             <div className="flex flex-col gap-4 border-b border-slate-800 pb-4">
                     <header className="flex items-center gap-4 border-b border-white/10 mb-1">
-                    <Link to={createPageUrl('Home')}>
-                        <Button aria-label="Go Back" variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
-                            <ArrowLeft size={20} />
-                        </Button>
-                    </Link>
+                    <BackButton aria-label="Go Back" className="hover:bg-white/10 rounded-full" />
                         <div className="w-10 min-h-11 h-auto rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg">
                             <Calculator size={20} />
                         </div>

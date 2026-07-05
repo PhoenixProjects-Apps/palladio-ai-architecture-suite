@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import BackButton from "@/components/BackButton";
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -90,11 +91,7 @@ export default function CostDatabase() {
             <div className="max-w-6xl mx-auto space-y-6">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-4">
                     <div className="flex items-center gap-4">
-                        <Link to={createPageUrl('PalladioEstimator')}>
-                            <Button aria-label="Go Back" variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl">
-                                <ArrowLeft size={20} />
-                            </Button>
-                        </Link>
+                        <BackButton aria-label="Go Back" className="text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl" />
                         <div>
                             <h1 className="text-2xl font-bold flex items-center gap-2">
                                 <Database className="text-blue-500" />

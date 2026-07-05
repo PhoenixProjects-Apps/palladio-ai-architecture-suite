@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { FileImage, Layers, Building2, MapPin, ClipboardList, Calculator } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 
 const tools = [
   { id: 'assess', title: 'Assess Plans', desc: 'AI-powered assessment and detailed analysis of floorplans.', icon: FileImage, color: 'from-cyan-500 to-cyan-700', page: 'PalladioAssess' },
@@ -14,6 +15,8 @@ const tools = [
 ];
 
 export default function Home() {
+  usePullToRefresh({ enabled: true, onRefresh: () => Promise.resolve() });
+
   return (
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 pb-6">
       <div className="max-w-2xl mx-auto">

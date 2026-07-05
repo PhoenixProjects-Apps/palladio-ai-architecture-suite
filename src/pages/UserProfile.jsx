@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import BackButton from "@/components/BackButton";
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, Mail, CreditCard, LogOut, Loader2, User, ShieldAlert, Camera, Trash2, FileText, Shield } from 'lucide-react';
@@ -101,11 +102,7 @@ export default function UserProfile() {
     <div className="min-h-screen bg-[#0f1117] text-white p-6 pb-12">
       <div className="max-w-2xl mx-auto">
         <header className="flex items-center gap-4 mb-8 border-b border-white/10 pb-4">
-          <Link to={createPageUrl('Home')}>
-            <Button aria-label="Go Back" variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
-              <ArrowLeft size={20} />
-            </Button>
-          </Link>
+          <BackButton aria-label="Go Back" className="hover:bg-white/10 rounded-full" />
           <div className="w-10 min-h-11 h-auto rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg">
             <User size={20} />
           </div>

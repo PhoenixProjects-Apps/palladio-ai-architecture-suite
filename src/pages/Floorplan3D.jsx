@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link, useLocation } from 'react-router-dom';
 import { ArrowLeft, Loader2, Box, Download } from 'lucide-react';
+import BackButton from '@/components/BackButton';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import PalladioGate from '@/components/PalladioGate';
 import BrandedExportModal from '@/components/BrandedExportModal';
@@ -181,35 +183,48 @@ export default function Floorplan3D() {
         {/* Sidebar */}
         <div className="b44-sidebar-generator order-2 md:order-1">
           <div className="b44-sidebar-title">
-            <Link to="/PalladioFloorplan" className="text-white hover:text-cyan-400 mr-2 flex items-center justify-center p-1 rounded hover:bg-white/10 transition-colors">
-              <ArrowLeft size={18} />
-            </Link>
+            <BackButton aria-label="Go Back" className="text-white hover:text-cyan-400 mr-2 flex items-center justify-center p-1 rounded hover:bg-white/10 transition-colors h-8 w-8" />
             Rendering Preferences
           </div>
 
           <div className="b44-input-group">
             <label>Camera Perspective</label>
-            <select value={perspective} onChange={(e) => setPerspective(e.target.value)} disabled={isLoading}>
-              <option value="Isometric">Isometric</option>
-              <option value="Top-Down">Top-Down</option>
-              <option value="Cut-Away">Cut-Away</option>
-            </select>
+            <Select value={perspective} onValueChange={setPerspective} disabled={isLoading}>
+              <SelectTrigger className="bg-[#161920] border border-[#2a313d] text-[#e5e7eb] rounded-lg h-11">
+                <SelectValue placeholder="Select Perspective" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-900 border-slate-700 text-white">
+                <SelectItem value="Isometric">Isometric</SelectItem>
+                <SelectItem value="Top-Down">Top-Down</SelectItem>
+                <SelectItem value="Cut-Away">Cut-Away</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="b44-input-group">
             <label>Visual Finish</label>
-            <select value={finish} onChange={(e) => setFinish(e.target.value)} disabled={isLoading}>
-              <option value="Photorealistic">Photorealistic</option>
-              <option value="Clay Model">Clay Model</option>
-            </select>
+            <Select value={finish} onValueChange={setFinish} disabled={isLoading}>
+              <SelectTrigger className="bg-[#161920] border border-[#2a313d] text-[#e5e7eb] rounded-lg h-11">
+                <SelectValue placeholder="Select Finish" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-900 border-slate-700 text-white">
+                <SelectItem value="Photorealistic">Photorealistic</SelectItem>
+                <SelectItem value="Clay Model">Clay Model</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="b44-input-group">
             <label>Layout Mode</label>
-            <select value={layout} onChange={(e) => setLayout(e.target.value)} disabled={isLoading}>
-              <option value="Standard 3D">Standard 3D</option>
-              <option value="Hybrid 2D/3D">Hybrid 2D/3D</option>
-            </select>
+            <Select value={layout} onValueChange={setLayout} disabled={isLoading}>
+              <SelectTrigger className="bg-[#161920] border border-[#2a313d] text-[#e5e7eb] rounded-lg h-11">
+                <SelectValue placeholder="Select Layout" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-900 border-slate-700 text-white">
+                <SelectItem value="Standard 3D">Standard 3D</SelectItem>
+                <SelectItem value="Hybrid 2D/3D">Hybrid 2D/3D</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <button 
