@@ -359,7 +359,7 @@ export default function Projects() {
                                         type="button"
                                         aria-label="Delete Project"
                                         onClick={(e) => handleDeleteProject(e, project.id)}
-                                        className="absolute top-2 right-2 inline-flex items-center justify-center min-w-[44px] min-h-[44px] text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                        className="absolute top-2 right-2 inline-flex items-center justify-center min-w-[44px] min-h-[44px] text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg md:opacity-0 group-hover:opacity-100 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                         title="Delete Project"
                                     >
                                         <Trash2 size={18} />

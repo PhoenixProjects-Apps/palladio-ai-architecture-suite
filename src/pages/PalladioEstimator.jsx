@@ -562,7 +562,7 @@ INSTRUCTIONS:
 
   return (
     <div className="min-h-screen bg-[#0f1117] text-white p-4 sm:p-6 pb-8">
-        <div className="max-w-6xl mx-auto space-y-6">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <div className="flex flex-col gap-4 border-b border-slate-800 pb-4">
                     <header className="flex items-center gap-4 border-b border-white/10 mb-1">
                     <BackButton aria-label="Go Back" className="hover:bg-white/10 rounded-full" />
@@ -587,7 +587,7 @@ INSTRUCTIONS:
             </div>
             </div>
 
-            <div className="grid lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-1 space-y-6">
                     <Card className="bg-slate-900 border-slate-800">
                         <CardHeader>
@@ -826,16 +826,16 @@ INSTRUCTIONS:
                             </CardHeader>
                             <CardContent className="pt-6">
                                 <div className="flex flex-wrap gap-2 mb-4">
-                                    <Button variant="outline" size="sm" onClick={() => setShowFullEstimate(true)} className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50">
+                                    <Button variant="outline" size="sm" onClick={() => setShowFullEstimate(true)} className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50 min-h-11 px-4">
                                         <Eye size={16} className="mr-1" /> View Full Estimate
                                     </Button>
                                     <SaveToProject
                                         textContent={buildEstimateText()}
                                         fileName="cost-estimate.md"
                                         assetType="document"
-                                        className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50 h-8 rounded-md px-3 text-xs"
+                                        className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50 min-h-11 px-4 text-xs rounded-md"
                                     />
-                                    <Button variant="outline" size="sm" onClick={handleDownload} className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50">
+                                    <Button variant="outline" size="sm" onClick={handleDownload} className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50 min-h-11 px-4">
                                         <Download size={16} className="mr-1" /> Download
                                     </Button>
                                     <Button 
@@ -844,7 +844,7 @@ INSTRUCTIONS:
                                       onClick={handleGeneratePresentation} 
                                       disabled={isGeneratingPresentation}
                                       aria-busy={isGeneratingPresentation}
-                                      className="border-blue-700/50 text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 bg-blue-900/20">
+                                      className="border-blue-700/50 text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 bg-blue-900/20 min-h-11 px-4">
                                         {isGeneratingPresentation ? <><Loader2 size={16} className="mr-1 animate-spin" /> Generating...</> : <><Presentation size={16} className="mr-1" /> Presentation Slide</>}
                                     </Button>
                                     {presentationUrl && (
@@ -948,7 +948,7 @@ INSTRUCTIONS:
                                 )}
 
                                 <Dialog open={showFullEstimate} onOpenChange={setShowFullEstimate}>
-                                    <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-3xl max-h-[85vh] overflow-y-auto">
+                                    <DialogContent className="w-[calc(100vw-2rem)] max-w-3xl max-h-[85vh] overflow-y-auto bg-slate-900 border-slate-800 text-white">
                                         <DialogHeader>
                                             <DialogTitle className="text-white text-xl">Full Estimate</DialogTitle>
                                         </DialogHeader>

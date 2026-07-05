@@ -90,8 +90,8 @@ export default function Admin() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f1117] text-white p-6 pb-24">
-      <div className="max-w-6xl mx-auto space-y-8">
+    <div className="min-h-screen bg-[#0f1117] text-white p-4 sm:p-6 pb-24">
+      <div className="w-full max-w-7xl mx-auto space-y-8">
         <header className="flex items-center gap-4 border-b border-white/10 pb-4">
           <BackButton aria-label="Go Back" className="hover:bg-white/10 rounded-full" />
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center shadow-lg">
@@ -158,8 +158,8 @@ export default function Admin() {
                   return (
                     <tr key={u.id} className="hover:bg-white/5 transition-colors">
                       <td className="px-6 py-4">
-                        <div className="font-medium text-white">{u.full_name || 'No Name'}</div>
-                        <div className="text-slate-500 text-xs">{u.email}</div>
+                        <div className="font-medium text-white break-words">{u.full_name || 'No Name'}</div>
+                        <div className="text-slate-500 text-xs break-all">{u.email}</div>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${u.role === 'admin' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-500/20 text-slate-400'}`}>
@@ -179,7 +179,7 @@ export default function Admin() {
                         )}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <Button aria-label={`Edit membership for ${u.email}`} variant="ghost" size="sm" onClick={() => handleEditClick(u)} className="text-slate-400 hover:text-white hover:bg-white/10">
+                        <Button aria-label={`Edit membership for ${u.email}`} variant="ghost" size="sm" onClick={() => handleEditClick(u)} className="text-slate-400 hover:text-white hover:bg-white/10 min-h-11 px-4">
                           Edit Plan
                         </Button>
                       </td>
@@ -194,7 +194,7 @@ export default function Admin() {
 
       {/* Edit Membership Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-slate-900 border-slate-700 text-white sm:max-w-[425px]">
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-lg max-h-[85vh] overflow-y-auto bg-slate-900 border-slate-700 text-white">
           <DialogHeader>
             <DialogTitle>Edit Membership</DialogTitle>
             <DialogDescription className="text-slate-400">

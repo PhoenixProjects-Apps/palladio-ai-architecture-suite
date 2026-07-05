@@ -550,7 +550,7 @@ Return ONLY valid JSON matching this exact structure:
                     <div className="flex bg-slate-900 rounded-xl p-1 mb-8 w-full sm:w-max">
                         <button
               onClick={() => setActiveTab('assessment')}
-              className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'assessment' ? 'bg-rose-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
+              className={`flex-1 sm:flex-none px-4 sm:px-6 min-h-[44px] rounded-lg text-sm font-medium transition-all ${activeTab === 'assessment' ? 'bg-rose-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
               
                             Proposal Assessment
                         </button>
@@ -712,9 +712,9 @@ Return ONLY valid JSON matching this exact structure:
                               variant="outline"
                               size="sm"
                               onClick={() => generatePrefilledForm(form.name)}
-                              className="h-7 text-[10px] bg-rose-600/10 hover:bg-rose-600/20 border-rose-500/20 text-rose-300 w-full flex justify-center">
+                              className="min-h-11 text-xs bg-rose-600/10 hover:bg-rose-600/20 border-rose-500/20 text-rose-300 w-full flex justify-center py-2">
                               
-                                                                <Download size={10} className="mr-1.5" /> Download Pre-filled Draft
+                                                                <Download size={14} className="mr-1.5" /> Download Pre-filled Draft
                                                             </Button>
                                                         </div>
                           )}
