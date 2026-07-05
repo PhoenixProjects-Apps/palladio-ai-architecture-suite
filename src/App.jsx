@@ -17,6 +17,9 @@ import Contact from './pages/Contact';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import PageLoader from '@/components/PageLoader';
+import Projects from './pages/Projects';
+import SavedChats from './pages/SavedChats';
+import UserProfile from './pages/UserProfile';
 
 const Floorplan3D = React.lazy(() => import('./pages/Floorplan3D'));
 
