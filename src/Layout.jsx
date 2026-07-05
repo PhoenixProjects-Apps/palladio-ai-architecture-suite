@@ -4,10 +4,14 @@ import Sidebar from '@/components/Sidebar';
 import UserHeader from '@/components/UserHeader';
 import { Toaster } from 'sonner';
 import MobileBottomNav from '@/components/MobileBottomNav';
+import { useMobileBack } from '@/hooks/useMobileBack';
 
 export default function Layout({ children }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const location = useLocation();
+
+  // Prevent back navigation when sidebar is open, closing it instead
+  useMobileBack(isMobileOpen, () => setIsMobileOpen(false));
   const mainRef = useRef(null);
 
   useEffect(() => {
