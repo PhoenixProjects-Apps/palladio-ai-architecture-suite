@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import PalladioGate from '@/components/PalladioGate';
 import { toast } from 'sonner';
@@ -20,6 +21,8 @@ export default function Notifications() {
         file_uploads: true
     });
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -82,16 +85,23 @@ export default function Notifications() {
     };
 
     const clearAll = async () => {
-        if (!confirm("Are you sure you want to delete all notifications?")) return;
+        setConfirmOpen(true);
+    };
+
+    const handleConfirmedClearAll = async () => {
+        setIsDeleting(true);
         const prev = [...notifications];
         setNotifications([]);
         try {
             await Promise.all(prev.map(n => base44.entities.Notification.delete(n.id)));
             toast.success("All notifications cleared");
+            setConfirmOpen(false);
         } catch (e) {
             console.error(e);
             setNotifications(prev);
             toast.error("Failed to clear notifications");
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -123,6 +133,26 @@ export default function Notifications() {
 
     return (
         <PalladioGate>
+            <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+                <AlertDialogContent className="w-[calc(100vw-2rem)] max-w-md bg-slate-900 border-slate-800 text-white">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Clear all notifications?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-slate-400">
+                            This action cannot be undone. All your notifications will be permanently deleted.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel className="min-h-11 bg-slate-800 border-slate-700 text-white hover:bg-slate-700" disabled={isDeleting}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="min-h-11 bg-red-600 text-white hover:bg-red-700"
+                            onClick={handleConfirmedClearAll}
+                            disabled={isDeleting}
+                        >
+                            {isDeleting ? <Loader2 className="animate-spin" size={16} /> : "Clear All"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
             <div className="min-h-screen bg-[#0f1117] text-white p-6 md:p-10">
                 <div className="max-w-4xl mx-auto">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-10">

@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { createPageUrl } from '@/utils';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import PalladioGate from '@/components/PalladioGate';
@@ -29,6 +30,12 @@ export default function Projects() {
     const [savingToDrive, setSavingToDrive] = useState(null);
     
     const navigate = useNavigate();
+
+    const [deleteProjectConfirmOpen, setDeleteProjectConfirmOpen] = useState(false);
+    const [projectToDelete, setProjectToDelete] = useState(null);
+    const [deleteAssetConfirmOpen, setDeleteAssetConfirmOpen] = useState(false);
+    const [assetToDelete, setAssetToDelete] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         loadProjects();
@@ -83,21 +90,31 @@ export default function Projects() {
 
     const handleDeleteProject = async (e, id) => {
         e.stopPropagation();
-        if (!confirm('Are you sure you want to delete this project?')) return;
-        
+        setProjectToDelete(id);
+        setDeleteProjectConfirmOpen(true);
+    };
+
+    const handleConfirmedDeleteProject = async () => {
+        if (!projectToDelete) return;
+        setIsDeleting(true);
         const previousProjects = [...projects];
-        const wasSelected = selectedProjectId === id;
+        const wasSelected = selectedProjectId === projectToDelete;
         
-        setProjects(prev => prev.filter(p => p.id !== id));
+        setProjects(prev => prev.filter(p => p.id !== projectToDelete));
         if (wasSelected) setSearchParams({});
         
         try {
-            await base44.entities.Project.delete(id);
+            await base44.entities.Project.delete(projectToDelete);
             toast.success("Project deleted");
+            setDeleteProjectConfirmOpen(false);
         } catch (e) {
+            console.error("Failed to delete project:", e);
             setProjects(previousProjects);
-            if (wasSelected) setSearchParams({ projectId: id });
+            if (wasSelected) setSearchParams({ projectId: projectToDelete });
             toast.error("Failed to delete project");
+        } finally {
+            setIsDeleting(false);
+            setProjectToDelete(null);
         }
     };
 
@@ -140,15 +157,26 @@ export default function Projects() {
     };
 
     const handleDeleteAsset = async (id) => {
-        if (!confirm('Delete this file?')) return;
+        setAssetToDelete(id);
+        setDeleteAssetConfirmOpen(true);
+    };
+
+    const handleConfirmedDeleteAsset = async () => {
+        if (!assetToDelete) return;
+        setIsDeleting(true);
         const prevAssets = [...assets];
-        setAssets(prev => prev.filter(a => a.id !== id));
+        setAssets(prev => prev.filter(a => a.id !== assetToDelete));
         try {
-            await base44.entities.ProjectAsset.delete(id);
+            await base44.entities.ProjectAsset.delete(assetToDelete);
             toast.success("File removed");
-        } catch (e) {
+            setDeleteAssetConfirmOpen(false);
+        } catch (error) {
+            console.error("Failed to delete asset:", error);
             setAssets(prevAssets);
             toast.error("Failed to delete file");
+        } finally {
+            setIsDeleting(false);
+            setAssetToDelete(null);
         }
     };
 

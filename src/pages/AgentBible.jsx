@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
@@ -33,6 +34,10 @@ export default function AgentBible() {
   const [editEntry, setEditEntry] = useState(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editForm, setEditForm] = useState({ title: '', category: 'compliance_insight', content: '', tags: '' });
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [entryToDelete, setEntryToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchEntries = async () => {
     setBusy(true);
@@ -86,14 +91,24 @@ export default function AgentBible() {
   });
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this Bible entry? This cannot be undone.')) return;
+    setEntryToDelete(id);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmedDelete = async () => {
+    if (!entryToDelete) return;
+    setIsDeleting(true);
     try {
-      await base44.functions.invoke('manageAgentBible', { action: 'delete', id });
-      setEntries((prev) => prev.filter((e) => e.id !== id));
+      await base44.functions.invoke('manageAgentBible', { action: 'delete', id: entryToDelete });
+      setEntries((prev) => prev.filter((e) => e.id !== entryToDelete));
       toast.success('Entry deleted.');
+      setConfirmOpen(false);
     } catch (e) {
       console.error(e);
       toast.error('Failed to delete entry.');
+    } finally {
+      setIsDeleting(false);
+      setEntryToDelete(null);
     }
   };
 
@@ -197,6 +212,27 @@ export default function AgentBible() {
           </div>
         )}
       </div>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent className="w-[calc(100vw-2rem)] max-w-md bg-slate-900 border-slate-700 text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Bible Entry?</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              This action cannot be undone. This will permanently remove the entry from the Agent Bible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="min-h-11 bg-slate-800 text-white border-slate-700 hover:bg-slate-700" disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="min-h-11 bg-red-600 text-white hover:bg-red-700"
+              onClick={handleConfirmedDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? <Loader2 className="animate-spin" size={16} /> : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="bg-slate-900 border-slate-700 text-white sm:max-w-[520px]">
