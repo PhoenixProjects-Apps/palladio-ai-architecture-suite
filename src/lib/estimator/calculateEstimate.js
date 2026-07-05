@@ -1,3 +1,25 @@
+export function calculateRoofSurfaceArea({ roofFootprintArea, roofPitchDegrees, roofComplexity, roofWastePercent, roofAreaOverride }) {
+  if (roofAreaOverride) return parseFloat(roofAreaOverride) || 0;
+  
+  const footprint = parseFloat(roofFootprintArea) || 0;
+  if (!footprint) return 0;
+  const pitch = parseFloat(roofPitchDegrees) || 22.5;
+  const pitchRadians = pitch * (Math.PI / 180);
+  
+  let surfaceArea = footprint / Math.cos(pitchRadians);
+  
+  let waste = 0;
+  if (roofWastePercent) {
+    waste = parseFloat(roofWastePercent) / 100;
+  } else {
+    if (roofComplexity === 'Simple gable roof') waste = 0.05;
+    else if (roofComplexity === 'Standard hip roof') waste = 0.08;
+    else if (roofComplexity === 'Complex multi-hip/valley') waste = 0.12;
+    else if (roofComplexity === 'Flat/skillion roof') waste = 0.02;
+  }
+  
+  return parseFloat((surfaceArea * (1 + waste)).toFixed(1));
+}
 
 export function calculateDerivedQuantities({ floorArea, wetArea, garageArea, externalWallLength, ceilingHeight }) {
   const fa = parseFloat(floorArea) || 0;

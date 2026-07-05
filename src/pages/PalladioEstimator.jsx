@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import BackButton from "@/components/BackButton";
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -15,12 +15,27 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import SaveToProject from '@/components/SaveToProject';
 import ChooseProject from '@/components/ChooseProject';
 import { SITE_DIFFICULTY_RATES, CITY_OPTIONS, REGIONAL_COST_RATES, FINISH_MULTIPLIERS, COUNCIL_FEE_BASE, REGIONAL_FEE_MULTIPLIER, STATES, STOREYS_OPTIONS, ROOF_MATERIALS, EXTERNAL_WALL_MATERIALS, FLOOR_FINISHES, FINISH_LEVELS_OPTIONS } from '@/lib/estimatorData';
-import { calculateDerivedQuantities, calculateSilentCosts } from '@/lib/estimator/calculateEstimate';
+import { calculateDerivedQuantities, calculateSilentCosts, calculateRoofSurfaceArea } from '@/lib/estimator/calculateEstimate';
 
 
 
 const SummaryTable = React.memo(({ lineItems, formatCurrency, subtotal, markupCost, difficultyPercent }) => (
-                                    <SummaryTable lineItems={result.line_items} formatCurrency={formatCurrency} subtotal={result.subtotal} markupCost={result.site_difficulty_markup_cost} difficultyPercent={SITE_DIFFICULTY_RATES[difficulty]} />
+  <div className="space-y-2 mt-4 p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+    <div className="flex justify-between text-slate-300">
+      <span>Subtotal</span>
+      <span>{formatCurrency(subtotal)}</span>
+    </div>
+    {markupCost > 0 && (
+      <div className="flex justify-between text-slate-300">
+        <span>Site Difficulty Markup ({difficultyPercent}%)</span>
+        <span>{formatCurrency(markupCost)}</span>
+      </div>
+    )}
+    <div className="flex justify-between text-white font-bold border-t border-slate-700 pt-2 mt-2">
+      <span>Estimated Cost</span>
+      <span>{formatCurrency(subtotal + markupCost)}</span>
+    </div>
+  </div>
 ));
 
 const EstimateTable = React.memo(({ lineItems, formatCurrency }) => (
@@ -48,9 +63,16 @@ const EstimateTable = React.memo(({ lineItems, formatCurrency }) => (
   </Table>
 ));
 
-const AssumptionsList = React.memo(({ assumptions }) => (
-                                                    <AssumptionsList assumptions={result.assumptions} />
-));
+const AssumptionsList = React.memo(({ assumptions }) => {
+  if (!assumptions || !Array.isArray(assumptions) || assumptions.length === 0) return null;
+  return (
+    <ul className="list-disc pl-5 space-y-2">
+      {assumptions.map((item, i) => (
+        <li key={i} className="text-sm text-slate-300">{item}</li>
+      ))}
+    </ul>
+  );
+});
 
 function extractJson(text) {
   if (!text) return null;
@@ -88,7 +110,11 @@ export default function PalladioEstimator() {
   const [floorArea, setFloorArea] = useState('');
   const [wetArea, setWetArea] = useState('');
   const [ceilingArea, setCeilingArea] = useState('');
-  const [roofArea, setRoofArea] = useState('');
+  const [roofFootprintArea, setRoofFootprintArea] = useState('');
+  const [roofPitchDegrees, setRoofPitchDegrees] = useState('22.5');
+  const [roofComplexity, setRoofComplexity] = useState('Standard hip roof');
+  const [roofWastePercent, setRoofWastePercent] = useState('');
+  const [roofAreaOverride, setRoofAreaOverride] = useState('');
   const [externalWallArea, setExternalWallArea] = useState('');
   const [patioArea, setPatioArea] = useState('');
   const [porchArea, setPorchArea] = useState('');
@@ -118,7 +144,8 @@ export default function PalladioEstimator() {
   const buildEstimatorDataJson = () => {
     return JSON.stringify({
       state, city, storeys, difficulty,
-      floorArea, wetArea, ceilingArea, roofArea, externalWallArea, patioArea, porchArea, garageArea,
+      floorArea, wetArea, ceilingArea, externalWallArea, patioArea, porchArea, garageArea,
+      roofFootprintArea, roofPitchDegrees, roofComplexity, roofWastePercent, roofAreaOverride,
       externalWallLength, internalWallLength, ceilingHeight,
       roofMaterial, externalWallMaterial, floorFinish, finishLevel
     }, null, 2);
@@ -141,7 +168,11 @@ export default function PalladioEstimator() {
           if (data.floorArea !== undefined) setFloorArea(data.floorArea);
           if (data.wetArea !== undefined) setWetArea(data.wetArea);
           if (data.ceilingArea !== undefined) setCeilingArea(data.ceilingArea);
-          if (data.roofArea !== undefined) setRoofArea(data.roofArea);
+          if (data.roofFootprintArea !== undefined) setRoofFootprintArea(data.roofFootprintArea);
+          if (data.roofPitchDegrees !== undefined) setRoofPitchDegrees(data.roofPitchDegrees);
+          if (data.roofComplexity !== undefined) setRoofComplexity(data.roofComplexity);
+          if (data.roofWastePercent !== undefined) setRoofWastePercent(data.roofWastePercent);
+          if (data.roofAreaOverride !== undefined) setRoofAreaOverride(data.roofAreaOverride);
           if (data.externalWallArea !== undefined) setExternalWallArea(data.externalWallArea);
           if (data.patioArea !== undefined) setPatioArea(data.patioArea);
           if (data.porchArea !== undefined) setPorchArea(data.porchArea);
@@ -175,18 +206,14 @@ export default function PalladioEstimator() {
 
   // Auto-calculate derived quantities
   const { slabVolume, mainFloorCoverings } = React.useMemo(() => calculateDerivedQuantities({ floorArea, wetArea, garageArea, externalWallLength, ceilingHeight }), [floorArea, wetArea, garageArea, externalWallLength, ceilingHeight]);
+  
+  const roofArea = React.useMemo(() => {
+    return calculateRoofSurfaceArea({ roofFootprintArea, roofPitchDegrees, roofComplexity, roofWastePercent, roofAreaOverride });
+  }, [roofFootprintArea, roofPitchDegrees, roofComplexity, roofWastePercent, roofAreaOverride]);
 
   useEffect(() => {
-    const fa = parseFloat(floorArea) || 0;
     const ewl = parseFloat(externalWallLength) || 0;
     const ch = parseFloat(ceilingHeight) || 0;
-
-    if (fa > 0) {
-      const rawRoof = (fa * 0.6) + fa;
-      setRoofArea(String(Math.ceil(rawRoof / 5) * 5));
-    } else {
-      setRoofArea('');
-    }
 
     if (ewl > 0 && ch > 0) {
       const gross = ewl * (ch / 1000);
@@ -194,7 +221,7 @@ export default function PalladioEstimator() {
     } else {
       setExternalWallArea('');
     }
-  }, [floorArea, externalWallLength, ceilingHeight]);
+  }, [externalWallLength, ceilingHeight]);
 
   const handleAutoExtract = async () => {
     if (!fileUrl) return;
@@ -209,6 +236,7 @@ export default function PalladioEstimator() {
 
       const prompt = `Analyze this dimensioned floor plan. Extract the following architectural quantities. Return ONLY a JSON object with these exact keys (use numbers only, no units, or 0 if cannot be determined). If a dimension is missing, try to estimate it based on standard proportions, but prioritize written dimensions:
       - floorArea (m2)
+      - roofFootprintArea (m2)
       - wetArea (m2)
       - ceilingArea (m2)
       - patioArea (m2)
@@ -222,6 +250,7 @@ export default function PalladioEstimator() {
         type: "object",
         properties: {
           floorArea: { type: "number" },
+          roofFootprintArea: { type: "number" },
           wetArea: { type: "number" },
           ceilingArea: { type: "number" },
           patioArea: { type: "number" },
@@ -246,6 +275,7 @@ export default function PalladioEstimator() {
 
       if (res) {
         if (res.floorArea) setFloorArea(String(res.floorArea));
+        if (res.roofFootprintArea) setRoofFootprintArea(String(res.roofFootprintArea));
         if (res.wetArea) setWetArea(String(res.wetArea));
         if (res.ceilingArea) setCeilingArea(String(res.ceilingArea));
         if (res.patioArea) setPatioArea(String(res.patioArea));
@@ -640,9 +670,44 @@ INSTRUCTIONS:
                                         <label className="text-xs text-slate-400 mb-1 block">Ceiling (m²)</label>
                                         <Input type="number" value={ceilingArea} onChange={(e) => setCeilingArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
-                                    <div>
-                                        <label className="text-xs text-slate-400 mb-1 block">Roof (m²)</label>
-                                        <Input type="number" value={roofArea} onChange={(e) => setRoofArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
+                                    <div className="col-span-1 sm:col-span-2 space-y-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                                        <p className="text-xs font-semibold text-slate-300">Roof Area Calculation</p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="text-xs text-slate-400 mb-1 block">Roof Footprint (m²)</label>
+                                                <Input type="number" value={roofFootprintArea} onChange={(e) => setRoofFootprintArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-[44px]" />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs text-slate-400 mb-1 block">Pitch (Degrees)</label>
+                                                <Input type="number" value={roofPitchDegrees} onChange={(e) => setRoofPitchDegrees(e.target.value)} placeholder="22.5" className="bg-slate-800 border-slate-700 text-white min-h-[44px]" />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs text-slate-400 mb-1 block">Complexity</label>
+                                                <Select value={roofComplexity} onValueChange={setRoofComplexity}>
+                                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white min-h-[44px]">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="Flat/skillion roof">Flat/skillion roof (2% waste)</SelectItem>
+                                                        <SelectItem value="Simple gable roof">Simple gable roof (5% waste)</SelectItem>
+                                                        <SelectItem value="Standard hip roof">Standard hip roof (8% waste)</SelectItem>
+                                                        <SelectItem value="Complex multi-hip/valley">Complex multi-hip/valley (12% waste)</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div>
+                                                <label className="text-xs text-slate-400 mb-1 block">Custom Waste (%)</label>
+                                                <Input type="number" value={roofWastePercent} onChange={(e) => setRoofWastePercent(e.target.value)} placeholder="Optional" className="bg-slate-800 border-slate-700 text-white min-h-[44px]" />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs text-slate-400 mb-1 block">Calculated Roof Area (m²)</label>
+                                                <Input type="number" value={roofArea} readOnly disabled className="bg-slate-800/50 border-slate-700 text-white min-h-[44px] opacity-70" />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs text-slate-400 mb-1 block">Manual Override (m²)</label>
+                                                <Input type="number" value={roofAreaOverride} onChange={(e) => setRoofAreaOverride(e.target.value)} placeholder="Override calculated" className="bg-slate-800 border-slate-700 text-white min-h-[44px]" />
+                                            </div>
+                                        </div>
                                     </div>
                                     <div>
                                         <label className="text-xs text-slate-400 mb-1 block">External Wall Area (m²)</label>
