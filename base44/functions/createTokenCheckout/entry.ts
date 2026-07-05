@@ -13,7 +13,17 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Authentication required' }, { status: 401 });
         }
 
-        const origin = req.headers.get('origin') || "https://example.com";
+        const originHeader = req.headers.get('origin') || "https://example.com";
+        let isValidOrigin = false;
+        try {
+            const url = new URL(originHeader);
+            if (url.hostname === "localhost" || url.hostname === "base44.app" || url.hostname.endsWith(".base44.app")) {
+                isValidOrigin = true;
+            }
+        } catch (e) {
+            isValidOrigin = false;
+        }
+        const origin = isValidOrigin ? originHeader : "https://example.com";
 
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
