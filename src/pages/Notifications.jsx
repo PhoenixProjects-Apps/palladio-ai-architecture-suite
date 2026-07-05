@@ -189,21 +189,21 @@ export default function Notifications() {
                                                 <Label className="text-base font-semibold text-white">Project Updates</Label>
                                                 <p className="text-sm text-slate-400">Get notified when your projects are modified.</p>
                                             </div>
-                                            <Switch checked={preferences.project_updates} onCheckedChange={(c) => handlePrefChange('project_updates', c)} />
+                                            <Switch aria-label="Toggle Project Updates" checked={preferences.project_updates} onCheckedChange={(c) => handlePrefChange('project_updates', c)} />
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <Label className="text-base font-semibold text-white">New Messages</Label>
                                                 <p className="text-sm text-slate-400">Alerts for new replies in AI discussions.</p>
                                             </div>
-                                            <Switch checked={preferences.new_messages} onCheckedChange={(c) => handlePrefChange('new_messages', c)} />
+                                            <Switch aria-label="Toggle New Messages" checked={preferences.new_messages} onCheckedChange={(c) => handlePrefChange('new_messages', c)} />
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <Label className="text-base font-semibold text-white">File Uploads</Label>
                                                 <p className="text-sm text-slate-400">Notifications when assets are added.</p>
                                             </div>
-                                            <Switch checked={preferences.file_uploads} onCheckedChange={(c) => handlePrefChange('file_uploads', c)} />
+                                            <Switch aria-label="Toggle File Uploads" checked={preferences.file_uploads} onCheckedChange={(c) => handlePrefChange('file_uploads', c)} />
                                         </div>
                                     </div>
                                 </DialogContent>
