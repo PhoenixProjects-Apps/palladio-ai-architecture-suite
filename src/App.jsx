@@ -65,13 +65,13 @@ const AuthenticatedApp = () => {
   const publicPages = ['Home', 'About', 'Contact', 'PrivacyPolicy', 'TermsOfService', 'AgentBible', 'PalladioPricing'];
   
   const UnauthenticatedFallback = () => (
-    <div className="fixed inset-0 bg-[#0f1117] flex flex-col items-center justify-center p-6 text-center z-50">
-      <div className="w-16 h-16 rounded-2xl bg-slate-800 flex items-center justify-center mb-6">
-        <LogIn size={32} className="text-cyan-400" />
+    <div className="fixed inset-0 bg-background flex flex-col items-center justify-center p-6 text-center z-50">
+      <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-6">
+        <LogIn size={32} className="text-primary" />
       </div>
-      <h2 className="text-2xl font-bold text-white mb-2">Sign in to continue</h2>
-      <p className="text-slate-400 max-w-md mb-8">Create an account or sign in to access your private data.</p>
-      <Button onClick={navigateToLogin} className="bg-white text-black hover:bg-slate-200 px-8 py-6 rounded-xl font-semibold text-lg">
+      <h2 className="text-2xl font-bold text-foreground mb-2">Sign in to continue</h2>
+      <p className="text-muted-foreground max-w-md mb-8">Create an account or sign in to access your private data.</p>
+      <Button onClick={navigateToLogin} variant="default" className="px-8 py-6 rounded-xl font-semibold text-lg">
         Sign In / Sign Up
       </Button>
     </div>

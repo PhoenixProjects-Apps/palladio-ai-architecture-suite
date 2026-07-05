@@ -15,12 +15,12 @@ const tools = [
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#0f1117] text-white p-4 sm:p-6 pb-6">
+    <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 pb-6">
       <div className="max-w-2xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-6 flex flex-col items-center">
-          <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69997bf8be3f3bf35cbd8147/e93fde36f_Lumii_20260222_021318181.png" alt="Palladio AI" className="w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 object-cover rounded-3xl mb-3 shadow-2xl shadow-white/5" />
+          <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69997bf8be3f3bf35cbd8147/e93fde36f_Lumii_20260222_021318181.png" alt="Palladio AI" className="w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 object-cover rounded-3xl mb-3 shadow-2xl shadow-black/10 dark:shadow-white/5" />
           <h1 className="text-3xl font-bold mb-2 tracking-tight">Your AI-Powered Architecture Suite</h1>
-          <p className="text-slate-400 uppercase tracking-widest text-sm font-medium">Automate. Design. Connect. Build.</p>
+          <p className="text-muted-foreground uppercase tracking-widest text-sm font-medium">Automate. Design. Connect. Build.</p>
         </motion.div>
 
         <div className="grid gap-4">
@@ -32,13 +32,13 @@ export default function Home() {
               transition={{ delay: i * 0.1 }}
             >
               <Link to={createPageUrl(tool.page)} className="block group">
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex items-center gap-5 hover:bg-white/10 transition-all duration-300">
+                <div className="bg-card border border-border rounded-2xl p-5 flex items-center gap-5 hover:bg-muted/50 transition-all duration-300">
                   <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${tool.color} flex items-center justify-center shrink-0 shadow-lg`}>
                     <tool.icon size={26} className="text-white" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-white mb-1">{tool.title}</h3>
-                    <p className="text-slate-400 text-sm leading-relaxed">{tool.desc}</p>
+                    <h3 className="text-lg font-bold text-foreground mb-1">{tool.title}</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{tool.desc}</p>
                   </div>
                 </div>
               </Link>

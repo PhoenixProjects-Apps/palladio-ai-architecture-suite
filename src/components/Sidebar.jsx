@@ -115,7 +115,7 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
   }
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full bg-[#0a0c10] border-r border-white/5 text-slate-300">
+    <div className="flex flex-col h-full bg-background border-r border-border text-muted-foreground">
       <div className="p-4 flex items-center justify-between">
         {!isCollapsed && (
           <div className="flex items-center gap-3">
@@ -144,19 +144,19 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
                 const linkContent = (
                   <>
                     <div className="flex items-center gap-6">
-                      <item.icon size={20} className={active ? 'text-amber-500' : ''} />
+                      <item.icon size={20} className={active ? 'text-primary' : ''} />
                       {!isCollapsed && <span className="font-medium text-sm">{item.name}</span>}
                     </div>
                     {!isCollapsed && item.badge > 0 && (
-                      <span className="bg-amber-500 text-[#0a0c10] text-xs font-bold px-2 py-0.5 rounded-full">{item.badge}</span>
+                      <span className="bg-destructive text-destructive-foreground text-xs font-bold px-2 py-0.5 rounded-full">{item.badge}</span>
                     )}
                     {isCollapsed && item.badge > 0 && (
-                      <div className="absolute top-1 right-1 w-2.5 h-1 bg-amber-500 rounded-full border-2 border-[#0a0c10]"></div>
+                      <div className="absolute top-1 right-1 w-2.5 h-1 bg-destructive rounded-full border-2 border-background"></div>
                     )}
                   </>
                 );
                 
-                const className = `relative flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${active ? 'bg-amber-500/10 text-amber-400' : 'hover:bg-white/5 text-slate-400 hover:text-white'} ${isCollapsed ? 'justify-center' : ''}`;
+                const className = `relative flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${active ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'} ${isCollapsed ? 'justify-center' : ''}`;
 
                 if (item.isExternal) {
                   return (
@@ -177,22 +177,22 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
         ))}
       </div>
 
-      <div className="border-t border-white/5 relative">
+      <div className="border-t border-border relative">
         <button
           onClick={() => setShowInfo(!showInfo)}
-          className={`flex items-center gap-3 px-3 py-3 w-full text-left text-slate-400 hover:text-white hover:bg-white/5 transition-colors ${isCollapsed ? 'justify-center' : ''}`}
+          className={`flex items-center gap-3 px-3 py-3 w-full text-left text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors ${isCollapsed ? 'justify-center' : ''}`}
           title={isCollapsed ? 'Info' : ''}
         >
-          <Info size={20} className={showInfo ? 'text-amber-500' : ''} />
+          <Info size={20} className={showInfo ? 'text-primary' : ''} />
           {!isCollapsed && <span className="font-medium text-sm tracking-wider">INFO</span>}
           {!isCollapsed && <ChevronUp size={16} className={`ml-auto transition-transform duration-200 ${showInfo ? '' : 'rotate-180'}`} />}
         </button>
         {showInfo && (
-          <div className="absolute bottom-full left-0 right-0 bg-[#15181f] border-t border-white/10 shadow-2xl shadow-black/50 p-3 space-y-1 max-h-[60vh] overflow-y-auto">
+          <div className="absolute bottom-full left-0 right-0 bg-popover border-t border-border shadow-2xl shadow-black/50 p-3 space-y-1 max-h-[60vh] overflow-y-auto">
             {bottomItems.map((item, idx) => {
               if (item.action === 'login') {
                 return (
-                  <button key="login" onClick={() => { base44.auth.redirectToLogin(); setShowInfo(false); }} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors w-full text-left hover:bg-white/5 text-slate-400 hover:text-white ${isCollapsed ? 'justify-center' : ''}`} title={isCollapsed ? item.name : ''}>
+                  <button key="login" onClick={() => { base44.auth.redirectToLogin(); setShowInfo(false); }} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors w-full text-left hover:bg-muted/50 text-muted-foreground hover:text-foreground ${isCollapsed ? 'justify-center' : ''}`} title={isCollapsed ? item.name : ''}>
                     <item.icon size={20} />
                     {!isCollapsed && <span className="font-medium text-sm">{item.name}</span>}
                   </button>
@@ -200,8 +200,8 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
               }
               const active = isActive(item.path);
               return (
-                <Link key={item.path} to={createPageUrl(item.path)} onClick={() => { setIsMobileOpen(false); setShowInfo(false); }} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${active ? 'bg-amber-500/10 text-amber-400' : 'hover:bg-white/5 text-slate-400 hover:text-white'} ${isCollapsed ? 'justify-center' : ''}`} title={isCollapsed ? item.name : ''}>
-                  <item.icon size={20} className={active ? 'text-amber-500' : ''} />
+                <Link key={item.path} to={createPageUrl(item.path)} onClick={() => { setIsMobileOpen(false); setShowInfo(false); }} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${active ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'} ${isCollapsed ? 'justify-center' : ''}`} title={isCollapsed ? item.name : ''}>
+                  <item.icon size={20} className={active ? 'text-primary' : ''} />
                   {!isCollapsed && <span className="font-medium text-sm">{item.name}</span>}
                 </Link>
               );

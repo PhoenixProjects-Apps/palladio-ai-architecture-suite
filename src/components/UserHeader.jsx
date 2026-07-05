@@ -12,7 +12,7 @@ export default function UserHeader({ setIsMobileOpen }) {
   return (
     <div className="flex items-center justify-between gap-3 w-full">
       <div className="flex items-center gap-3">
-        <Button variant="outline" size="icon" className="md:hidden bg-[#0a0c10] border-white/10 text-white" onClick={() => setIsMobileOpen(true)}>
+        <Button variant="outline" size="icon" className="md:hidden bg-background border-border text-foreground" onClick={() => setIsMobileOpen(true)}>
           <Menu size={20} />
         </Button>
         <img src="https://www.image2url.com/r2/default/images/1782439345351-85257dc4-fda3-43f5-9ae4-2f91ee65350a.png" alt="Palladio AI" className="h-10" />
@@ -23,7 +23,7 @@ export default function UserHeader({ setIsMobileOpen }) {
           {user ? (credits ?? 0) : '—'}
         </Link>
         {user ? (
-          <Link to={createPageUrl('UserProfile')} className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center text-white font-bold hover:opacity-80 transition shadow-lg border border-white/10 overflow-hidden">
+          <Link to={createPageUrl('UserProfile')} className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-foreground font-bold hover:opacity-80 transition shadow-lg border border-border overflow-hidden">
             {user.profile_picture ? (
               <img src={user.profile_picture} alt={user.full_name || 'Profile'} className="w-10 h-10 object-cover" />
             ) : (
@@ -31,7 +31,7 @@ export default function UserHeader({ setIsMobileOpen }) {
             )}
           </Link>
         ) : (
-          <button onClick={() => base44.auth.redirectToLogin()} className="text-sm font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full transition">
+          <button onClick={() => base44.auth.redirectToLogin()} className="text-sm font-semibold text-muted-foreground hover:text-foreground bg-muted/50 hover:bg-muted px-4 py-2 rounded-full transition">
             Sign In
           </button>
         )}
