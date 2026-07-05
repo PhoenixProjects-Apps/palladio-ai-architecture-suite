@@ -115,9 +115,6 @@ const AuthenticatedApp = () => {
         );
       })}
       
-      <Route path="/Projects" element={<ProtectedRoute unauthenticatedElement={<UnauthenticatedFallback />}><LayoutWrapper currentPageName="Projects"><AnimatedRouteWrapper><Projects /></AnimatedRouteWrapper></LayoutWrapper></ProtectedRoute>} />
-      <Route path="/SavedChats" element={<ProtectedRoute unauthenticatedElement={<UnauthenticatedFallback />}><LayoutWrapper currentPageName="SavedChats"><AnimatedRouteWrapper><SavedChats /></AnimatedRouteWrapper></LayoutWrapper></ProtectedRoute>} />
-      <Route path="/UserProfile" element={<ProtectedRoute unauthenticatedElement={<UnauthenticatedFallback />}><LayoutWrapper currentPageName="UserProfile"><AnimatedRouteWrapper><UserProfile /></AnimatedRouteWrapper></LayoutWrapper></ProtectedRoute>} />
       <Route path="/about" element={<LayoutWrapper currentPageName="About"><AnimatedRouteWrapper><About /></AnimatedRouteWrapper></LayoutWrapper>} />
       <Route path="/contact" element={<LayoutWrapper currentPageName="Contact"><AnimatedRouteWrapper><Contact /></AnimatedRouteWrapper></LayoutWrapper>} />
       <Route path="/PrivacyPolicy" element={<LayoutWrapper currentPageName="PrivacyPolicy"><AnimatedRouteWrapper><PrivacyPolicy /></AnimatedRouteWrapper></LayoutWrapper>} />

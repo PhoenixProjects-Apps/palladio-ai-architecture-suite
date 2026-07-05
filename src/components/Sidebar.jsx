@@ -60,52 +60,50 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
   }, [user]);
 
   const isActive = (path) => {
-    try {
-      return location.pathname.includes(createPageUrl(path).replace('/', ''));
-    } catch {
-      return false;
-    }
+    if (!path) return false;
+    if (path === '/') return location.pathname === '/';
+    return location.pathname.startsWith(path);
   };
 
   const menuGroups = [
     {
       title: "Overview",
       items: [
-        { name: 'Dashboard', icon: Home, path: 'Home' },
-        { name: 'Projects', icon: Folder, path: 'Projects' },
+        { name: 'Dashboard', icon: Home, path: '/' },
+        { name: 'Projects', icon: Folder, path: '/Projects' },
       ]
     },
     {
       title: "Tools",
       items: [
-        { name: 'AI Assistant', icon: MessageSquare, path: 'SavedChats' },
-        { name: 'Floorplans', icon: Layers, path: 'PalladioFloorplan' },
-        { name: '3D Renders', icon: Building2, path: 'Render3D' },
-        { name: 'Property Intel', icon: MapPin, path: 'PalladioProperty' },
-        { name: 'Town Planning', icon: ClipboardList, path: 'PalladioPlanner' },
-        { name: 'Assess Plans', icon: FileImage, path: 'PalladioAssess' },
-        { name: 'Cost Estimator', icon: CreditCard, path: 'PalladioEstimator' },
-        { name: 'SketchPad', icon: PenTool, path: 'ArchiSketch' },
+        { name: 'AI Assistant', icon: MessageSquare, path: '/SavedChats' },
+        { name: 'Floorplans', icon: Layers, path: '/PalladioFloorplan' },
+        { name: '3D Renders', icon: Building2, path: '/Render3D' },
+        { name: 'Property Intel', icon: MapPin, path: '/PalladioProperty' },
+        { name: 'Town Planning', icon: ClipboardList, path: '/PalladioPlanner' },
+        { name: 'Assess Plans', icon: FileImage, path: '/PalladioAssess' },
+        { name: 'Cost Estimator', icon: CreditCard, path: '/PalladioEstimator' },
+        { name: 'SketchPad', icon: PenTool, path: '/ArchiSketch' },
       ]
     }
   ];
 
   const bottomItems = user
     ? [
-        { name: `Tokens: ${user.tokens !== undefined ? user.tokens : 5}`, icon: CreditCard, path: 'PalladioPricing', isTokenDisplay: true },
-        { name: 'Settings', icon: Settings, path: 'UserProfile' },
-        { name: 'Notifications', icon: Bell, path: 'Notifications', badge: unreadCount },
-        { name: 'About', icon: Building2, path: 'About' },
-        { name: 'Contact', icon: MessageSquare, path: 'Contact' },
-        { name: 'Privacy Policy', icon: ShieldCheck, path: 'PrivacyPolicy' },
-        { name: 'Terms of Service', icon: FileText, path: 'TermsOfService' },
+        { name: `Tokens: ${user.tokens !== undefined ? user.tokens : 5}`, icon: CreditCard, path: '/PalladioPricing', isTokenDisplay: true },
+        { name: 'Settings', icon: Settings, path: '/UserProfile' },
+        { name: 'Notifications', icon: Bell, path: '/Notifications', badge: unreadCount },
+        { name: 'About', icon: Building2, path: '/about' },
+        { name: 'Contact', icon: MessageSquare, path: '/contact' },
+        { name: 'Privacy Policy', icon: ShieldCheck, path: '/PrivacyPolicy' },
+        { name: 'Terms of Service', icon: FileText, path: '/TermsOfService' },
       ]
     : [
-        { name: 'Pricing', icon: CreditCard, path: 'PalladioPricing' },
-        { name: 'About', icon: Building2, path: 'About' },
-        { name: 'Contact', icon: MessageSquare, path: 'Contact' },
-        { name: 'Privacy Policy', icon: ShieldCheck, path: 'PrivacyPolicy' },
-        { name: 'Terms of Service', icon: FileText, path: 'TermsOfService' },
+        { name: 'Pricing', icon: CreditCard, path: '/PalladioPricing' },
+        { name: 'About', icon: Building2, path: '/about' },
+        { name: 'Contact', icon: MessageSquare, path: '/contact' },
+        { name: 'Privacy Policy', icon: ShieldCheck, path: '/PrivacyPolicy' },
+        { name: 'Terms of Service', icon: FileText, path: '/TermsOfService' },
         { name: 'Sign In', icon: LogIn, action: 'login' },
       ];
 
@@ -162,7 +160,7 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
                 }
 
                 return (
-                  <Link key={item.path} to={item.path.startsWith('/') ? item.path : createPageUrl(item.path)} onClick={() => setIsMobileOpen(false)} className={className} title={isCollapsed ? item.name : ''}>
+                  <Link key={item.path} to={item.path} onClick={() => setIsMobileOpen(false)} className={className} title={isCollapsed ? item.name : ''}>
                     {linkContent}
                   </Link>
                 );
@@ -196,7 +194,7 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
               }
               const active = isActive(item.path);
               return (
-                <Link key={item.path} to={item.path.startsWith('/') ? item.path : createPageUrl(item.path)} onClick={() => { setIsMobileOpen(false); setShowInfo(false); }} className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-colors ${active ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'} ${isCollapsed ? 'justify-center' : ''}`} title={isCollapsed ? item.name : ''}>
+                <Link key={item.path} to={item.path} onClick={() => { setIsMobileOpen(false); setShowInfo(false); }} className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-colors ${active ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'} ${isCollapsed ? 'justify-center' : ''}`} title={isCollapsed ? item.name : ''}>
                   <item.icon size={20} className={active ? 'text-primary' : ''} />
                   {!isCollapsed && <span className="font-medium text-sm">{item.name}</span>}
                 </Link>
