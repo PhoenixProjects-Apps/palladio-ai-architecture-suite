@@ -6,11 +6,14 @@ import UserHeader from '@/components/UserHeader';
 import { Toaster } from 'sonner';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import { useMobileBack } from '@/hooks/useMobileBack';
+import { useTabStacks } from '@/hooks/useTabStacks';
 
 export default function Layout({ children }) {
   const { theme } = useTheme();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const location = useLocation();
+  
+  useTabStacks(); // Global tab stack manager
 
   // Prevent back navigation when sidebar is open, closing it instead
   useMobileBack(isMobileOpen, () => setIsMobileOpen(false));
