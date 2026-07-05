@@ -190,7 +190,7 @@ export default function Floorplan3D() {
           <div className="b44-input-group">
             <label>Camera Perspective</label>
             <Select value={perspective} onValueChange={setPerspective} disabled={isLoading}>
-              <SelectTrigger className="bg-[#161920] border border-[#2a313d] text-[#e5e7eb] rounded-lg h-11">
+              <SelectTrigger className="bg-[#161920] border border-[#2a313d] text-[#e5e7eb] rounded-lg h-11" aria-label="Select Perspective">
                 <SelectValue placeholder="Select Perspective" />
               </SelectTrigger>
               <SelectContent className="bg-slate-900 border-slate-700 text-white">
@@ -204,7 +204,7 @@ export default function Floorplan3D() {
           <div className="b44-input-group">
             <label>Visual Finish</label>
             <Select value={finish} onValueChange={setFinish} disabled={isLoading}>
-              <SelectTrigger className="bg-[#161920] border border-[#2a313d] text-[#e5e7eb] rounded-lg h-11">
+              <SelectTrigger className="bg-[#161920] border border-[#2a313d] text-[#e5e7eb] rounded-lg h-11" aria-label="Select Finish">
                 <SelectValue placeholder="Select Finish" />
               </SelectTrigger>
               <SelectContent className="bg-slate-900 border-slate-700 text-white">
@@ -217,7 +217,7 @@ export default function Floorplan3D() {
           <div className="b44-input-group">
             <label>Layout Mode</label>
             <Select value={layout} onValueChange={setLayout} disabled={isLoading}>
-              <SelectTrigger className="bg-[#161920] border border-[#2a313d] text-[#e5e7eb] rounded-lg h-11">
+              <SelectTrigger className="bg-[#161920] border border-[#2a313d] text-[#e5e7eb] rounded-lg h-11" aria-label="Select Layout">
                 <SelectValue placeholder="Select Layout" />
               </SelectTrigger>
               <SelectContent className="bg-slate-900 border-slate-700 text-white">

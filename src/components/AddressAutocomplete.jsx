@@ -65,11 +65,16 @@ export default function AddressAutocomplete({ value, onChange, onSelect }) {
         };
     }, []);
 
+    const isOpen = open && results.length > 0;
     return (
         <div className="relative" ref={containerRef}>
             <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 <Input 
+                    role="combobox"
+                    aria-expanded={isOpen}
+                    aria-controls="address-listbox"
+                    aria-autocomplete="list"
                     value={query}
                     onChange={e => {
                         setQuery(e.target.value);
@@ -81,11 +86,13 @@ export default function AddressAutocomplete({ value, onChange, onSelect }) {
                 />
                 {loading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 animate-spin" size={18} />}
             </div>
-            {open && results.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900 border border-slate-700 rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto">
+            {isOpen && (
+                <div id="address-listbox" role="listbox" className="absolute top-full left-0 right-0 mt-2 bg-slate-900 border border-slate-700 rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto">
                     {results.map((r, i) => (
                         <div 
                             key={i} 
+                            role="option"
+                            aria-selected={query === r.display_name}
                             className="p-3 hover:bg-slate-800 cursor-pointer text-sm text-slate-200 border-b border-slate-800 last:border-0"
                             onClick={() => {
                                 skipNextRef.current = true;

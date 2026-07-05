@@ -75,7 +75,7 @@ export default function RenderGenerator({ projectName = "New Project", rawLayout
         <div className="flex flex-col gap-3">
           <Label className="text-slate-300">Camera Perspective</Label>
           <Select value={perspective} onValueChange={setPerspective} disabled={isLoading}>
-            <SelectTrigger className="bg-slate-800 border-white/10 text-white">
+            <SelectTrigger className="bg-slate-800 border-white/10 text-white" aria-label="Camera Perspective">
               <SelectValue placeholder="Select perspective" />
             </SelectTrigger>
             <SelectContent className="bg-slate-800 border-white/10">
@@ -89,7 +89,7 @@ export default function RenderGenerator({ projectName = "New Project", rawLayout
         <div className="flex flex-col gap-3">
           <Label className="text-slate-300">Visual Finish</Label>
           <Select value={finish} onValueChange={setFinish} disabled={isLoading}>
-            <SelectTrigger className="bg-slate-800 border-white/10 text-white">
+            <SelectTrigger className="bg-slate-800 border-white/10 text-white" aria-label="Visual Finish">
               <SelectValue placeholder="Select finish" />
             </SelectTrigger>
             <SelectContent className="bg-slate-800 border-white/10">
@@ -102,7 +102,7 @@ export default function RenderGenerator({ projectName = "New Project", rawLayout
         <div className="flex flex-col gap-3">
           <Label className="text-slate-300">Layout Mode</Label>
           <Select value={layout} onValueChange={setLayout} disabled={isLoading}>
-            <SelectTrigger className="bg-slate-800 border-white/10 text-white">
+            <SelectTrigger className="bg-slate-800 border-white/10 text-white" aria-label="Layout Mode">
               <SelectValue placeholder="Select layout" />
             </SelectTrigger>
             <SelectContent className="bg-slate-800 border-white/10">
