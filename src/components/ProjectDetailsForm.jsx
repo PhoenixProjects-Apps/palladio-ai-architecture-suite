@@ -60,7 +60,7 @@ export default function ProjectDetailsForm({ value, onChange }) {
       <div className="flex items-center gap-2 text-cyan-400 text-sm font-semibold">
         <FileText size={16} /> Project Details <span className="text-red-400 text-xs">*</span>
       </div>
-      <div className="grid sm:grid-cols-2 gap-3">
+      <div className="grid md:grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <label className="text-xs text-slate-400">Project Name</label>
           <div className="flex flex-col sm:flex-row gap-2">

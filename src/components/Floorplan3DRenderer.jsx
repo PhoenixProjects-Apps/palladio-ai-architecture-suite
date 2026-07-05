@@ -74,7 +74,7 @@ export default function Floorplan3DRenderer({ floorplanImage, onRequireFloorplan
               <button
                 key={p}
                 onClick={() => setPrompt(p)}
-                className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-full transition-colors"
+                className="min-h-11 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-full transition-colors"
               >
                 {p}
               </button>

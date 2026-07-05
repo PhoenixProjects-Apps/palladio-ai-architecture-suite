@@ -216,7 +216,7 @@ export default function PalladioFloorplan() {
                         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center shadow-lg shrink-0">
                             <Layers size={20} />
                         </div>
-                        <h1 className="font-bold text-lg sm:text-xl flex-1 min-w-[150px] whitespace-nowrap overflow-hidden text-ellipsis">Floorplans</h1>
+                        <h1 className="font-bold text-lg sm:text-xl flex-1 min-w-0 whitespace-nowrap overflow-hidden text-ellipsis">Floorplans</h1>
                         <div className="ml-auto shrink-0">
                             <ChooseProject
                                 selected={selectedProject}

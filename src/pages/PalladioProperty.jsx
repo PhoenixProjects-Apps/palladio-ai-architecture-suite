@@ -101,7 +101,7 @@ export default function PalladioProperty() {
                                 <p className="text-slate-200 leading-relaxed">{result.overview}</p>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 {result.key_facts?.map((fact, i) =>
               <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-4 shadow-md min-w-0 break-words">
                                         <p className="text-xs text-slate-400 mb-1">{fact.label}</p>

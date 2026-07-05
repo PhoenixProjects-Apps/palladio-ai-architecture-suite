@@ -775,7 +775,7 @@ INSTRUCTIONS:
                         <CardContent className="space-y-4">
                             <div>
                                 <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Areas</p>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div>
                                         <label className="text-xs text-slate-400 mb-1 block">Floor (m²)</label>
                                         <Input type="number" value={floorArea} onChange={(e) => setFloorArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
@@ -790,7 +790,7 @@ INSTRUCTIONS:
                                     </div>
                                     <div className="col-span-1 sm:col-span-2 space-y-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
                                         <p className="text-xs font-semibold text-slate-300">Roof Area Calculation</p>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                             <div>
                                                 <label className="text-xs text-slate-400 mb-1 block">Roof Footprint (m²)</label>
                                                 <Input type="number" value={roofFootprintArea} onChange={(e) => setRoofFootprintArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-[44px]" />
@@ -847,7 +847,7 @@ INSTRUCTIONS:
                             </div>
                             <div>
                                 <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Lengths</p>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div>
                                         <label className="text-xs text-slate-400 mb-1 block">External Wall Length (m)</label>
                                         <Input type="number" value={externalWallLength} onChange={(e) => setExternalWallLength(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
@@ -864,7 +864,7 @@ INSTRUCTIONS:
                             </div>
                             <div>
                                 <p className="text-xs font-semibold text-cyan-400 uppercase tracking-wider mb-2">Auto-Calculated</p>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div>
                                         <label className="text-xs text-slate-400 mb-1 block">Slab Volume (m³) <span className="text-cyan-500/70">auto</span></label>
                                         <Input type="text" value={slabVolume} readOnly placeholder="—" className="bg-slate-800/50 border-slate-700/50 text-slate-300 min-h-11 h-auto" />

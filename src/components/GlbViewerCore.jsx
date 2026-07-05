@@ -23,8 +23,11 @@ export default function GlbViewer({ url, height = '400px', wallHeightMultiplier 
         
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(width, height_px);
-        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.domElement.style.touchAction = 'none';
+        renderer.domElement.style.userSelect = 'none';
         container.innerHTML = '';
+        container.style.touchAction = 'none';
         container.appendChild(renderer.domElement);
         
         // 2. Lighting Setup
@@ -40,6 +43,7 @@ export default function GlbViewer({ url, height = '400px', wallHeightMultiplier 
         scene.add(directionalLight2);
         
         let model = null;
+        let isMounted = true;
         let modelCenter = new THREE.Vector3(0, 0, 0);
         
         // 3. Camera Interaction Controls (Spherical Coordinates)
@@ -60,6 +64,16 @@ export default function GlbViewer({ url, height = '400px', wallHeightMultiplier 
         loader.load(
             url,
             (gltf) => {
+                if (!isMounted) {
+                    gltf.scene.traverse((child) => {
+                        if (child.geometry) child.geometry.dispose();
+                        if (child.material) {
+                            const materials = Array.isArray(child.material) ? child.material : [child.material];
+                            materials.forEach((material) => material.dispose?.());
+                        }
+                    });
+                    return;
+                }
                 model = gltf.scene;
                 
                 // STRETCH WALLS: AI models usually treat Y as the vertical 'up' axis.
@@ -85,46 +99,89 @@ export default function GlbViewer({ url, height = '400px', wallHeightMultiplier 
             },
             undefined,
             (error) => {
+                if (!isMounted) return;
                 console.error('Error loading model:', error);
                 setLoading(false);
                 toast.error('Failed to load 3D model. The file may be inaccessible or expired.');
             }
         );
         
-        // 5. Mouse Interaction Handlers
-        const onMouseDown = (e) => {
-            isDragging = true;
-            previousMousePosition = { x: e.clientX, y: e.clientY };
+        // 5. Pointer + Wheel Interaction Handlers
+        const activePointers = new Map();
+        let previousPointerPosition = null;
+        let lastPinchDistance = null;
+
+        const clampRadius = (value) => Math.max(2, Math.min(50, value));
+        const clampPhi = (value) => Math.max(0.1, Math.min(Math.PI / 2 - 0.05, value));
+        const getPointerDistance = () => {
+            const points = Array.from(activePointers.values());
+            if (points.length < 2) return null;
+            const [a, b] = points;
+            return Math.hypot(a.x - b.x, a.y - b.y);
+        };
+
+        const onPointerDown = (e) => {
+            e.preventDefault();
+            try { container.setPointerCapture?.(e.pointerId); } catch (_) {}
+            activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+            if (activePointers.size === 1) {
+                previousPointerPosition = { x: e.clientX, y: e.clientY };
+                lastPinchDistance = null;
+            } else if (activePointers.size === 2) {
+                previousPointerPosition = null;
+                lastPinchDistance = getPointerDistance();
+            }
         };
         
-        const onMouseMove = (e) => {
-            if (!isDragging) return;
-            const deltaX = e.clientX - previousMousePosition.x;
-            const deltaY = e.clientY - previousMousePosition.y;
-            
-            spherical.theta -= deltaX * 0.007;
-            spherical.phi = Math.max(0.1, Math.min(Math.PI / 2 - 0.05, spherical.phi - deltaY * 0.007)); // Prevents going under the floor
-            
-            previousMousePosition = { x: e.clientX, y: e.clientY };
-            updateCameraPosition();
+        const onPointerMove = (e) => {
+            if (!activePointers.has(e.pointerId)) return;
+            e.preventDefault();
+            activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+            if (activePointers.size === 1 && previousPointerPosition) {
+                const deltaX = e.clientX - previousPointerPosition.x;
+                const deltaY = e.clientY - previousPointerPosition.y;
+                spherical.theta -= deltaX * 0.007;
+                spherical.phi = clampPhi(spherical.phi - deltaY * 0.007);
+                previousPointerPosition = { x: e.clientX, y: e.clientY };
+                updateCameraPosition();
+            } else if (activePointers.size >= 2) {
+                const currentDistance = getPointerDistance();
+                if (currentDistance && lastPinchDistance) {
+                    const pinchDelta = currentDistance - lastPinchDistance;
+                    spherical.radius = clampRadius(spherical.radius - pinchDelta * 0.02);
+                    updateCameraPosition();
+                }
+                lastPinchDistance = currentDistance;
+            }
         };
         
-        const onMouseUp = () => { isDragging = false; };
+        const onPointerUp = (e) => {
+            if (activePointers.has(e.pointerId)) {
+                activePointers.delete(e.pointerId);
+                try { container.releasePointerCapture?.(e.pointerId); } catch (_) {}
+            }
+            const remaining = Array.from(activePointers.values());
+            previousPointerPosition = remaining.length === 1 ? { ...remaining[0] } : null;
+            lastPinchDistance = remaining.length >= 2 ? getPointerDistance() : null;
+        };
         
         const onWheel = (e) => {
             e.preventDefault();
-            spherical.radius = Math.max(2, Math.min(50, spherical.radius + e.deltaY * 0.02));
+            spherical.radius = clampRadius(spherical.radius + e.deltaY * 0.02);
             updateCameraPosition();
         };
         
-        container.addEventListener('mousedown', onMouseDown);
-        container.addEventListener('mousemove', onMouseMove);
-        window.addEventListener('mouseup', onMouseUp); // Listen on window for smoother dragging release
+        container.addEventListener('pointerdown', onPointerDown, { passive: false });
+        container.addEventListener('pointermove', onPointerMove, { passive: false });
+        container.addEventListener('pointerup', onPointerUp);
+        container.addEventListener('pointercancel', onPointerUp);
         container.addEventListener('wheel', onWheel, { passive: false });
         
         // 6. Safe Safe Animation Loop
+        let disposed = false;
         renderer.setAnimationLoop(() => {
-            renderer.render(scene, camera);
+            if (!disposed) renderer.render(scene, camera);
         });
         
         sceneRef.current = { scene, renderer, model };
@@ -142,15 +199,29 @@ export default function GlbViewer({ url, height = '400px', wallHeightMultiplier 
         
         // 8. Clean up everything perfectly on unmount/URL change
         return () => {
+            isMounted = false;
+            disposed = true;
             window.removeEventListener('resize', handleResize);
-            window.removeEventListener('mouseup', onMouseUp);
-            container.removeEventListener('mousedown', onMouseDown);
-            container.removeEventListener('mousemove', onMouseMove);
+            container.removeEventListener('pointerdown', onPointerDown);
+            container.removeEventListener('pointermove', onPointerMove);
+            container.removeEventListener('pointerup', onPointerUp);
+            container.removeEventListener('pointercancel', onPointerUp);
             container.removeEventListener('wheel', onWheel);
+            activePointers.clear();
             
+            if (model) {
+                model.traverse((child) => {
+                    if (child.geometry) child.geometry.dispose();
+                    if (child.material) {
+                        const materials = Array.isArray(child.material) ? child.material : [child.material];
+                        materials.forEach((material) => material.dispose?.());
+                    }
+                });
+            }
             // Stop the loop completely to avoid rendering a destroyed canvas context
             renderer.setAnimationLoop(null); 
             renderer.dispose();
+            if (renderer.domElement.parentNode === container) container.removeChild(renderer.domElement);
         };
     }, [url, wallHeightMultiplier]);
     
@@ -163,13 +234,16 @@ export default function GlbViewer({ url, height = '400px', wallHeightMultiplier 
     }
     
     return (
-        <div style={{ width: '100%', height, backgroundColor: '#3a3a5c', borderRadius: '12px', overflow: 'hidden', position: 'relative' }}>
+        <div style={{ width: '100%', height, backgroundColor: '#3a3a5c', borderRadius: '12px', overflow: 'hidden', position: 'relative', touchAction: 'none' }}>
             {loading && (
                 <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#cbd5e1', fontSize: '14px', fontFamily: 'sans-serif', zIndex: 10, backgroundColor: 'rgba(58, 58, 92, 0.8)' }}>
                     Loading 3D model...
                 </div>
             )}
-            <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
+            <div style={{ position: 'absolute', left: 12, bottom: 10, zIndex: 5, color: '#cbd5e1', background: 'rgba(15, 23, 42, 0.65)', borderRadius: 999, padding: '6px 10px', fontSize: 12, fontFamily: 'sans-serif', pointerEvents: 'none' }}>
+                Drag to rotate · Pinch to zoom
+            </div>
+            <div ref={containerRef} style={{ width: '100%', height: '100%', touchAction: 'none' }} />
         </div>
     );
 }

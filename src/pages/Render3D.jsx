@@ -584,14 +584,14 @@ export default function Render3D() {
       <div className="px-4 py-5 space-y-6 w-full max-w-[520px] mx-auto min-w-0">
 
         {/* Upload Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <div className="flex flex-col mb-3">
               <h2 className="text-white text-sm font-semibold mb-2">1. 3D Building View</h2>
               {isScreenCaptureSupported && (
                 <button
                     onClick={handleCaptureScreen}
-                    className="flex items-center w-fit text-xs font-medium text-teal-400 hover:text-teal-300 bg-teal-400/10 hover:bg-teal-400/20 px-2 py-1 rounded transition-colors">
+                    className="flex items-center w-fit min-h-11 text-xs font-medium text-teal-400 hover:text-teal-300 bg-teal-400/10 hover:bg-teal-400/20 px-3 py-2 rounded transition-colors">
                     
                   <Monitor size={12} className="mr-1" /> Screenshot
                 </button>
@@ -619,7 +619,7 @@ export default function Render3D() {
                 file && !previewUrl ?
                 <div className="flex flex-col items-center gap-2">
                   <FileText size={24} style={{ color: '#14b8a6' }} />
-                  <p className="text-white text-xs font-medium truncate w-full px-2">{file.name}</p>
+                  <p className="text-white text-xs font-medium break-all w-full px-2">{file.name}</p>
                 </div> :
 
                 <div className="flex flex-col items-center gap-2">
@@ -675,7 +675,7 @@ export default function Render3D() {
                 styleFile && !stylePreviewUrl ?
                 <div className="flex flex-col items-center gap-2">
                   <FileText size={24} style={{ color: '#14b8a6' }} />
-                  <p className="text-white text-xs font-medium truncate w-full px-2">{styleFile.name}</p>
+                  <p className="text-white text-xs font-medium break-all w-full px-2">{styleFile.name}</p>
                 </div> :
 
                 <div className="flex flex-col items-center gap-2">
@@ -705,7 +705,7 @@ export default function Render3D() {
 
         {/* Presets */}
         <div>
-          <div className="flex justify-between items-center mb-3">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-3">
             <h2 className="text-white text-sm font-semibold">Rendering Presets</h2>
             {savedPresetsList.length > 0 &&
               <Select onValueChange={(id) => applyPreset(savedPresetsList.find((p) => p.id === id))}>
@@ -724,7 +724,7 @@ export default function Render3D() {
               }
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
             {PRESETS.map(({ key, label, options }) =>
               <div key={key}>
                 <label className="block text-xs mb-1.5" style={{ color: '#94a3b8' }}>{label}</label>
