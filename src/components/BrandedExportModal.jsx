@@ -84,7 +84,7 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
       const boxX = 40;
       const boxY = 40;
       const boxW = canvas.width - 80;
-      const footerHeight = 160;
+      const footerHeight = 200;
       const boxH = canvas.height - footerHeight - 80;
 
       const fit = fitImageContain(floorplanImg.width, floorplanImg.height, boxW, boxH);
@@ -254,7 +254,7 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
 
                   .b44-canvas-title-block {
                     flex-shrink: 0;
-                    height: 160px;
+                    height: 200px;
                     padding-top: 28px;
                     display: flex;
                     justify-content: space-between;
