@@ -29,8 +29,8 @@ export default function Notifications() {
         return () => unsubscribe && unsubscribe();
     }, []);
 
-    usePullToRefresh(() => {
-        loadData();
+    usePullToRefresh(async () => {
+        await loadData();
     });
 
     const loadData = async () => {

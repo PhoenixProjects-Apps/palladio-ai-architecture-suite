@@ -39,9 +39,9 @@ export default function Projects() {
         }
     }, [selectedProjectId]);
 
-    usePullToRefresh(() => {
-        loadProjects();
-        if (selectedProjectId) loadProjectDetails(selectedProjectId);
+    usePullToRefresh(async () => {
+        await loadProjects();
+        if (selectedProjectId) await loadProjectDetails(selectedProjectId);
     });
 
     const loadProjects = async () => {
