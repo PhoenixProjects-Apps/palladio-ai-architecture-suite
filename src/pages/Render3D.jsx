@@ -338,8 +338,14 @@ export default function Render3D() {
     setHasDrawn(false);
   };
 
+  const isScreenCaptureSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
+
   const handleCaptureScreen = async (e) => {
     if (e) e.stopPropagation();
+    if (!isScreenCaptureSupported) {
+      toast.error('Screen capture is not supported on this device or app. Please upload an image instead.');
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({ video: { displaySurface: 'window' } });
       const video = document.createElement('video');
@@ -582,12 +588,14 @@ export default function Render3D() {
           <div>
             <div className="flex flex-col mb-3">
               <h2 className="text-white text-sm font-semibold mb-2">1. 3D Building View</h2>
-              <button
-                  onClick={handleCaptureScreen}
-                  className="flex items-center w-fit text-xs font-medium text-teal-400 hover:text-teal-300 bg-teal-400/10 hover:bg-teal-400/20 px-2 py-1 rounded transition-colors">
-                  
-                <Monitor size={12} className="mr-1" /> Screenshot
-              </button>
+              {isScreenCaptureSupported && (
+                <button
+                    onClick={handleCaptureScreen}
+                    className="flex items-center w-fit text-xs font-medium text-teal-400 hover:text-teal-300 bg-teal-400/10 hover:bg-teal-400/20 px-2 py-1 rounded transition-colors">
+                    
+                  <Monitor size={12} className="mr-1" /> Screenshot
+                </button>
+              )}
             </div>
             <div
                 onClick={() => fileInputRef.current?.click()}
