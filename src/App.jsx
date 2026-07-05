@@ -10,12 +10,15 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Button } from '@/components/ui/button';
 import { LogIn } from 'lucide-react';
+import React, { Suspense } from 'react';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import AgentBible from './pages/AgentBible';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
-import Floorplan3D from './pages/Floorplan3D';
+import PageLoader from '@/components/PageLoader';
+
+const Floorplan3D = React.lazy(() => import('./pages/Floorplan3D'));
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -33,7 +36,9 @@ const AnimatedRouteWrapper = ({ children }) => (
     transition={{ duration: 0.2 }}
     className="min-h-full flex flex-col w-full"
   >
-    {children}
+    <Suspense fallback={<PageLoader />}>
+      {children}
+    </Suspense>
   </motion.div>
 );
 

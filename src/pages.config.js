@@ -47,23 +47,25 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import React from 'react';
 import Admin from './pages/Admin';
-import ArchiSketch from './pages/ArchiSketch';
 import CostDatabase from './pages/CostDatabase';
 import Home from './pages/Home';
 import Notifications from './pages/Notifications';
-import PalladioAssess from './pages/PalladioAssess';
-import PalladioEstimator from './pages/PalladioEstimator';
-import PalladioFloorplan from './pages/PalladioFloorplan';
-import PalladioPlanner from './pages/PalladioPlanner';
 import PalladioPricing from './pages/PalladioPricing';
-import PalladioProperty from './pages/PalladioProperty';
 import Projects from './pages/Projects';
-import Render3D from './pages/Render3D';
 import SavedChats from './pages/SavedChats';
 import SubscriptionManagement from './pages/SubscriptionManagement';
 import UserProfile from './pages/UserProfile';
 import __Layout from './Layout.jsx';
+
+const ArchiSketch = React.lazy(() => import('./pages/ArchiSketch'));
+const PalladioAssess = React.lazy(() => import('./pages/PalladioAssess'));
+const PalladioEstimator = React.lazy(() => import('./pages/PalladioEstimator'));
+const PalladioFloorplan = React.lazy(() => import('./pages/PalladioFloorplan'));
+const PalladioPlanner = React.lazy(() => import('./pages/PalladioPlanner'));
+const PalladioProperty = React.lazy(() => import('./pages/PalladioProperty'));
+const Render3D = React.lazy(() => import('./pages/Render3D'));
 
 
 export const PAGES = {
