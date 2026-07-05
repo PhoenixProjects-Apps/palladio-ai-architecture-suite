@@ -38,7 +38,14 @@ export default function MobileBottomNav() {
             <Link
               key={item.label}
               to={targetPath}
-              replace={true}
+              replace={isActive}
+              onClick={(e) => {
+                if (isActive) {
+                  e.preventDefault();
+                  const main = document.querySelector('main');
+                  if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+              }}
               className={cn(
                 "flex flex-col items-center justify-center w-full h-full space-y-1 text-xs transition-colors",
                 isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"

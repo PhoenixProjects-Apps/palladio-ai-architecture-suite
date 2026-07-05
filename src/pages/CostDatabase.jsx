@@ -91,7 +91,7 @@ export default function CostDatabase() {
                 <div className="flex items-center justify-between border-b border-slate-800 pb-4">
                     <div className="flex items-center gap-4">
                         <Link to={createPageUrl('PalladioEstimator')}>
-                            <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl">
+                            <Button aria-label="Go Back" variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl">
                                 <ArrowLeft size={20} />
                             </Button>
                         </Link>
@@ -175,7 +175,7 @@ export default function CostDatabase() {
                                             <TableCell className="font-medium text-white">{c.item}</TableCell>
                                             <TableCell>${c.rate.toFixed(2)} / {c.unit}</TableCell>
                                             <TableCell className="text-right">
-                                                <Button variant="ghost" size="icon" onClick={() => handleDelete(c.id)} className="text-red-400 hover:text-red-300 hover:bg-red-400/10 h-8 w-8">
+                                                <Button aria-label="Delete" variant="ghost" size="icon" onClick={() => handleDelete(c.id)} className="text-red-400 hover:text-red-300 hover:bg-red-400/10 h-8 w-8">
                                                     <Trash2 size={14} />
                                                 </Button>
                                             </TableCell>

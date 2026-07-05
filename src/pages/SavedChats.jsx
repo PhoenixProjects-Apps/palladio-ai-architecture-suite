@@ -14,7 +14,8 @@ export default function SavedChats() {
   const [conversations, setConversations] = useState([]);
   const [activeChat, setActiveChat] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState(() => sessionStorage.getItem('saved-chat-draft') || '');
+  useEffect(() => { sessionStorage.setItem('saved-chat-draft', input); }, [input]);
   const [isLoading, setIsLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const scrollRef = useRef(null);
@@ -158,7 +159,7 @@ export default function SavedChats() {
 
   return (
     <PalladioGate>
-      <div className="flex h-screen bg-[#0f1117] text-slate-200">
+      <div className="flex flex-1 w-full bg-[#0f1117] text-slate-200">
 
         {/* Sidebar */}
         <div className="w-80 border-r border-slate-800 bg-[#0a0c10] flex flex-col hidden md:flex">
@@ -167,7 +168,7 @@ export default function SavedChats() {
               <MessageSquare size={18} className="text-indigo-400" />
               AI Assistant
             </h2>
-            <Button onClick={handleNewChat} variant="ghost" size="icon" className="hover:bg-slate-800 text-slate-400">
+            <Button aria-label="New" onClick={handleNewChat} variant="ghost" size="icon" className="hover:bg-slate-800 text-slate-400">
               <Plus size={18} />
             </Button>
           </div>
@@ -226,7 +227,7 @@ export default function SavedChats() {
 
           <div
             ref={scrollRef}
-            className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 pb-32"
+            className="flex-1 p-4 md:p-8 space-y-6 pb-32"
           >
             {messages.length === 0 && (
               <div className="h-full flex flex-col items-center justify-center text-center opacity-50">
@@ -240,7 +241,7 @@ export default function SavedChats() {
             ))}
           </div>
 
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#0f1117] via-[#0f1117] to-transparent pt-12">
+          <div className="sticky bottom-[calc(env(safe-area-inset-bottom)+64px)] md:bottom-0 left-0 right-0 p-4 z-10 bg-gradient-to-t from-[#0f1117] via-[#0f1117] to-transparent pt-12">
             <div className="max-w-3xl mx-auto">
               <form
                 onSubmit={handleSend}
@@ -253,7 +254,7 @@ export default function SavedChats() {
                   className="flex-1 border-0 bg-transparent text-slate-200 placeholder:text-slate-500 h-14 px-5 focus-visible:ring-0 text-base"
                   disabled={isLoading}
                 />
-                <Button
+                <Button aria-label="Send Message"
                   type="submit"
                   disabled={!input.trim() || isLoading || !activeChat}
                   size="icon"

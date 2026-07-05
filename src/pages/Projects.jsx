@@ -303,7 +303,7 @@ export default function Projects() {
                     <div className="flex items-center justify-between mb-3">
                         <h1 className="text-3xl font-bold flex items-center gap-3">
                       <Link to={createPageUrl('Home')}>
-                        <Button variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
+                        <Button aria-label="Go Back" variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
                             <ArrowLeft size={20} />
                         </Button>
                       </Link>

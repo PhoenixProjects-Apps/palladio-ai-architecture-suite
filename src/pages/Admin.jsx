@@ -93,7 +93,7 @@ export default function Admin() {
       <div className="max-w-6xl mx-auto space-y-8">
         <header className="flex items-center gap-4 border-b border-white/10 pb-4">
           <Link to={createPageUrl('Home')}>
-            <Button variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
+            <Button aria-label="Go Back" variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
               <ArrowLeft size={20} />
             </Button>
           </Link>

@@ -28,16 +28,21 @@ function extractJson(text) {
 }
 
 export default function PalladioFloorplan() {
-  const [tab, setTab] = useState('text'); // 'text' or 'cad'
+  const [tab, setTab] = useState(() => sessionStorage.getItem('pf-tab') || 'text');
   const [selectedProject, setSelectedProject] = useState(null);
 
-  const [style, setStyle] = useState('Modern');
+  const [style, setStyle] = useState(() => sessionStorage.getItem('pf-style') || 'Modern');
   const ARCH_STYLES = ['Modern', 'Minimalist', 'Industrial', 'Heritage', 'Contemporary', 'Scandinavian', 'Coastal', 'Mid-Century'];
 
   // Tab 1 state
-  const [desc, setDesc] = useState('');
+  const [desc, setDesc] = useState(() => sessionStorage.getItem('pf-desc') || '');
   const [isGeneratingText, setIsGeneratingText] = useState(false);
   const [textResult, setTextResult] = useState({ layout: null, image: null, layoutData: null });
+  React.useEffect(() => {
+    sessionStorage.setItem('pf-tab', tab);
+    sessionStorage.setItem('pf-style', style);
+    sessionStorage.setItem('pf-desc', desc);
+  }, [tab, style, desc]);
 
   // Tab 2 state
   const [cadFile, setCadFile] = useState(null);
@@ -207,7 +212,7 @@ export default function PalladioFloorplan() {
                 <div className="max-w-5xl mx-auto">
                     <header className="flex flex-wrap items-center gap-3 sm:gap-4 mb-8 border-b border-white/10 pb-4">
                         <Link to={createPageUrl('Home')} className="shrink-0">
-                            <Button variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
+                            <Button aria-label="Go Back" variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
                                 <ArrowLeft size={20} />
                             </Button>
                         </Link>

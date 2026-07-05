@@ -34,13 +34,13 @@ export default function Layout({ children }) {
         ::-webkit-scrollbar-thumb { background: hsl(var(--muted-foreground)); border-radius: 4px; }
       `}</style>
       <Sidebar isMobileOpen={isMobileOpen} setIsMobileOpen={setIsMobileOpen} />
-      <main ref={mainRef} onScroll={handleScroll} className="flex-1 overflow-y-auto overflow-x-hidden h-full relative md:pb-0">
+      <main ref={mainRef} onScroll={handleScroll} className="flex-1 overflow-y-auto overflow-x-hidden h-full relative pb-[calc(env(safe-area-inset-bottom)+80px)] md:pb-0">
         <div className="sticky top-0 z-50 flex items-center p-4 bg-background/95 backdrop-blur border-b border-border">
           <UserHeader setIsMobileOpen={setIsMobileOpen} />
         </div>
         {children}
         {/* Mobile spacing to ensure content isn't hidden behind the fixed bottom nav */}
-        <div className="h-24 md:hidden pb-[env(safe-area-inset-bottom)]"></div>
+        
       </main>
       <MobileBottomNav />
       <Toaster theme="dark" position="bottom-right" />

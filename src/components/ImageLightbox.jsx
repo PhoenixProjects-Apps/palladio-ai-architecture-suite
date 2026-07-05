@@ -27,7 +27,7 @@ export default function ImageLightbox({ url, onClose }) {
 
     return (
         <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 backdrop-blur-sm">
-            <Button variant="ghost" size="icon" className="absolute top-4 right-4 text-white hover:bg-white/20 rounded-full" onClick={onClose}>
+            <Button aria-label="Close" variant="ghost" size="icon" className="absolute top-4 right-4 text-white hover:bg-white/20 rounded-full" onClick={onClose}>
                 <X size={24} />
             </Button>
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3">

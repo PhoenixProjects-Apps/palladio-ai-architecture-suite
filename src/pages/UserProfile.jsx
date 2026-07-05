@@ -102,11 +102,11 @@ export default function UserProfile() {
       <div className="max-w-2xl mx-auto">
         <header className="flex items-center gap-4 mb-8 border-b border-white/10 pb-4">
           <Link to={createPageUrl('Home')}>
-            <Button variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
+            <Button aria-label="Go Back" variant="ghost" size="icon" className="hover:bg-white/10 rounded-full">
               <ArrowLeft size={20} />
             </Button>
           </Link>
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg">
+          <div className="w-10 min-h-11 h-auto rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg">
             <User size={20} />
           </div>
           <h1 className="text-2xl font-bold">Profile</h1>
@@ -151,7 +151,7 @@ export default function UserProfile() {
             {subscription && subscription.status === 'active' ? (
               <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
+                  <div className="w-10 min-h-11 h-auto rounded-full bg-amber-500/20 flex items-center justify-center">
                     <CreditCard className="text-amber-500" size={20} />
                   </div>
                   <div>
@@ -172,7 +172,7 @@ export default function UserProfile() {
             ) : (
               <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
+                  <div className="w-10 min-h-11 h-auto rounded-full bg-white/5 flex items-center justify-center">
                     <CreditCard className="text-slate-400" size={20} />
                   </div>
                   <div>

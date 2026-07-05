@@ -81,7 +81,7 @@ export default function SubscriptionManagement() {
       <div className="max-w-2xl mx-auto">
         <header className="flex items-center gap-4 mb-8 border-b border-white/10 pb-4">
           <Link to={createPageUrl('UserProfile')}>
-            <Button variant="ghost" size="icon" className="hover:bg-white/10 rounded-full text-slate-400 hover:text-white">
+            <Button aria-label="Go Back" variant="ghost" size="icon" className="hover:bg-white/10 rounded-full text-slate-400 hover:text-white">
               <ArrowLeft size={20} />
             </Button>
           </Link>

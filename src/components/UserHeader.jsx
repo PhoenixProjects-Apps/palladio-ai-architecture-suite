@@ -12,7 +12,7 @@ export default function UserHeader({ setIsMobileOpen }) {
   return (
     <div className="flex items-center justify-between gap-3 w-full">
       <div className="flex items-center gap-3">
-        <Button variant="outline" size="icon" className="md:hidden bg-background border-border text-foreground" onClick={() => setIsMobileOpen(true)}>
+        <Button aria-label="Open Menu" variant="outline" size="icon" className="md:hidden bg-background border-border text-foreground" onClick={() => setIsMobileOpen(true)}>
           <Menu size={20} />
         </Button>
         <img src="https://www.image2url.com/r2/default/images/1782439345351-85257dc4-fda3-43f5-9ae4-2f91ee65350a.png" alt="Palladio AI" className="h-10" />
