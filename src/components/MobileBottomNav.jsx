@@ -36,10 +36,10 @@ export default function MobileBottomNav() {
           const targetPath = (!isActive && tabHistory[item.path]) ? tabHistory[item.path] : item.path;
           return (
             <Link
-              key={item.label}
-              to={targetPath}
-              replace={isActive}
-              onClick={(e) => {
+            key={item.label}
+            to={targetPath}
+            replace={true}
+            onClick={(e) => {
                 if (isActive) {
                   e.preventDefault();
                   const main = document.querySelector('main');

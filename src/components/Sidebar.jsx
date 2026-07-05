@@ -179,6 +179,7 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
 
       <div className="border-t border-border relative">
         <button
+          aria-label="Toggle Info Menu"
           onClick={() => setShowInfo(!showInfo)}
           className={`flex items-center gap-3 px-3 py-3 w-full text-left text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors ${isCollapsed ? 'justify-center' : ''}`}
           title={isCollapsed ? 'Info' : ''}
