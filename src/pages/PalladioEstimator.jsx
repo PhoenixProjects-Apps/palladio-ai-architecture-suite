@@ -86,6 +86,44 @@ function extractJson(text) {
   return null;
 }
 
+const EXTRACTION_FIELD_KEYS = [
+  'floorArea', 'groundFloorArea', 'upperFloorArea', 'wetArea', 'ceilingArea',
+  'roofFootprintArea', 'roofPitchDegrees', 'roofAreaOverride', 'externalWallLength',
+  'internalWallLength', 'externalWallArea', 'slabArea', 'slabVolume', 'garageArea',
+  'patioArea', 'porchArea', 'ceilingHeight'
+];
+
+function getExtractedValue(extraction, key) {
+  const field = extraction?.fields?.[key];
+  if (field && typeof field === 'object') return field.value ?? 0;
+  return extraction?.[key] ?? 0;
+}
+
+function getExtractedMeta(extraction, key) {
+  const field = extraction?.fields?.[key];
+  if (field && typeof field === 'object') {
+    return {
+      confidence: field.confidence || 'none',
+      source: field.source || 'Not shown',
+      unit: field.unit || ''
+    };
+  }
+  return { confidence: 'legacy', source: 'Legacy flat extraction', unit: '' };
+}
+
+function shouldApplyExtractedValue(currentValue, extractedValue, meta) {
+  const current = Number.parseFloat(currentValue);
+  const extracted = Number.parseFloat(extractedValue);
+
+  if (!Number.isFinite(extracted)) return false;
+  if (extracted <= 0) return false;
+  if (meta?.confidence === 'none') return false;
+
+  if (Number.isFinite(current) && current > 0) return false;
+
+  return true;
+}
+
 
 
 
@@ -138,6 +176,8 @@ export default function PalladioEstimator() {
 
   const [result, setResult] = useState(null);
   const [showFullEstimate, setShowFullEstimate] = useState(false);
+  const [extractionMetadata, setExtractionMetadata] = useState({});
+  const [extractionWarnings, setExtractionWarnings] = useState([]);
   const [isLoadingConfig, setIsLoadingConfig] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -147,7 +187,9 @@ export default function PalladioEstimator() {
       floorArea, wetArea, ceilingArea, externalWallArea, patioArea, porchArea, garageArea,
       roofFootprintArea, roofPitchDegrees, roofComplexity, roofWastePercent, roofAreaOverride,
       externalWallLength, internalWallLength, ceilingHeight,
-      roofMaterial, externalWallMaterial, floorFinish, finishLevel
+      roofMaterial, externalWallMaterial, floorFinish, finishLevel,
+      extractionMetadata,
+      extractionWarnings
     }, null, 2);
   };
 
@@ -184,6 +226,8 @@ export default function PalladioEstimator() {
           if (data.externalWallMaterial) setExternalWallMaterial(data.externalWallMaterial);
           if (data.floorFinish) setFloorFinish(data.floorFinish);
           if (data.finishLevel) setFinishLevel(data.finishLevel);
+          if (data.extractionMetadata) setExtractionMetadata(data.extractionMetadata);
+          if (Array.isArray(data.extractionWarnings)) setExtractionWarnings(data.extractionWarnings);
           toast.success("Loaded configuration from project");
         } else {
           throw new Error("Failed to fetch asset file");
@@ -234,32 +278,71 @@ export default function PalladioEstimator() {
         return;
       }
 
-      const prompt = `Analyze this dimensioned floor plan. Extract the following architectural quantities. Return ONLY a JSON object with these exact keys (use numbers only, no units, or 0 if cannot be determined). If a dimension is missing, try to estimate it based on standard proportions, but prioritize written dimensions:
-      - floorArea (m2)
-      - roofFootprintArea (m2)
-      - wetArea (m2)
-      - ceilingArea (m2)
-      - patioArea (m2)
-      - porchArea (m2)
-      - garageArea (m2)
-      - externalWallLength (m)
-      - internalWallLength (m)
-      - ceilingHeight (mm)`;
+      const prompt = `You are extracting explicit construction quantity inputs from architectural drawings for a deterministic estimating engine.
+
+Rules:
+1. Extract only values that are explicitly stated, dimensioned, scheduled, or directly calculable from clearly dimensioned plan geometry.
+2. Do not guess, infer from typical building ratios, or invent missing values.
+3. If a value is not shown or cannot be confidently determined, return 0.
+4. For every extracted field, include confidence and source notes.
+5. If a value is calculated from visible dimensions, say so in the source note.
+6. Never derive roof area from total floor area. Roof quantity must come from roof footprint/roof plan dimensions, stated roof area, or manual user input.
+7. Prefer explicit drawing schedules and area tables over visual approximation.
+8. Use square metres for areas, lineal metres for lengths, cubic metres for volumes, and millimetres for ceiling height.
+
+Allowed confidence values:
+high = explicitly stated or scheduled
+medium = directly calculated from visible dimensions
+low = visible but uncertain / requires manual check
+none = not shown, value must be 0
+
+Return this JSON shape exactly:
+{
+  "fields": {
+    "floorArea": { "value": 0, "unit": "m²", "confidence": "none", "source": "Not shown" },
+    "groundFloorArea": { "value": 0, "unit": "m²", "confidence": "none", "source": "Not shown" },
+    "upperFloorArea": { "value": 0, "unit": "m²", "confidence": "none", "source": "Not shown" },
+    "wetArea": { "value": 0, "unit": "m²", "confidence": "none", "source": "Not shown" },
+    "ceilingArea": { "value": 0, "unit": "m²", "confidence": "none", "source": "Not shown" },
+    "roofFootprintArea": { "value": 0, "unit": "m²", "confidence": "none", "source": "Not shown" },
+    "roofPitchDegrees": { "value": 0, "unit": "degrees", "confidence": "none", "source": "Not shown" },
+    "roofAreaOverride": { "value": 0, "unit": "m²", "confidence": "none", "source": "Not shown" },
+    "externalWallLength": { "value": 0, "unit": "lm", "confidence": "none", "source": "Not shown" },
+    "internalWallLength": { "value": 0, "unit": "lm", "confidence": "none", "source": "Not shown" },
+    "externalWallArea": { "value": 0, "unit": "m²", "confidence": "none", "source": "Not shown" },
+    "slabArea": { "value": 0, "unit": "m²", "confidence": "none", "source": "Not shown" },
+    "slabVolume": { "value": 0, "unit": "m³", "confidence": "none", "source": "Not shown" },
+    "garageArea": { "value": 0, "unit": "m²", "confidence": "none", "source": "Not shown" },
+    "patioArea": { "value": 0, "unit": "m²", "confidence": "none", "source": "Not shown" },
+    "porchArea": { "value": 0, "unit": "m²", "confidence": "none", "source": "Not shown" },
+    "ceilingHeight": { "value": 0, "unit": "mm", "confidence": "none", "source": "Not shown" }
+  },
+  "warnings": [
+    "List missing or low-confidence values that need manual review"
+  ]
+}`;
+
+      const fieldSchema = {
+        type: "object",
+        properties: {
+          value: { type: "number" },
+          unit: { type: "string" },
+          confidence: { type: "string", enum: ["high", "medium", "low", "none"] },
+          source: { type: "string" }
+        },
+        required: ["value", "unit", "confidence", "source"]
+      };
 
       const responseSchema = {
         type: "object",
         properties: {
-          floorArea: { type: "number" },
-          roofFootprintArea: { type: "number" },
-          wetArea: { type: "number" },
-          ceilingArea: { type: "number" },
-          patioArea: { type: "number" },
-          porchArea: { type: "number" },
-          garageArea: { type: "number" },
-          externalWallLength: { type: "number" },
-          internalWallLength: { type: "number" },
-          ceilingHeight: { type: "number" }
-        }
+          fields: {
+            type: "object",
+            properties: Object.fromEntries(EXTRACTION_FIELD_KEYS.map((key) => [key, fieldSchema]))
+          },
+          warnings: { type: "array", items: { type: "string" } }
+        },
+        required: ["fields", "warnings"]
       };
 
       const jsonPrompt = prompt + `\n\nCRITICAL: Return ONLY valid JSON matching this schema: ${JSON.stringify(responseSchema)}`;
@@ -274,16 +357,31 @@ export default function PalladioEstimator() {
       const res = extractJson(rawContent);
 
       if (res) {
-        if (res.floorArea) setFloorArea(String(res.floorArea));
-        if (res.roofFootprintArea) setRoofFootprintArea(String(res.roofFootprintArea));
-        if (res.wetArea) setWetArea(String(res.wetArea));
-        if (res.ceilingArea) setCeilingArea(String(res.ceilingArea));
-        if (res.patioArea) setPatioArea(String(res.patioArea));
-        if (res.porchArea) setPorchArea(String(res.porchArea));
-        if (res.garageArea) setGarageArea(String(res.garageArea));
-        if (res.externalWallLength) setExternalWallLength(String(res.externalWallLength));
-        if (res.internalWallLength) setInternalWallLength(String(res.internalWallLength));
-        if (res.ceilingHeight) setCeilingHeight(String(res.ceilingHeight));
+        const metadata = Object.fromEntries(EXTRACTION_FIELD_KEYS.map((key) => [key, getExtractedMeta(res, key)]));
+        setExtractionMetadata(metadata);
+        setExtractionWarnings(Array.isArray(res.warnings) ? res.warnings : []);
+
+        const applyField = (key, currentValue, setter) => {
+          const extractedValue = getExtractedValue(res, key);
+          const meta = metadata[key];
+          if (shouldApplyExtractedValue(currentValue, extractedValue, meta)) {
+            setter(String(extractedValue));
+          }
+        };
+
+        applyField('floorArea', floorArea, setFloorArea);
+        applyField('roofFootprintArea', roofFootprintArea, setRoofFootprintArea);
+        applyField('roofPitchDegrees', roofPitchDegrees, setRoofPitchDegrees);
+        applyField('roofAreaOverride', roofAreaOverride, setRoofAreaOverride);
+        applyField('wetArea', wetArea, setWetArea);
+        applyField('ceilingArea', ceilingArea, setCeilingArea);
+        applyField('patioArea', patioArea, setPatioArea);
+        applyField('porchArea', porchArea, setPorchArea);
+        applyField('garageArea', garageArea, setGarageArea);
+        applyField('externalWallLength', externalWallLength, setExternalWallLength);
+        applyField('internalWallLength', internalWallLength, setInternalWallLength);
+        applyField('externalWallArea', externalWallArea, setExternalWallArea);
+        applyField('ceilingHeight', ceilingHeight, setCeilingHeight);
         toast.success("Quantities auto-extracted from plan!");
       } else {
         toast.error("Quantities could not be determined. Check the file or try again.");
@@ -341,14 +439,14 @@ export default function PalladioEstimator() {
       const markup = SITE_DIFFICULTY_RATES[difficulty];
 
       const prompt = `You are an expert Australian Quantity Surveyor. Analyze the provided architectural floor plan or render.
-Calculate the estimated material quantities and costs. Use square metres (sqm) for areas and millimetres (mm) for lengths.
+Calculate the estimated material costs using the deterministic quantities supplied by the app. Use square metres (sqm) for areas and millimetres (mm) for lengths.
 Site details:
 - State: ${state}, City: ${city}
 - Storeys: ${storeys}
 - Site Difficulty: ${difficulty} (Apply a ${markup}% markup to the subtotal as 'site_difficulty_markup_cost')
 - Finish Level: ${finishLevel} (Apply a ×${FINISH_MULTIPLIERS[finishLevel]} multiplier to all finish/material line items)
 
-User-Provided Quantities (use these where provided, override AI estimates):
+App-Supplied Deterministic Quantities:
 - Floor Area: ${floorArea || 'not provided'} m²
 - Wet Area: ${wetArea || 'not provided'} m²
 - Garage Area: ${garageArea || 'not provided'} m²
@@ -376,13 +474,12 @@ ${JSON.stringify(localCosts)}
 
 INSTRUCTIONS:
 1. Identify all key materials and structural elements needed for this building.
-2. Estimate quantities based on standard Australian building sizes if scale is not clear.
-3. Cross-reference the required materials with the provided cost database. If a material is missing from the database, estimate it based on current Australian market rates.
-4. Calibrate all unit costs to align with the regional baseline cost per sqm for ${city}, ${state}. The total of all line items per sqm of building footprint should fall within the $${regionalRate.low}–$${regionalRate.high}/sqm range. Adjust rates up or down from the database defaults to match local market conditions for this specific city/region.
+2. The app supplies deterministic quantities derived from user inputs and extraction. Treat these quantities as authoritative. Do not invent replacement quantities. If a provided quantity is 0 or missing, either omit that line item or flag it in assumptions as requiring manual measurement. The app will recalculate line item totals, subtotal, markup and grand total after your response.
+3. Cross-reference the required materials with the provided cost database. If a material is missing from the database, estimate unit cost based on current Australian market rates.
+4. Calibrate unit costs to align with local market conditions for ${city}, ${state}; do not change supplied quantities to hit a target total.
 5. Do not include scaffolding as a line item. Scaffolding is calculated separately by the app when storeys are 2 or more.
-6. Calculate the subtotal, the site difficulty markup cost (${markup}% of subtotal), and the grand total.
-7. Provide a list of assumptions made during the takeoff.
-8. The app will recalculate totals after your response. Provide best-match item categories, item names, units, quantities and unit costs only. Do not rely on your own subtotal/grand total for final arithmetic.`;
+6. Provide best-match item categories, item names, units, quantities and unit costs only. Do not rely on your own subtotal/grand total for final arithmetic.
+7. Provide a list of assumptions made during the takeoff, including any missing quantities requiring manual measurement.`;
 
       const responseSchema = {
         type: "object",
