@@ -1,22 +1,30 @@
 import { useEffect, useRef } from 'react';
 
 /**
- * A lightweight hook to intercept the Android/browser back button
- * and close active overlays (like sidebars or modals) instead of navigating back.
+ * Intercepts Android/browser back while an overlay is open.
+ * Important: when the overlay is closed programmatically, e.g. by clicking
+ * a sidebar Link, do NOT call history.back(), because that undoes navigation.
  */
 export function useMobileBack(isOpen, onClose) {
   const pushedRef = useRef(false);
+  const closedByBackRef = useRef(false);
 
   useEffect(() => {
     if (!isOpen) return;
 
-    // Push a dummy state into the history stack when the overlay opens
-    window.history.pushState({ mobileOverlayOpen: true }, '');
     pushedRef.current = true;
+    closedByBackRef.current = false;
 
-    const handlePopState = (e) => {
-      // The back button was pressed, popping our dummy state
+    window.history.pushState(
+      { ...(window.history.state || {}), mobileOverlayOpen: true },
+      '',
+      window.location.href
+    );
+
+    const handlePopState = () => {
+      closedByBackRef.current = true;
       pushedRef.current = false;
+
       if (typeof onClose === 'function') {
         onClose();
       }
@@ -26,14 +34,24 @@ export function useMobileBack(isOpen, onClose) {
 
     return () => {
       window.removeEventListener('popstate', handlePopState);
-      // If the overlay was closed programmatically (e.g. clicking a close button or backdrop),
-      // we need to remove the dummy state we pushed so we don't trap the user.
-      if (pushedRef.current) {
+
+      // If the overlay was closed by the browser back button, the dummy state
+      // has already been popped. Nothing else to do.
+      if (closedByBackRef.current) {
         pushedRef.current = false;
-        if (window.history.state?.mobileOverlayOpen) {
-          window.history.back();
-        }
+        return;
       }
+
+      // If the overlay was closed programmatically — close button, backdrop,
+      // or clicking a sidebar route Link — DO NOT call history.back().
+      // Calling back here can undo the route change and send the user to Dashboard.
+      if (pushedRef.current && window.history.state?.mobileOverlayOpen) {
+        const nextState = { ...(window.history.state || {}) };
+        delete nextState.mobileOverlayOpen;
+        window.history.replaceState(nextState, '', window.location.href);
+      }
+
+      pushedRef.current = false;
     };
   }, [isOpen, onClose]);
 }
