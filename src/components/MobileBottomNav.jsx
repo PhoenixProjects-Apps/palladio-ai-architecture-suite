@@ -4,36 +4,79 @@ import { Home, MessageSquare, Folder, User } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { cn } from '@/lib/utils';
 
+const navItems = [
+  { label: 'Home', icon: Home, path: '/' },
+  { label: 'Assistant', icon: MessageSquare, path: '/SavedChats' },
+  { label: 'Projects', icon: Folder, path: '/Projects' },
+  { label: 'Profile', icon: User, path: '/UserProfile' },
+];
+
+function isPathWithinTab(savedPath, tabPath) {
+  if (!savedPath || !tabPath) return false;
+
+  if (tabPath === '/' || tabPath === createPageUrl('Dashboard')) {
+    return savedPath === '/' || savedPath === createPageUrl('Dashboard');
+  }
+
+  return (
+    savedPath === tabPath ||
+    savedPath.startsWith(`${tabPath}/`) ||
+    savedPath.startsWith(`${tabPath}?`)
+  );
+}
+
 export default function MobileBottomNav() {
   const location = useLocation();
   
   const [tabHistory, setTabHistory] = React.useState(() => {
     const saved = sessionStorage.getItem('mobile-tab-history');
-    return saved ? JSON.parse(saved) : {};
+    if (!saved) return {};
+
+    try {
+      return JSON.parse(saved);
+    } catch {
+      sessionStorage.removeItem('mobile-tab-history');
+      return {};
+    }
   });
 
   React.useEffect(() => {
-    const activeTab = navItems.find(item => location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path)));
+    const activeTab = navItems.find((item) =>
+      item.path === '/'
+        ? location.pathname === '/'
+        : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`)
+    );
+
     if (activeTab) {
-      const newHistory = { ...tabHistory, [activeTab.path]: location.pathname + location.search };
-      setTabHistory(newHistory);
-      sessionStorage.setItem('mobile-tab-history', JSON.stringify(newHistory));
+      const currentPath = location.pathname + location.search;
+
+      setTabHistory((prev) => {
+        if (prev[activeTab.path] === currentPath) return prev;
+
+        const next = {
+          ...prev,
+          [activeTab.path]: currentPath,
+        };
+
+        sessionStorage.setItem('mobile-tab-history', JSON.stringify(next));
+        return next;
+      });
     }
   }, [location.pathname, location.search]);
-
-  const navItems = [
-    { label: 'Home', icon: Home, path: '/' },
-    { label: 'Assistant', icon: MessageSquare, path: '/SavedChats' },
-    { label: 'Projects', icon: Folder, path: '/Projects' },
-    { label: 'Profile', icon: User, path: '/UserProfile' },
-  ];
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border pb-[env(safe-area-inset-bottom)] z-50">
       <div className="flex items-center justify-around h-16 px-2">
         {navItems.map((item) => {
-          const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
-          const targetPath = (!isActive && tabHistory[item.path]) ? tabHistory[item.path] : item.path;
+          const isActive =
+            item.path === '/'
+              ? location.pathname === '/'
+              : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+          const savedPath = tabHistory[item.path];
+          const targetPath =
+            !isActive && isPathWithinTab(savedPath, item.path)
+              ? savedPath
+              : item.path;
           return (
             <Link
             key={item.label}
