@@ -155,7 +155,7 @@ export default function PalladioAssess() {
 
   return (
     <PalladioGate>
-      <div className="min-h-screen bg-[#0f1117] text-white p-4 sm:p-6 pb-12">
+      <div className="min-h-screen bg-[#0f1117] text-white p-4 sm:p-6 pb-12 overflow-x-hidden">
         <div className="max-w-3xl mx-auto">
           <header className="flex items-center gap-4 mb-8 border-b border-white/10 pb-4">
             <BackButton aria-label="Go Back" className="hover:bg-white/10 rounded-full" />
@@ -213,7 +213,7 @@ export default function PalladioAssess() {
 
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-white/10 hover:border-cyan-500/50 rounded-3xl p-12 text-center cursor-pointer transition-colors bg-white/5"
+                  className="border-2 border-dashed border-white/10 hover:border-cyan-500/50 rounded-3xl p-6 sm:p-12 text-center cursor-pointer transition-colors bg-white/5 min-w-0"
                 >
                   {isUploading ? (
                     <div className="flex flex-col items-center">
@@ -225,7 +225,7 @@ export default function PalladioAssess() {
                   ) : file ? (
                     <div className="flex flex-col items-center">
                       <FileImage size={48} className="text-cyan-500 mb-4" />
-                      <p className="text-white font-medium">{file.name}</p>
+                      <p className="text-white font-medium break-all max-w-full">{file.name}</p>
                       <p className="text-slate-400 text-sm mt-1">
                         PDF Document ({(file.size / (1024 * 1024)).toFixed(2)} MB)
                       </p>
@@ -273,8 +273,8 @@ export default function PalladioAssess() {
                       <h3 className="text-cyan-400 font-semibold mb-3 flex items-center gap-2"><Building size={18} /> Project Information</h3>
                       <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
                         {piRows.map((r, i) => (
-                          <div key={i} className="flex gap-2">
-                            <span className="text-slate-500 min-w-[100px] shrink-0">{r.label}</span>
+                          <div key={i} className="flex flex-col sm:flex-row sm:gap-2 min-w-0">
+                            <span className="text-slate-500 sm:min-w-[100px] shrink-0">{r.label}</span>
                             <span className="text-slate-200 break-words min-w-0">{r.value}</span>
                           </div>
                         ))}

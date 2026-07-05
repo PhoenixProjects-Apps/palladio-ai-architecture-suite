@@ -65,7 +65,7 @@ export default function PalladioProperty() {
 
   return (
     <PalladioGate>
-            <div className="min-h-screen bg-[#0f1117] text-white p-4 sm:p-6 pb-8">
+            <div className="min-h-screen bg-[#0f1117] text-white p-4 sm:p-6 pb-8 overflow-x-hidden">
                 <div className="max-w-4xl mx-auto">
                     <header className="flex items-center gap-4 mb-8 border-b border-white/10 pb-4">
                     <BackButton aria-label="Go Back" className="hover:bg-white/10 rounded-full" />
@@ -101,9 +101,9 @@ export default function PalladioProperty() {
                                 <p className="text-slate-200 leading-relaxed">{result.overview}</p>
                             </div>
 
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                                 {result.key_facts?.map((fact, i) =>
-              <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-4 shadow-md">
+              <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-4 shadow-md min-w-0 break-words">
                                         <p className="text-xs text-slate-400 mb-1">{fact.label}</p>
                                         <p className="font-semibold text-white">{fact.value}</p>
                                     </div>

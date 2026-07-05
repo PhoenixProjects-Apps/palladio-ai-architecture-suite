@@ -209,9 +209,9 @@ export default function PalladioFloorplan() {
 
   return (
     <PalladioGate>
-            <div className="min-h-screen bg-[#0f1117] text-white p-4 sm:p-6 pb-12 sm:pb-24">
+            <div className="min-h-screen bg-[#0f1117] text-white p-4 sm:p-6 pb-12 sm:pb-24 overflow-x-hidden">
                 <div className="max-w-5xl mx-auto">
-                    <header className="flex flex-wrap items-center gap-3 sm:gap-4 mb-8 border-b border-white/10 pb-4">
+                    <header className="flex flex-wrap items-center gap-3 sm:gap-4 mb-8 border-b border-white/10 pb-4 min-w-0">
                         <BackButton aria-label="Go Back" className="hover:bg-white/10 rounded-full shrink-0" />
                         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center shadow-lg shrink-0">
                             <Layers size={20} />
@@ -367,7 +367,7 @@ export default function PalladioFloorplan() {
                                         {cadFile ?
                   <div className="flex flex-col items-center">
                                                 <ImageIcon size={32} className="text-violet-500 mb-2" />
-                                                <p className="text-white text-sm max-w-[200px] truncate">{cadFile.name}</p>
+                                                <p className="text-white text-sm max-w-full break-all px-2">{cadFile.name}</p>
                                             </div> :
 
                   <div className="flex flex-col items-center">

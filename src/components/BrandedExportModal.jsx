@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { base44 } from '@/api/base44Client';
 import { uploadToFirebase } from '@/lib/uploadHelper';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { toast } from 'sonner';
 
 import { Loader2, Download, Upload } from 'lucide-react';
 
@@ -67,7 +68,7 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
       };
 
       if (!imageUrl) {
-        alert("No floorplan image asset found to export. Please generate the plan first.");
+        toast.error("No floorplan image asset found to export. Please generate the plan first.");
         setIsExporting(false);
         return;
       }
@@ -157,7 +158,7 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
 
     } catch (err) {
       console.error(err);
-      alert("An error occurred compiling the high-res layout file. Please try again.");
+      toast.error("An error occurred compiling the high-res layout file. Please try again.");
     } finally {
       setIsExporting(false);
       setOpen(false);
@@ -173,12 +174,12 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-5xl bg-slate-900 border-slate-800 text-white">
+      <DialogContent className="w-[calc(100vw-2rem)] max-w-5xl max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-800 text-white">
         <DialogHeader>
           <DialogTitle>Export Branded Floorplan</DialogTitle>
         </DialogHeader>
         
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0">
           <div className="space-y-4">
             <div>
               <Label>Listing Title</Label>
@@ -197,11 +198,11 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
             </div>
             <div>
               <Label>Company Logo</Label>
-              <div className="mt-2 flex items-center gap-4">
+              <div className="mt-2 flex flex-col sm:flex-row sm:items-center gap-4 min-w-0">
                 {logoUrl ? (
                   <img src={logoUrl} alt="Logo" className="h-12 object-contain bg-white/10 p-1 rounded" crossOrigin="anonymous" />
                 ) : (
-                  <div className="h-12 w-24 bg-slate-800 rounded flex items-center justify-center text-xs text-slate-400 border border-slate-700 border-dashed">No Logo</div>
+                  <div className="h-12 w-24 bg-slate-800 rounded flex items-center justify-center text-xs text-slate-400 border border-slate-700 border-dashed shrink-0">No Logo</div>
                 )}
                 <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="text-slate-200 border-slate-700">
                   {isUploading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}

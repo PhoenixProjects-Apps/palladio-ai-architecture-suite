@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import PalladioGate from '@/components/PalladioGate';
 import BrandedExportModal from '@/components/BrandedExportModal';
+import { toast } from 'sonner';
 
 export default function Floorplan3D() {
   const location = useLocation();
@@ -39,8 +40,7 @@ export default function Floorplan3D() {
     try {
       const tokenRes = await base44.functions.invoke('consumeToken', { amount: 5 });
       if (tokenRes.data?.error) {
-        // Simple alert since toast might not be imported yet
-        alert("You don't have enough AI tokens. Rendering requires 5 tokens. Please upgrade your plan.");
+        toast.error("You don't have enough AI tokens. Rendering requires 5 tokens. Please upgrade your plan.");
         return;
       }
 
@@ -256,8 +256,8 @@ export default function Floorplan3D() {
           {outputImageUrl ? (
             <div className="flex flex-col items-center justify-center gap-4 w-full max-w-4xl animate-in fade-in zoom-in duration-500">
               <img src={outputImageUrl} alt="Generated Floorplan" className="w-full h-auto object-contain rounded-xl shadow-2xl border border-white/10 max-h-[80vh]" />
-              <div className="flex items-center gap-4 mt-2">
-                <a href={outputImageUrl} target="_blank" rel="noreferrer" className="text-cyan-400 hover:text-cyan-300 text-sm underline">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mt-2 w-full sm:w-auto">
+                <a href={outputImageUrl} target="_blank" rel="noreferrer" className="min-h-11 inline-flex items-center justify-center text-cyan-400 hover:text-cyan-300 text-sm underline">
                   View Full Resolution
                 </a>
                 <BrandedExportModal 

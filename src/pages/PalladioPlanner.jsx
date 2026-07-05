@@ -19,6 +19,78 @@ const devTypes = [
 "Multi-unit Development", "Commercial/Retail", "Industrial",
 "Change of Use", "Demolition", "Signage", "Other"];
 
+const POSITIVE_OVERLAY_OPTIONS = [
+  'Flood overlay',
+  'Bushfire overlay',
+  'Heritage / traditional building character',
+  'Airport environs / OLS',
+  'Transport corridor / road hierarchy',
+  'Waterway corridor',
+  'Biodiversity / environmental significance',
+  'Landslide / steep land',
+  'Coastal hazard',
+  'Infrastructure / trunk infrastructure',
+  'Acid sulfate soils',
+  'Stormwater / overland flow',
+  'UNVERIFIED - check council mapping tool'
+];
+
+const NEGATIVE_OVERLAY_OPTIONS = [
+  'No flood overlay detected',
+  'No bushfire overlay detected',
+  'No heritage overlay detected',
+  'No airport environs overlay detected',
+  'No transport corridor overlay detected',
+  'No waterway corridor overlay detected',
+  'No biodiversity overlay detected',
+  'No landslide / steep land overlay detected',
+  'No coastal hazard overlay detected',
+  'No acid sulfate soils overlay detected'
+];
+
+function ChoiceChipGroup({ label, confidence, options, selected, disabled, onChange }) {
+  const current = Array.isArray(selected) ? selected : [];
+  const allOptions = Array.from(new Set([...options, ...current]));
+
+  const toggle = (option) => {
+    if (disabled) return;
+    onChange(current.includes(option) ? current.filter((item) => item !== option) : [...current, option]);
+  };
+
+  return (
+    <div className="sm:col-span-2 min-w-0">
+      <span className="text-slate-500 text-xs mb-2 flex flex-wrap items-center gap-2">
+        {label}
+        {confidence && (
+          <span className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${
+            confidence === 'HIGH' ? 'bg-emerald-500/20 text-emerald-400' :
+            confidence === 'MEDIUM' ? 'bg-amber-500/20 text-amber-400' :
+            'bg-red-500/20 text-red-400'
+          }`}>
+            {confidence} CONFIDENCE
+          </span>
+        )}
+      </span>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {allOptions.map((option) => {
+          const active = current.includes(option);
+          return (
+            <button
+              key={option}
+              type="button"
+              onClick={() => toggle(option)}
+              disabled={disabled}
+              className={`min-h-11 rounded-xl border px-3 py-2 text-left text-xs font-medium transition-colors break-words focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${active ? 'bg-rose-600/20 border-rose-500/60 text-rose-200' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
+            >
+              {option}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function extractJson(text) {
   if (!text) return null;
   let s = String(text).trim().replace(/```json/gi, '').replace(/```/g, '').trim();
@@ -537,7 +609,7 @@ Return ONLY valid JSON matching this exact structure:
 
   return (
     <PalladioGate>
-            <div className="min-h-screen bg-[#0f1117] text-white p-4 sm:p-6 pb-8">
+            <div className="min-h-screen bg-[#0f1117] text-white p-4 sm:p-6 pb-8 overflow-x-hidden">
                 <div className="max-w-4xl mx-auto">
                     <header className="flex items-center gap-4 mb-8 border-b border-white/10 pb-4">
                     <BackButton aria-label="Go Back" className="hover:bg-white/10 rounded-full" />
@@ -584,7 +656,7 @@ Return ONLY valid JSON matching this exact structure:
                                             <div>
                                                 <span className="text-slate-500 block text-xs mb-1">Lot / RP</span>
                                                 <input
-                            className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white"
+                            className="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 min-h-11 text-sm text-white"
                             value={propertyData.lot_rp || ''}
                             onChange={(e) => setPropertyData({ ...propertyData, lot_rp: e.target.value })}
                             placeholder="e.g. Lot 1 RP 12345"
@@ -594,14 +666,14 @@ Return ONLY valid JSON matching this exact structure:
                                             <div>
                                                 <span className="text-slate-500 block text-xs mb-1">Site Area</span>
                                                 <input
-                            className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white"
+                            className="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 min-h-11 text-sm text-white"
                             value={propertyData.site_area || ''}
                             onChange={(e) => setPropertyData({ ...propertyData, site_area: e.target.value })}
                             placeholder="e.g. 600 sqm"
                             disabled={isFetchingProperty} />
                           
                                             </div>
-                                            <div className="col-span-2">
+                                            <div className="sm:col-span-2">
                                                 <span className="text-slate-500 text-xs mb-1 flex items-center gap-2">
                                                     Zoning
                                                     {propertyData.zoning_confidence && (
@@ -616,7 +688,7 @@ Return ONLY valid JSON matching this exact structure:
                                                 </span>
 
                                                 <input
-                                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white mt-1"
+                                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 min-h-11 text-sm text-white mt-1"
                                                     value={propertyData.zoning || ''}
                                                     onChange={(e) => setPropertyData({ ...propertyData, zoning: e.target.value })}
                                                     placeholder="e.g. Low density residential zone"
@@ -624,10 +696,10 @@ Return ONLY valid JSON matching this exact structure:
                                                 />
                                             </div>
 
-                                            <div className="col-span-2">
+                                            <div className="sm:col-span-2">
                                                 <span className="text-slate-500 text-xs mb-1 block">Neighbourhood / Local Plan</span>
                                                 <input
-                                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white mt-1"
+                                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 min-h-11 text-sm text-white mt-1"
                                                     value={propertyData.neighbourhood_plan || ''}
                                                     onChange={(e) => setPropertyData({ ...propertyData, neighbourhood_plan: e.target.value })}
                                                     placeholder="e.g. Carina-Carindale neighbourhood plan"
@@ -635,50 +707,25 @@ Return ONLY valid JSON matching this exact structure:
                                                 />
                                             </div>
 
-                                            <div className="col-span-2">
-                                                <span className="text-slate-500 text-xs mb-1 flex items-center gap-2">
-                                                    Positive Overlays
-                                                    {propertyData.overlay_confidence && (
-                                                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${
-                                                        propertyData.overlay_confidence === 'HIGH' ? 'bg-emerald-500/20 text-emerald-400' :
-                                                        propertyData.overlay_confidence === 'MEDIUM' ? 'bg-amber-500/20 text-amber-400' :
-                                                        'bg-red-500/20 text-red-400'
-                                                    }`}>
-                                                        {propertyData.overlay_confidence} CONFIDENCE
-                                                    </span>
-                                                    )}
-                                                </span>
+                                            <ChoiceChipGroup
+                                                label="Positive Overlays"
+                                                confidence={propertyData.overlay_confidence}
+                                                options={POSITIVE_OVERLAY_OPTIONS}
+                                                selected={propertyData.overlays}
+                                                disabled={isFetchingProperty}
+                                                onChange={(overlays) => setPropertyData({ ...propertyData, overlays })}
+                                            />
 
-                                                <textarea
-                                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white mt-1"
-                                                    value={Array.isArray(propertyData.overlays) ? propertyData.overlays.join('\n') : ''}
-                                                    onChange={(e) => setPropertyData({
-                                                    ...propertyData,
-                                                    overlays: e.target.value.split('\n').map(x => x.trim()).filter(Boolean)
-                                                    })}
-                                                    placeholder="One overlay per line"
-                                                    rows={3}
-                                                    disabled={isFetchingProperty}
-                                                />
-                                            </div>
-
-                                            <div className="col-span-2">
-                                                <span className="text-slate-500 text-xs mb-1 block">Negative Overlay Checks</span>
-                                                <textarea
-                                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white mt-1"
-                                                    value={Array.isArray(propertyData.negative_overlay_checks) ? propertyData.negative_overlay_checks.join('\n') : ''}
-                                                    onChange={(e) => setPropertyData({
-                                                    ...propertyData,
-                                                    negative_overlay_checks: e.target.value.split('\n').map(x => x.trim()).filter(Boolean)
-                                                    })}
-                                                    placeholder="e.g. No flood overlay detected"
-                                                    rows={3}
-                                                    disabled={isFetchingProperty}
-                                                />
-                                            </div>
+                                            <ChoiceChipGroup
+                                                label="Negative Overlay Checks"
+                                                options={NEGATIVE_OVERLAY_OPTIONS}
+                                                selected={propertyData.negative_overlay_checks}
+                                                disabled={isFetchingProperty}
+                                                onChange={(negative_overlay_checks) => setPropertyData({ ...propertyData, negative_overlay_checks })}
+                                            />
 
                                             {propertyData.verification_notes && (
-                                            <div className="col-span-2 text-xs text-amber-400 mt-1">
+                                            <div className="sm:col-span-2 text-xs text-amber-400 mt-1 break-words">
                                                 {propertyData.verification_notes}
                                             </div>
                                             )}
@@ -704,8 +751,8 @@ Return ONLY valid JSON matching this exact structure:
                                                 <div className="space-y-2">
                                                     {propertyData.forms_and_applications.map((form, idx) =>
                           <div key={idx} className="flex flex-col gap-2 p-2 rounded-lg border border-white/5 bg-black/20">
-                                                            <a href={form.link} target="_blank" rel="noreferrer" className="flex items-center justify-between group hover:bg-white/5 p-1 rounded transition-colors text-xs">
-                                                                <span className="text-rose-400 group-hover:text-rose-300 transition-colors font-medium">{form.name}</span>
+                                                            <a href={form.link} target="_blank" rel="noreferrer" className="flex items-center justify-between group hover:bg-white/5 p-1 rounded transition-colors text-xs min-w-0">
+                                                                <span className="text-rose-400 group-hover:text-rose-300 transition-colors font-medium break-words min-w-0">{form.name}</span>
                                                                 <ExternalLink size={12} className="text-slate-500 group-hover:text-rose-300" />
                                                             </a>
                                                             <Button
@@ -867,7 +914,7 @@ Return ONLY valid JSON matching this exact structure:
                                             {docFile ?
                     <div className="flex flex-col items-center">
                         <File size={32} className="text-rose-500 mb-2" />
-                        <p className="text-white text-sm max-w-[200px] truncate">{docFile.name}</p>
+                        <p className="text-white text-sm max-w-full break-all px-2">{docFile.name}</p>
                     </div> :
 
                     <div className="flex flex-col items-center">

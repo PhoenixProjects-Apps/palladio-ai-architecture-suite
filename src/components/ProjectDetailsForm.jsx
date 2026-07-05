@@ -56,7 +56,7 @@ export default function ProjectDetailsForm({ value, onChange }) {
   const fieldClass = 'bg-white/5 border-white/10 text-white placeholder:text-slate-500 rounded-xl h-11';
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
+    <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4 overflow-hidden min-w-0">
       <div className="flex items-center gap-2 text-cyan-400 text-sm font-semibold">
         <FileText size={16} /> Project Details <span className="text-red-400 text-xs">*</span>
       </div>
@@ -105,7 +105,7 @@ export default function ProjectDetailsForm({ value, onChange }) {
       </div>
       <div className="space-y-1.5">
         <label className="text-xs text-slate-400">Council Overlays</label>
-        <Textarea value={value.councilOverlays} onChange={(e) => set('councilOverlays', e.target.value)} placeholder="Auto-filled" disabled={lookingUp} rows={2} className="bg-white/5 border-white/10 text-white placeholder:text-slate-500 rounded-xl" />
+        <Textarea value={value.councilOverlays} onChange={(e) => set('councilOverlays', e.target.value)} placeholder="Auto-filled" disabled={lookingUp} rows={2} className="bg-white/5 border-white/10 text-white placeholder:text-slate-500 rounded-xl min-h-[88px] break-words" />
       </div>
       {lookingUp && (
         <div className="flex items-center gap-2 text-xs text-cyan-400">

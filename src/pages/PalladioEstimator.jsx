@@ -646,7 +646,7 @@ INSTRUCTIONS:
   };
 
   return (
-    <div className="min-h-screen bg-[#0f1117] text-white p-4 sm:p-6 pb-8">
+    <div className="min-h-screen bg-[#0f1117] text-white p-4 sm:p-6 pb-8 overflow-x-hidden">
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <div className="flex flex-col gap-4 border-b border-slate-800 pb-4">
                     <header className="flex items-center gap-4 border-b border-white/10 mb-1">
@@ -835,11 +835,11 @@ INSTRUCTIONS:
                                         <label className="text-xs text-slate-400 mb-1 block">Patio (m²)</label>
                                         <Input type="number" value={patioArea} onChange={(e) => setPatioArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
-                                    <div className="col-span-2">
+                                    <div className="sm:col-span-2">
                                         <label className="text-xs text-slate-400 mb-1 block">Porch (m²)</label>
                                         <Input type="number" value={porchArea} onChange={(e) => setPorchArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
-                                    <div className="col-span-2">
+                                    <div className="sm:col-span-2">
                                         <label className="text-xs text-slate-400 mb-1 block">Garage (m²)</label>
                                         <Input type="number" value={garageArea} onChange={(e) => setGarageArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
@@ -856,7 +856,7 @@ INSTRUCTIONS:
                                         <label className="text-xs text-slate-400 mb-1 block">Internal Wall Length (m)</label>
                                         <Input type="number" value={internalWallLength} onChange={(e) => setInternalWallLength(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
-                                    <div className="col-span-2">
+                                    <div className="sm:col-span-2">
                                         <label className="text-xs text-slate-400 mb-1 block">Ceiling Height (mm)</label>
                                         <Input type="number" value={ceilingHeight} onChange={(e) => setCeilingHeight(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
@@ -934,12 +934,12 @@ INSTRUCTIONS:
                 <div className="lg:col-span-2 min-w-0 overflow-hidden">
                     {result ?
             <Card className="bg-slate-900 border-slate-800">
-                            <CardHeader className="flex flex-row items-center justify-between border-b border-slate-800 pb-4">
+                            <CardHeader className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between border-b border-slate-800 pb-4 min-w-0">
                                 <div>
                                     <CardTitle className="text-white text-xl">Detailed Estimate</CardTitle>
                                     <CardDescription className="text-slate-400">Based on localized DB and AI takeoff.</CardDescription>
                                 </div>
-                                <div className="text-right">
+                                <div className="text-left sm:text-right min-w-0">
                                     <p className="text-sm text-slate-400">Grand Total</p>
                                     <p className="text-2xl font-bold text-blue-400">{formatCurrency(result.grand_total)}</p>
                                 </div>

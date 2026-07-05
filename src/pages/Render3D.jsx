@@ -567,7 +567,7 @@ export default function Render3D() {
 
   return (
     <PalladioGate>
-    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a14' }}>
+    <div className="overflow-x-hidden" style={{ minHeight: '100vh', backgroundColor: '#0a0a14' }}>
       {/* Header */}
       <div style={{
           display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px',
@@ -581,10 +581,10 @@ export default function Render3D() {
         </div>
       </div>
 
-      <div className="px-4 py-5 space-y-6" style={{ maxWidth: '520px', margin: '0 auto' }}>
+      <div className="px-4 py-5 space-y-6 w-full max-w-[520px] mx-auto min-w-0">
 
         {/* Upload Section */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <div className="flex flex-col mb-3">
               <h2 className="text-white text-sm font-semibold mb-2">1. 3D Building View</h2>
@@ -709,7 +709,7 @@ export default function Render3D() {
             <h2 className="text-white text-sm font-semibold">Rendering Presets</h2>
             {savedPresetsList.length > 0 &&
               <Select onValueChange={(id) => applyPreset(savedPresetsList.find((p) => p.id === id))}>
-                <SelectTrigger className="bg-slate-900 border-slate-700 text-white text-xs min-h-11 w-[160px]">
+                <SelectTrigger className="bg-slate-900 border-slate-700 text-white text-xs min-h-11 w-full sm:w-[160px]">
                   <Bookmark size={14} className="mr-2 text-teal-400" />
                   <SelectValue placeholder="Load preset..." />
                 </SelectTrigger>
@@ -724,7 +724,7 @@ export default function Render3D() {
               }
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
             {PRESETS.map(({ key, label, options }) =>
               <div key={key}>
                 <label className="block text-xs mb-1.5" style={{ color: '#94a3b8' }}>{label}</label>
@@ -769,7 +769,7 @@ export default function Render3D() {
                             });
                           }}
                           title={mat.bestUsedFor}
-                          className={`px-4 py-2 rounded-full text-xs font-medium transition-colors ${isSelected ? 'bg-teal-500/20 text-teal-400 border border-teal-500/50' : 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700 hover:text-slate-200'}`}
+                          className={`min-h-11 px-4 py-2 rounded-full text-xs font-medium transition-colors text-left break-words ${isSelected ? 'bg-teal-500/20 text-teal-400 border border-teal-500/50' : 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700 hover:text-slate-200'}`}
                         >
                           {mat.label}
                         </button>
@@ -785,7 +785,7 @@ export default function Render3D() {
             <Button
                 variant="ghost"
                 onClick={() => setShowAdvanced(!showAdvanced)}
-                className="w-full text-xs text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl justify-between h-9">
+                className="w-full text-xs text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl justify-between min-h-11">
                 
               <span>Advanced Generation Settings</span>
               {showAdvanced ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -845,7 +845,7 @@ export default function Render3D() {
               className="bg-slate-900 border-slate-700 text-white placeholder:text-slate-600 text-sm rounded-xl min-h-[110px] resize-none mb-3" />
             
           
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Input
                 placeholder="Preset name (e.g. My Custom Villa)"
                 value={presetName}
@@ -856,7 +856,7 @@ export default function Render3D() {
                 onClick={handleSavePreset}
                 disabled={isSavingPreset || !presetName.trim()}
                 variant="outline"
-                className="h-9 text-xs rounded-xl border-slate-700 text-slate-300 hover:text-white shrink-0">
+                className="min-h-11 text-xs rounded-xl border-slate-700 text-slate-300 hover:text-white shrink-0">
                 
               {isSavingPreset ? <Loader2 size={14} className="animate-spin mr-2" /> : <Save size={14} className="mr-2" />}
               Save Preset
@@ -1012,7 +1012,7 @@ export default function Render3D() {
                   <Button
                   onClick={handleMagicEdit}
                   disabled={isEditing || !magicEditPrompt.trim()}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl h-10">
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl min-h-11">
                   
                     {isEditing ?
                   <><Loader2 size={16} className="animate-spin mr-2" /> Editing...</> :
