@@ -815,8 +815,9 @@ export default function Render3D() {
                       disabled={!lockSeed}
                     />
                     <button 
+                      type="button"
                       onClick={() => setLockSeed(!lockSeed)}
-                      className={`h-9 px-3 rounded-xl text-xs font-medium border ${lockSeed ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300' : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700'}`}
+                      className={`min-h-[44px] px-3 rounded-xl text-xs font-medium border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${lockSeed ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300' : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700'}`}
                     >
                       {lockSeed ? 'Locked' : 'Unlocked'}
                     </button>
@@ -978,7 +979,7 @@ export default function Render3D() {
                       <Brush size={14} /> Draw over the image to highlight areas
                     </p>
                     {hasDrawn &&
-                  <button onClick={clearCanvas} className="text-xs text-slate-400 hover:text-red-400 transition-colors">
+                  <button type="button" onClick={clearCanvas} className="text-xs text-slate-400 hover:text-red-400 transition-colors min-h-[44px] min-w-[44px] inline-flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                         Clear Brush
                       </button>
                   }

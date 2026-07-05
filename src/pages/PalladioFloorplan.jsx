@@ -378,7 +378,7 @@ export default function PalladioFloorplan() {
                                                 <p className="text-sm font-medium text-white">Click or drag image here</p>
                                             </div>
                   }
-                                        <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*" className="hidden" />
+                                        <input type="file" aria-label="Upload sketch or base plan" ref={fileInputRef} onChange={handleFileSelect} accept="image/*" className="hidden" />
                                     </div>
                                 </div>
                                 <Button

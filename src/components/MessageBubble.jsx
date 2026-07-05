@@ -124,9 +124,11 @@ export default function MessageBubble({ message, showToolCalls = false }) {
                                                     <code className={className} {...props}>{children}</code>
                                                 </pre>
                                                 <Button
+                                                    type="button"
+                                                    aria-label="Copy code"
                                                     size="icon"
                                                     variant="ghost"
-                                                    className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover/code:opacity-100 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all"
+                                                    className="absolute top-2 right-2 h-11 w-11 opacity-0 group-hover/code:opacity-100 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                                     onClick={() => {
                                                         navigator.clipboard.writeText(String(children).replace(/\n$/, ''));
                                                         toast.success('Code copied to clipboard');

@@ -879,7 +879,7 @@ Return ONLY valid JSON matching this exact structure:
                                                     <p className="text-xs text-slate-500 mt-1">PDF, DOCX, TXT, Images</p>
                                                 </div>
                     }
-                                            <input type="file" onChange={handleDocUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept=".pdf,.doc,.docx,.txt,image/*" />
+                                            <input type="file" aria-label="Upload planning document" onChange={handleDocUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept=".pdf,.doc,.docx,.txt,image/*" />
                                         </div>
                                     </div>
                                     

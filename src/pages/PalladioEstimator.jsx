@@ -670,7 +670,7 @@ INSTRUCTIONS:
                                         </div>
                                     </div>
                   }
-                                <input ref={fileInputRef} type="file" accept="image/*,.pdf" onChange={handleFileSelect} className="hidden" />
+                                <input ref={fileInputRef} type="file" aria-label="Upload floor plan file" accept="image/*,.pdf" onChange={handleFileSelect} className="hidden" />
                             </div>
                             
                             {fileUrl && (

@@ -238,7 +238,7 @@ export default function PalladioAssess() {
                       <p className="text-slate-400 text-sm">Drag and drop, or click to browse (Images, PDF)</p>
                     </div>
                   )}
-                  <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*,.pdf" className="hidden" />
+                  <input type="file" aria-label="Upload floor plan for assessment" ref={fileInputRef} onChange={handleFileSelect} accept="image/*,.pdf" className="hidden" />
                 </div>
 
                 {uploadError && (

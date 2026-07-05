@@ -205,7 +205,7 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
                   {isUploading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
                   Upload
                 </Button>
-                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
+                <input type="file" aria-label="Upload company logo" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
               </div>
             </div>
             
