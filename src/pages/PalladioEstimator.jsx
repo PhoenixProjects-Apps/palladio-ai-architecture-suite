@@ -14,13 +14,43 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import SaveToProject from '@/components/SaveToProject';
 import ChooseProject from '@/components/ChooseProject';
+import { SITE_DIFFICULTY_RATES, CITY_OPTIONS, REGIONAL_COST_RATES, FINISH_MULTIPLIERS, COUNCIL_FEE_BASE, REGIONAL_FEE_MULTIPLIER, STATES, STOREYS_OPTIONS, ROOF_MATERIALS, EXTERNAL_WALL_MATERIALS, FLOOR_FINISHES, FINISH_LEVELS_OPTIONS } from '@/lib/estimatorData';
+import { calculateDerivedQuantities, calculateSilentCosts } from '@/lib/estimator/calculateEstimate';
 
-const SITE_DIFFICULTY_RATES = {
-  'Level / Standard': 0,
-  'Sloping / Moderate': 10,
-  'Steep / Difficult': 20,
-  'Extreme / Restricted Access': 30
-};
+
+
+const SummaryTable = React.memo(({ lineItems, formatCurrency, subtotal, markupCost, difficultyPercent }) => (
+                                    <SummaryTable lineItems={result.line_items} formatCurrency={formatCurrency} subtotal={result.subtotal} markupCost={result.site_difficulty_markup_cost} difficultyPercent={SITE_DIFFICULTY_RATES[difficulty]} />
+));
+
+const EstimateTable = React.memo(({ lineItems, formatCurrency }) => (
+  <Table>
+    <TableHeader>
+      <TableRow className="border-slate-800 hover:bg-transparent">
+        <TableHead className="text-slate-400">Category</TableHead>
+        <TableHead className="text-slate-400">Item</TableHead>
+        <TableHead className="text-right text-slate-400">Qty</TableHead>
+        <TableHead className="text-right text-slate-400">Rate</TableHead>
+        <TableHead className="text-right text-slate-400">Total</TableHead>
+      </TableRow>
+    </TableHeader>
+    <TableBody>
+      {lineItems.map((item, i) =>
+        <TableRow key={i} className="border-slate-800">
+          <TableCell className="text-slate-300 py-2">{item.category}</TableCell>
+          <TableCell className="text-white font-medium py-2">{item.item_name}</TableCell>
+          <TableCell className="text-right text-slate-300 py-2">{item.quantity} {item.unit}</TableCell>
+          <TableCell className="text-right text-slate-300 py-2">{formatCurrency(item.unit_cost)}</TableCell>
+          <TableCell className="text-right text-white font-medium py-2">{formatCurrency(item.total_cost)}</TableCell>
+        </TableRow>
+      )}
+    </TableBody>
+  </Table>
+));
+
+const AssumptionsList = React.memo(({ assumptions }) => (
+                                                    <AssumptionsList assumptions={result.assumptions} />
+));
 
 function extractJson(text) {
   if (!text) return null;
@@ -34,75 +64,10 @@ function extractJson(text) {
   return null;
 }
 
-const CITY_OPTIONS = {
-  'NSW': ['Sydney City', 'Outer Suburbs', 'Regional'],
-  'VIC': ['Melbourne City', 'Outer Suburbs', 'Regional'],
-  'QLD': ['Brisbane', 'Gold Coast', 'Northern QLD', 'Regional'],
-  'WA': ['Perth', 'Outer Suburbs', 'Regional'],
-  'SA': ['Adelaide', 'Regional'],
-  'TAS': ['Hobart', 'Regional'],
-  'ACT': ['Canberra'],
-  'NT': ['Darwin', 'Regional']
-};
 
-// Average construction cost per sqm by city/region (2025 market data)
-// Source: ASE Estimation, Matrix Estimating, Altus Group, ABS
-const REGIONAL_COST_RATES = {
-  'NSW': {
-    'Sydney City': { low: 3200, high: 4300, avg: 3750 },
-    'Outer Suburbs': { low: 2500, high: 3500, avg: 3000 },
-    'Regional': { low: 1900, high: 2800, avg: 2350 }
-  },
-  'VIC': {
-    'Melbourne City': { low: 2700, high: 3800, avg: 3250 },
-    'Outer Suburbs': { low: 2000, high: 3000, avg: 2500 },
-    'Regional': { low: 1800, high: 2600, avg: 2200 }
-  },
-  'QLD': {
-    'Brisbane': { low: 2400, high: 3500, avg: 2950 },
-    'Gold Coast': { low: 2200, high: 3400, avg: 2800 },
-    'Northern QLD': { low: 1900, high: 3000, avg: 2450 },
-    'Regional': { low: 1700, high: 2700, avg: 2200 }
-  },
-  'WA': {
-    'Perth': { low: 2200, high: 3700, avg: 2950 },
-    'Outer Suburbs': { low: 1900, high: 3000, avg: 2450 },
-    'Regional': { low: 1700, high: 2600, avg: 2150 }
-  },
-  'SA': {
-    'Adelaide': { low: 1900, high: 2900, avg: 2400 },
-    'Regional': { low: 1700, high: 2500, avg: 2100 }
-  },
-  'TAS': {
-    'Hobart': { low: 1900, high: 2900, avg: 2400 },
-    'Regional': { low: 1700, high: 2400, avg: 2050 }
-  },
-  'ACT': {
-    'Canberra': { low: 2400, high: 3800, avg: 3100 }
-  },
-  'NT': {
-    'Darwin': { low: 2600, high: 3800, avg: 3200 },
-    'Regional': { low: 2200, high: 3200, avg: 2700 }
-  }
-};
 
-const FINISH_MULTIPLIERS = {
-  'Low': 0.85,
-  'Medium': 1.0,
-  'High': 1.25
-};
 
-const COUNCIL_FEE_BASE = {
-  'NSW': 5500, 'VIC': 4800, 'QLD': 4200, 'WA': 4500,
-  'SA': 4000, 'TAS': 3800, 'ACT': 5200, 'NT': 4600
-};
 
-const REGIONAL_FEE_MULTIPLIER = {
-  'Sydney City': 1.15, 'Melbourne City': 1.1, 'Brisbane': 1.1,
-  'Gold Coast': 1.05, 'Northern QLD': 0.95, 'Perth': 1.05,
-  'Adelaide': 1.0, 'Hobart': 0.95, 'Canberra': 1.1, 'Darwin': 1.05,
-  'Outer Suburbs': 1.0, 'Regional': 0.9
-};
 
 export default function PalladioEstimator() {
   const [file, setFile] = useState(null);
@@ -141,8 +106,6 @@ export default function PalladioEstimator() {
   const [garageArea, setGarageArea] = useState('');
 
   // Auto-calculated quantities
-  const [slabVolume, setSlabVolume] = useState('');
-  const [mainFloorCoverings, setMainFloorCoverings] = useState('');
 
   // Silent costs
   const [silentCosts, setSilentCosts] = useState(null);
@@ -211,17 +174,13 @@ export default function PalladioEstimator() {
   }, []);
 
   // Auto-calculate derived quantities
+  const { slabVolume, mainFloorCoverings } = React.useMemo(() => calculateDerivedQuantities({ floorArea, wetArea, garageArea, externalWallLength, ceilingHeight }), [floorArea, wetArea, garageArea, externalWallLength, ceilingHeight]);
+
   useEffect(() => {
     const fa = parseFloat(floorArea) || 0;
-    const wa = parseFloat(wetArea) || 0;
-    const ga = parseFloat(garageArea) || 0;
     const ewl = parseFloat(externalWallLength) || 0;
     const ch = parseFloat(ceilingHeight) || 0;
 
-    // Slab volume (m³) = floor area × 0.1
-    setSlabVolume(fa > 0 ? (fa * 0.1).toFixed(1) : '');
-
-    // Roof area = (floor area × 0.6) + floor area, rounded up to nearest 5m
     if (fa > 0) {
       const rawRoof = (fa * 0.6) + fa;
       setRoofArea(String(Math.ceil(rawRoof / 5) * 5));
@@ -229,22 +188,13 @@ export default function PalladioEstimator() {
       setRoofArea('');
     }
 
-    // External wall area = (external wall length × ceiling height in m) less 15% for windows/doors
     if (ewl > 0 && ch > 0) {
       const gross = ewl * (ch / 1000);
       setExternalWallArea((gross * 0.85).toFixed(1));
     } else {
       setExternalWallArea('');
     }
-
-    // Main floor coverings = floor area - wet areas - garage area
-    if (fa > 0) {
-      const coverings = fa - wa - ga;
-      setMainFloorCoverings(coverings > 0 ? coverings.toFixed(1) : '');
-    } else {
-      setMainFloorCoverings('');
-    }
-  }, [floorArea, wetArea, garageArea, externalWallLength, ceilingHeight]);
+  }, [floorArea, externalWallLength, ceilingHeight]);
 
   const handleAutoExtract = async () => {
     if (!fileUrl) return;
@@ -352,9 +302,10 @@ export default function PalladioEstimator() {
         setIsAnalyzing(false);
         return;
       }
-      const allCosts = await base44.entities.MaterialCost.list();
-      const cityCosts = allCosts.filter((c) => c.state === state && c.city === city);
-      const localCosts = cityCosts.length > 0 ? cityCosts : allCosts.filter((c) => c.state === state);
+      let localCosts = await base44.entities.MaterialCost.filter({ state, city });
+      if (localCosts.length === 0) {
+        localCosts = await base44.entities.MaterialCost.filter({ state });
+      }
       const regionalRate = REGIONAL_COST_RATES[state]?.[city] || { low: 1800, high: 4000, avg: 2900 };
 
       const markup = SITE_DIFFICULTY_RATES[difficulty];
@@ -442,27 +393,13 @@ INSTRUCTIONS:
 
       setResult(res);
 
-      // Calculate silent costs (gutter/fascia, design, engineering, council, scaffolding)
-      const subtotal = res.subtotal || 0;
-      const regionalMult = REGIONAL_FEE_MULTIPLIER[city] || 1.0;
-      const councilBase = COUNCIL_FEE_BASE[state] || 4500;
-      const wallLen = parseFloat(externalWallLength) || (Math.sqrt(parseFloat(floorArea) || 0) * 4);
-      const gutterLength = wallLen * 1.3;
-      const gutterCost = gutterLength * 45;
-      const designFees = subtotal * 0.015 * regionalMult;
-      const engineeringFees = subtotal * 0.02 * regionalMult;
-      const councilFees = councilBase * regionalMult;
-      const needsScaffolding = parseInt(storeys) >= 2;
-      const scaffoldingCost = needsScaffolding ? subtotal * 0.02 : 0;
-      setSilentCosts({
-        gutterLength,
-        gutter: gutterCost,
-        design: designFees,
-        engineering: engineeringFees,
-        council: councilFees,
-        scaffolding: scaffoldingCost,
-        total: gutterCost + designFees + engineeringFees + councilFees + scaffoldingCost
+      // Calculate silent costs
+      const calcCosts = calculateSilentCosts({
+        subtotal: res.subtotal || 0,
+        city, state, externalWallLength, floorArea, storeys,
+        REGIONAL_FEE_MULTIPLIER, COUNCIL_FEE_BASE
       });
+      setSilentCosts(calcCosts);
 
       toast.success("Cost estimate generated successfully");
     } catch (err) {
@@ -599,7 +536,7 @@ INSTRUCTIONS:
                                 <Select value={state} onValueChange={(s) => { setState(s); setCity(CITY_OPTIONS[s][0]); }}>
                                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto"><SelectValue /></SelectTrigger>
                                     <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                                        {['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT'].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                                        {STATES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -617,7 +554,7 @@ INSTRUCTIONS:
                                 <Select value={storeys} onValueChange={setStoreys}>
                                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto"><SelectValue /></SelectTrigger>
                                     <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                                        {['1', '2', '3', '4+'].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                                        {STOREYS_OPTIONS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -768,7 +705,7 @@ INSTRUCTIONS:
                                 <Select value={roofMaterial} onValueChange={setRoofMaterial}>
                                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto"><SelectValue placeholder="Select roof material" /></SelectTrigger>
                                     <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                                        {['Colorbond Steel', 'Concrete Tile', 'Terracotta Tile', 'Slate', 'Metal Deck', 'Flat Membrane'].map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                                        {ROOF_MATERIALS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -777,7 +714,7 @@ INSTRUCTIONS:
                                 <Select value={externalWallMaterial} onValueChange={setExternalWallMaterial}>
                                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto"><SelectValue placeholder="Select wall material" /></SelectTrigger>
                                     <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                                        {['Brick Veneer', 'Double Brick', 'Weatherboard', 'Hebel (AAC)', 'Rendered Foam', 'Concrete Block', 'Cladding'].map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                                        {EXTERNAL_WALL_MATERIALS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -786,7 +723,7 @@ INSTRUCTIONS:
                                 <Select value={floorFinish} onValueChange={setFloorFinish}>
                                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto"><SelectValue placeholder="Select floor finish" /></SelectTrigger>
                                     <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                                        {['Tiles', 'Timber', 'Carpet', 'Polished Concrete', 'Hybrid Vinyl', 'Stone', 'Laminate'].map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                                        {FLOOR_FINISHES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -795,7 +732,7 @@ INSTRUCTIONS:
                                 <Select value={finishLevel} onValueChange={setFinishLevel}>
                                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto"><SelectValue /></SelectTrigger>
                                     <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                                        {['Low', 'Medium', 'High'].map((f) => <SelectItem key={f} value={f}>{f} (×{FINISH_MULTIPLIERS[f]})</SelectItem>)}
+                                        {FINISH_LEVELS_OPTIONS.map((f) => <SelectItem key={f} value={f}>{f} (×{FINISH_MULTIPLIERS[f]})</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -958,54 +895,11 @@ INSTRUCTIONS:
                                                 <span className="text-2xl font-bold text-blue-400">{formatCurrency(result.grand_total)}</span>
                                             </div>
                                             <div className="overflow-x-auto rounded-xl border border-slate-800">
-                                                <Table>
-                                                    <TableHeader className="bg-slate-800/50">
-                                                        <TableRow className="border-slate-800">
-                                                            <TableHead className="text-slate-300">Category</TableHead>
-                                                            <TableHead className="text-slate-300">Item</TableHead>
-                                                            <TableHead className="text-slate-300 text-right">Qty</TableHead>
-                                                            <TableHead className="text-slate-300 text-right">Rate</TableHead>
-                                                            <TableHead className="text-slate-300 text-right">Total</TableHead>
-                                                        </TableRow>
-                                                    </TableHeader>
-                                                    <TableBody>
-                                                        {result.line_items.map((item, i) =>
-                            <TableRow key={i} className="border-slate-800">
-                                                            <TableCell className="text-slate-400 text-sm">{item.category}</TableCell>
-                                                            <TableCell className="font-medium text-white">{item.item_name}</TableCell>
-                                                            <TableCell className="text-right text-slate-300">{item.quantity} {item.unit}</TableCell>
-                                                            <TableCell className="text-right text-slate-300">{formatCurrency(item.unit_cost)}</TableCell>
-                                                            <TableCell className="text-right text-white font-medium">{formatCurrency(item.total_cost)}</TableCell>
-                                                        </TableRow>
-                          )}
-                                                        <TableRow className="border-t-2 border-slate-700 bg-slate-800/20">
-                                                            <TableCell colSpan={4} className="text-right font-medium text-slate-300">Subtotal</TableCell>
-                                                            <TableCell className="text-right font-bold text-white">{formatCurrency(result.subtotal)}</TableCell>
-                                                        </TableRow>
-                                                        {result.site_difficulty_markup_cost > 0 &&
-                            <TableRow className="border-slate-800 bg-amber-900/10">
-                                                                <TableCell colSpan={4} className="text-right text-amber-400">
-                                                                    Site Difficulty Markup ({SITE_DIFFICULTY_RATES[difficulty]}%)
-                                                                </TableCell>
-                                                                <TableCell className="text-right text-amber-400 font-medium">
-                                                                    +{formatCurrency(result.site_difficulty_markup_cost)}
-                                                                </TableCell>
-                                                            </TableRow>
-                          }
-                                                        <TableRow className="border-t-2 border-slate-700">
-                                                            <TableCell colSpan={4} className="text-right font-bold text-white">Grand Total</TableCell>
-                                                            <TableCell className="text-right font-bold text-blue-400 text-lg">{formatCurrency(result.grand_total)}</TableCell>
-                                                        </TableRow>
-                                                    </TableBody>
-                                                </Table>
+                                                <EstimateTable lineItems={result.line_items} formatCurrency={formatCurrency} />
                                             </div>
                                             <div>
                                                 <h3 className="text-white font-medium mb-3">AI Assumptions & Notes</h3>
-                                                <ul className="list-disc pl-5 space-y-1">
-                                                    {result.assumptions.map((a, i) =>
-                            <li key={i} className="text-sm text-slate-400">{a}</li>
-                            )}
-                                                </ul>
+                                                <AssumptionsList assumptions={result.assumptions} />
                                             </div>
                                         </div>
                                     </DialogContent>
