@@ -111,6 +111,11 @@ export default function SavedChats() {
     return name.replace(/[^a-z0-9]+/gi, '_').toLowerCase() + '.md';
   })();
 
+  const visibleConversations = conversations.filter(c => {
+    const isEmptyPlaceholder = (!c.title || c.title === 'New Discussion') && !(c.messages || []).length;
+    return !isEmptyPlaceholder;
+  });
+
   const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim() || !activeChat || isLoading) return;
@@ -178,7 +183,7 @@ export default function SavedChats() {
           </div>
           <ScrollArea className="flex-1">
             <div className="p-3 space-y-1">
-              {conversations.map(c => (
+              {visibleConversations.map(c => (
                 <div
                   key={c.id}
                   className={cn(
@@ -200,7 +205,7 @@ export default function SavedChats() {
                   </button>
                 </div>
               ))}
-              {conversations.length === 0 && (
+              {visibleConversations.length === 0 && (
                 <p className="text-slate-500 text-sm text-center py-8">No chats yet</p>
               )}
             </div>
@@ -224,7 +229,7 @@ export default function SavedChats() {
                   </DrawerHeader>
                   <ScrollArea className="p-4 overflow-y-auto">
                     <div className="space-y-1 pb-8">
-                      {conversations.map(c => (
+                      {visibleConversations.map(c => (
                         <div
                           key={c.id}
                           className={cn(
@@ -244,7 +249,7 @@ export default function SavedChats() {
                           </button>
                         </div>
                       ))}
-                      {conversations.length === 0 && (
+                      {visibleConversations.length === 0 && (
                         <p className="text-slate-500 text-sm text-center py-8">No chats yet</p>
                       )}
                     </div>
