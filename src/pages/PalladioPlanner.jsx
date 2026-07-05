@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, ClipboardList, Loader2, AlertCircle, CheckCircle2, XCircle, HelpCircle, MapPin, ExternalLink, FileText, Layers, Download, Upload, File } from 'lucide-react';
-import { jsPDF } from 'jspdf';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { base44 } from '@/api/base44Client';
@@ -420,7 +419,8 @@ Return ONLY valid JSON matching this exact structure:
     }
   };
 
-  const generatePrefilledForm = (formName) => {
+  const generatePrefilledForm = async (formName) => {
+    const { jsPDF } = await import('jspdf');
     const doc = new jsPDF();
 
     doc.setFontSize(20);

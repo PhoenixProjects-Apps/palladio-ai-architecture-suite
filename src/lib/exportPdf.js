@@ -1,5 +1,3 @@
-import { jsPDF } from 'jspdf';
-
 const CYAN = [34, 211, 238];
 const AMBER = [217, 119, 6];
 const EMERALD = [16, 185, 129];
@@ -7,7 +5,8 @@ const DARK = [15, 17, 23];
 const GRAY = [120, 130, 145];
 const BODY = [40, 40, 40];
 
-export function exportAssessmentToPdf(result, tier) {
+export async function exportAssessmentToPdf(result, tier) {
+  const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'p' });
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
