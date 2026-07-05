@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, Layers, Loader2, Upload, Box, Download, Image as ImageIcon } from 'lucide-react';
@@ -328,7 +328,7 @@ export default function PalladioFloorplan() {
                   
                                         </div>
 
-                                        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 prose prose-invert max-w-none text-sm">
+                                        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 prose prose-invert max-w-none break-words text-sm">
                                             <h3 className="text-violet-400 mt-0">Layout Brief</h3>
                                             <ReactMarkdown>{textResult.layout}</ReactMarkdown>
                                         </div>

@@ -340,7 +340,7 @@ export default function PalladioAssess() {
                   </div>
                 </>
               ) : (
-                <div className="bg-white/5 border border-white/10 rounded-3xl p-8 prose prose-invert max-w-none prose-headings:text-cyan-400 prose-a:text-cyan-400 shadow-xl">
+                <div className="bg-white/5 border border-white/10 rounded-3xl p-8 prose prose-invert max-w-none break-words prose-headings:text-cyan-400 prose-a:text-cyan-400 shadow-xl">
                   <ReactMarkdown>{result}</ReactMarkdown>
                 </div>
               )}

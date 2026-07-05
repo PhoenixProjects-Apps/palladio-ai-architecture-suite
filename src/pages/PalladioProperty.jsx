@@ -114,19 +114,19 @@ export default function PalladioProperty() {
                             </div>
 
                             <div className="grid md:grid-cols-2 gap-6">
-                                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 prose prose-invert max-w-none shadow-md">
+                                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 prose prose-invert max-w-none break-words shadow-md">
                                     <h3 className="text-emerald-400 flex items-center gap-2 m-0 mb-4"><MapPin size={20} /> Zoning & Overlays</h3>
                                     <ReactMarkdown>{result.zoning}</ReactMarkdown>
                                 </div>
-                                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 prose prose-invert max-w-none shadow-md">
+                                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 prose prose-invert max-w-none break-words shadow-md">
                                     <h3 className="text-emerald-400 flex items-center gap-2 m-0 mb-4"><Building size={20} /> Development Potential</h3>
                                     <ReactMarkdown>{result.development_potential}</ReactMarkdown>
                                 </div>
-                                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 prose prose-invert max-w-none shadow-md">
+                                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 prose prose-invert max-w-none break-words shadow-md">
                                     <h3 className="text-emerald-400 flex items-center gap-2 m-0 mb-4"><HomeIcon size={20} /> Neighbourhood</h3>
                                     <ReactMarkdown>{result.neighbourhood}</ReactMarkdown>
                                 </div>
-                                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 prose prose-invert max-w-none shadow-md">
+                                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 prose prose-invert max-w-none break-words shadow-md">
                                     <h3 className="text-emerald-400 flex items-center gap-2 m-0 mb-4"><TrendingUp size={20} /> Planning Trends</h3>
                                     <ReactMarkdown>{result.planning_trends}</ReactMarkdown>
                                 </div>

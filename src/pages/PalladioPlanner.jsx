@@ -788,7 +788,7 @@ Return ONLY valid JSON matching this exact structure:
                                         </div>
                   }
 
-                                    <div className="bg-white/5 border border-white/10 rounded-xl p-5 prose prose-invert max-w-none shadow-sm">
+                                    <div className="bg-white/5 border border-white/10 rounded-xl p-5 prose prose-invert max-w-none break-words shadow-sm">
                                         <h3 className="text-rose-400 m-0 mb-3">Zoning Assessment</h3>
                                         <ReactMarkdown>{result.zoning_assessment}</ReactMarkdown>
                                     </div>
@@ -814,13 +814,13 @@ Return ONLY valid JSON matching this exact structure:
 
                     {result &&
             <div className="grid md:grid-cols-2 gap-6 animate-in fade-in duration-700 delay-300">
-                            <div className="bg-white/5 border border-white/10 rounded-xl p-5 prose prose-invert max-w-none shadow-sm">
+                            <div className="bg-white/5 border border-white/10 rounded-xl p-5 prose prose-invert max-w-none break-words shadow-sm">
                                 <h3 className="text-rose-400 m-0 mb-3">Planning Controls & Overlays</h3>
                                 <ReactMarkdown>{result.planning_controls}</ReactMarkdown>
                                 <ReactMarkdown>{result.overlays}</ReactMarkdown>
                             </div>
                             <div className="space-y-6">
-                                <div className="bg-white/5 border border-white/10 rounded-xl p-5 prose prose-invert max-w-none shadow-sm">
+                                <div className="bg-white/5 border border-white/10 rounded-xl p-5 prose prose-invert max-w-none break-words shadow-sm">
                                     <h3 className="text-rose-400 m-0 mb-3">Neighbour Impact</h3>
                                     <ReactMarkdown>{result.neighbour_impact}</ReactMarkdown>
                                 </div>

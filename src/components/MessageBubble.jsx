@@ -114,7 +114,7 @@ export default function MessageBubble({ message, showToolCalls = false }) {
                             <p className="text-[15px] leading-relaxed">{message.content}</p>
                         ) : (
                             <ReactMarkdown 
-                                className="text-[15px] prose prose-invert max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 prose-p:leading-relaxed prose-headings:text-white"
+                                className="text-[15px] prose prose-invert max-w-none break-words [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 prose-p:leading-relaxed prose-headings:text-white"
                                 components={{
                                     code: ({ inline, className, children, ...props }) => {
                                         const match = /language-(\w+)/.exec(className || '');
