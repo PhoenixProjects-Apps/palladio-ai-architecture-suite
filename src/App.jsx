@@ -14,7 +14,6 @@ import { LogIn } from 'lucide-react';
 import React, { Suspense } from 'react';
 import About from './pages/About';
 import Contact from './pages/Contact';
-import AgentBible from './pages/AgentBible';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import PageLoader from '@/components/PageLoader';
@@ -68,7 +67,7 @@ const AuthenticatedApp = () => {
   }
 
   // Render the main app
-  const publicPages = ['Home', 'About', 'Contact', 'PrivacyPolicy', 'TermsOfService', 'AgentBible', 'PalladioPricing'];
+  const publicPages = ['Home', 'About', 'Contact', 'PrivacyPolicy', 'TermsOfService', 'PalladioPricing'];
   
   const UnauthenticatedFallback = () => (
     <div className="fixed inset-0 bg-background flex flex-col items-center justify-center p-6 text-center z-50">
@@ -115,7 +114,6 @@ const AuthenticatedApp = () => {
       
       <Route path="/about" element={<LayoutWrapper currentPageName="About"><AnimatedRouteWrapper><About /></AnimatedRouteWrapper></LayoutWrapper>} />
       <Route path="/contact" element={<LayoutWrapper currentPageName="Contact"><AnimatedRouteWrapper><Contact /></AnimatedRouteWrapper></LayoutWrapper>} />
-      <Route path="/AgentBible" element={<LayoutWrapper currentPageName="AgentBible"><AnimatedRouteWrapper><AgentBible /></AnimatedRouteWrapper></LayoutWrapper>} />
       <Route path="/PrivacyPolicy" element={<LayoutWrapper currentPageName="PrivacyPolicy"><AnimatedRouteWrapper><PrivacyPolicy /></AnimatedRouteWrapper></LayoutWrapper>} />
       <Route path="/TermsOfService" element={<LayoutWrapper currentPageName="TermsOfService"><AnimatedRouteWrapper><TermsOfService /></AnimatedRouteWrapper></LayoutWrapper>} />
       <Route path="/Floorplan3D" element={<LayoutWrapper currentPageName="Floorplan3D"><AnimatedRouteWrapper><Floorplan3D /></AnimatedRouteWrapper></LayoutWrapper>} />

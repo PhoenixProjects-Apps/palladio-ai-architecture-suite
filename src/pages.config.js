@@ -48,7 +48,6 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import React from 'react';
-import Admin from './pages/Admin';
 import CostDatabase from './pages/CostDatabase';
 import Home from './pages/Home';
 import Notifications from './pages/Notifications';
@@ -69,7 +68,6 @@ const Render3D = React.lazy(() => import('./pages/Render3D'));
 
 
 export const PAGES = {
-    "Admin": Admin,
     "ArchiSketch": ArchiSketch,
     "CostDatabase": CostDatabase,
     "Home": Home,

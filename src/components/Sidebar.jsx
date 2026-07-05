@@ -109,11 +109,6 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
         { name: 'Sign In', icon: LogIn, action: 'login' },
       ];
 
-  if (user?.role === 'admin') {
-    bottomItems.unshift({ name: 'Agent Bible', icon: BookOpen, path: 'AgentBible' });
-    bottomItems.unshift({ name: 'Admin', icon: ShieldAlert, path: 'Admin' });
-  }
-
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-background border-r border-border text-muted-foreground">
       <div className="p-4 flex items-center justify-between">
