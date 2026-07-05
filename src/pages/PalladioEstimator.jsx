@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import SaveToProject from '@/components/SaveToProject';
 import ChooseProject from '@/components/ChooseProject';
 import { SITE_DIFFICULTY_RATES, CITY_OPTIONS, REGIONAL_COST_RATES, FINISH_MULTIPLIERS, COUNCIL_FEE_BASE, REGIONAL_FEE_MULTIPLIER, STATES, STOREYS_OPTIONS, ROOF_MATERIALS, EXTERNAL_WALL_MATERIALS, FLOOR_FINISHES, FINISH_LEVELS_OPTIONS } from '@/lib/estimatorData';
-import { calculateDerivedQuantities, calculateSilentCosts, calculateRoofSurfaceArea } from '@/lib/estimator/calculateEstimate';
+import { calculateDerivedQuantities, calculateSilentCosts, calculateRoofSurfaceArea, normaliseEstimateResult } from '@/lib/estimator/calculateEstimate';
 
 
 
@@ -379,9 +379,10 @@ INSTRUCTIONS:
 2. Estimate quantities based on standard Australian building sizes if scale is not clear.
 3. Cross-reference the required materials with the provided cost database. If a material is missing from the database, estimate it based on current Australian market rates.
 4. Calibrate all unit costs to align with the regional baseline cost per sqm for ${city}, ${state}. The total of all line items per sqm of building footprint should fall within the $${regionalRate.low}–$${regionalRate.high}/sqm range. Adjust rates up or down from the database defaults to match local market conditions for this specific city/region.
-5. If Storeys >= 2, you MUST include 'Scaffolding' as a line item.
+5. Do not include scaffolding as a line item. Scaffolding is calculated separately by the app when storeys are 2 or more.
 6. Calculate the subtotal, the site difficulty markup cost (${markup}% of subtotal), and the grand total.
-7. Provide a list of assumptions made during the takeoff.`;
+7. Provide a list of assumptions made during the takeoff.
+8. The app will recalculate totals after your response. Provide best-match item categories, item names, units, quantities and unit costs only. Do not rely on your own subtotal/grand total for final arithmetic.`;
 
       const responseSchema = {
         type: "object",
@@ -419,13 +420,33 @@ INSTRUCTIONS:
         throw new Error(resData.data.error);
       }
       const rawContent = resData.data?.output || "";
-      const res = extractJson(rawContent) || { line_items: [], subtotal: 0, scaffolding_included: false, site_difficulty_markup_cost: 0, grand_total: 0, assumptions: [] };
+      const rawResult = extractJson(rawContent) || { line_items: [], subtotal: 0, scaffolding_included: false, site_difficulty_markup_cost: 0, grand_total: 0, assumptions: [] };
 
-      setResult(res);
+      const normalisedResult = normaliseEstimateResult(rawResult, {
+        difficultyPercent: SITE_DIFFICULTY_RATES[difficulty] || 0,
+        storeys,
+        quantities: {
+          floorArea,
+          wetArea,
+          garageArea,
+          ceilingArea,
+          roofArea,
+          externalWallArea,
+          patioArea,
+          porchArea,
+          externalWallLength,
+          internalWallLength,
+          ceilingHeight,
+          slabVolume,
+          mainFloorCoverings
+        }
+      });
+
+      setResult(normalisedResult);
 
       // Calculate silent costs
       const calcCosts = calculateSilentCosts({
-        subtotal: res.subtotal || 0,
+        subtotal: normalisedResult.subtotal || 0,
         city, state, externalWallLength, floorArea, storeys,
         REGIONAL_FEE_MULTIPLIER, COUNCIL_FEE_BASE
       });
