@@ -569,20 +569,20 @@ INSTRUCTIONS:
                             <ArrowLeft size={20} />
                         </Button>
                     </Link>
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg">
+                        <div className="w-10 min-h-11 h-auto rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg">
                             <Calculator size={20} />
                         </div>
                         <h1 className="font-bold text-xl">Cost Estimator</h1>
                     </header>
             <div className="flex flex-wrap items-center gap-2 self-start sm:self-end">
-                <ChooseProject onSelect={handleLoadFromProject} className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50 h-9 px-3 text-xs">
+                <ChooseProject onSelect={handleLoadFromProject} className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50 min-h-11 h-auto px-3 text-xs">
                     {isLoadingConfig ? <Loader2 size={16} className="animate-spin mr-1" /> : "Load Config"}
                 </ChooseProject>
-                <SaveToProject textContent={buildEstimatorDataJson()} fileName="estimator-data.json" assetType="document" className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50 h-9 px-3 text-xs">
+                <SaveToProject textContent={buildEstimatorDataJson()} fileName="estimator-data.json" assetType="document" className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50 min-h-11 h-auto px-3 text-xs">
                     Save Config
                 </SaveToProject>
                 <Link to={createPageUrl('CostDatabase')}>
-                    <Button variant="outline" className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50 h-9 px-3 text-xs">
+                    <Button variant="outline" className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50 min-h-11 h-auto px-3 text-xs">
                         <Database className="w-4 h-4 mr-1" />
                         Cost DB
                     </Button>
@@ -600,7 +600,7 @@ INSTRUCTIONS:
                             <div>
                                 <label className="text-xs text-slate-400 mb-1 block">State</label>
                                 <Select value={state} onValueChange={(s) => { setState(s); setCity(CITY_OPTIONS[s][0]); }}>
-                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white h-10"><SelectValue /></SelectTrigger>
+                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto"><SelectValue /></SelectTrigger>
                                     <SelectContent className="bg-slate-800 border-slate-700 text-white">
                                         {['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT'].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                                     </SelectContent>
@@ -609,7 +609,7 @@ INSTRUCTIONS:
                             <div>
                                 <label className="text-xs text-slate-400 mb-1 block">City / Region</label>
                                 <Select value={city} onValueChange={setCity}>
-                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white h-10"><SelectValue /></SelectTrigger>
+                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto"><SelectValue /></SelectTrigger>
                                     <SelectContent className="bg-slate-800 border-slate-700 text-white">
                                         {CITY_OPTIONS[state].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                                     </SelectContent>
@@ -618,7 +618,7 @@ INSTRUCTIONS:
                             <div>
                                 <label className="text-xs text-slate-400 mb-1 block">Storeys</label>
                                 <Select value={storeys} onValueChange={setStoreys}>
-                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white h-10"><SelectValue /></SelectTrigger>
+                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto"><SelectValue /></SelectTrigger>
                                     <SelectContent className="bg-slate-800 border-slate-700 text-white">
                                         {['1', '2', '3', '4+'].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                                     </SelectContent>
@@ -627,7 +627,7 @@ INSTRUCTIONS:
                             <div>
                                 <label className="text-xs text-slate-400 mb-1 block">Site Difficulty</label>
                                 <Select value={difficulty} onValueChange={setDifficulty}>
-                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white h-10"><SelectValue /></SelectTrigger>
+                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto"><SelectValue /></SelectTrigger>
                                     <SelectContent className="bg-slate-800 border-slate-700 text-white">
                                         {Object.keys(SITE_DIFFICULTY_RATES).map((s) => <SelectItem key={s} value={s}>{s} (+{SITE_DIFFICULTY_RATES[s]}%)</SelectItem>)}
                                     </SelectContent>
@@ -695,35 +695,35 @@ INSTRUCTIONS:
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
                                         <label className="text-xs text-slate-400 mb-1 block">Floor (m²)</label>
-                                        <Input type="number" value={floorArea} onChange={(e) => setFloorArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white h-10" />
+                                        <Input type="number" value={floorArea} onChange={(e) => setFloorArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
                                     <div>
                                         <label className="text-xs text-slate-400 mb-1 block">Wet (m²)</label>
-                                        <Input type="number" value={wetArea} onChange={(e) => setWetArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white h-10" />
+                                        <Input type="number" value={wetArea} onChange={(e) => setWetArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
                                     <div>
                                         <label className="text-xs text-slate-400 mb-1 block">Ceiling (m²)</label>
-                                        <Input type="number" value={ceilingArea} onChange={(e) => setCeilingArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white h-10" />
+                                        <Input type="number" value={ceilingArea} onChange={(e) => setCeilingArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
                                     <div>
                                         <label className="text-xs text-slate-400 mb-1 block">Roof (m²)</label>
-                                        <Input type="number" value={roofArea} onChange={(e) => setRoofArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white h-10" />
+                                        <Input type="number" value={roofArea} onChange={(e) => setRoofArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
                                     <div>
                                         <label className="text-xs text-slate-400 mb-1 block">External Wall Area (m²)</label>
-                                        <Input type="number" value={externalWallArea} onChange={(e) => setExternalWallArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white h-10" />
+                                        <Input type="number" value={externalWallArea} onChange={(e) => setExternalWallArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
                                     <div>
                                         <label className="text-xs text-slate-400 mb-1 block">Patio (m²)</label>
-                                        <Input type="number" value={patioArea} onChange={(e) => setPatioArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white h-10" />
+                                        <Input type="number" value={patioArea} onChange={(e) => setPatioArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
                                     <div className="col-span-2">
                                         <label className="text-xs text-slate-400 mb-1 block">Porch (m²)</label>
-                                        <Input type="number" value={porchArea} onChange={(e) => setPorchArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white h-10" />
+                                        <Input type="number" value={porchArea} onChange={(e) => setPorchArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
                                     <div className="col-span-2">
                                         <label className="text-xs text-slate-400 mb-1 block">Garage (m²)</label>
-                                        <Input type="number" value={garageArea} onChange={(e) => setGarageArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white h-10" />
+                                        <Input type="number" value={garageArea} onChange={(e) => setGarageArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
                                 </div>
                             </div>
@@ -732,15 +732,15 @@ INSTRUCTIONS:
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
                                         <label className="text-xs text-slate-400 mb-1 block">External Wall Length (m)</label>
-                                        <Input type="number" value={externalWallLength} onChange={(e) => setExternalWallLength(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white h-10" />
+                                        <Input type="number" value={externalWallLength} onChange={(e) => setExternalWallLength(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
                                     <div>
                                         <label className="text-xs text-slate-400 mb-1 block">Internal Wall Length (m)</label>
-                                        <Input type="number" value={internalWallLength} onChange={(e) => setInternalWallLength(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white h-10" />
+                                        <Input type="number" value={internalWallLength} onChange={(e) => setInternalWallLength(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
                                     <div className="col-span-2">
                                         <label className="text-xs text-slate-400 mb-1 block">Ceiling Height (mm)</label>
-                                        <Input type="number" value={ceilingHeight} onChange={(e) => setCeilingHeight(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white h-10" />
+                                        <Input type="number" value={ceilingHeight} onChange={(e) => setCeilingHeight(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
                                 </div>
                             </div>
@@ -749,11 +749,11 @@ INSTRUCTIONS:
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
                                         <label className="text-xs text-slate-400 mb-1 block">Slab Volume (m³) <span className="text-cyan-500/70">auto</span></label>
-                                        <Input type="text" value={slabVolume} readOnly placeholder="—" className="bg-slate-800/50 border-slate-700/50 text-slate-300 h-10" />
+                                        <Input type="text" value={slabVolume} readOnly placeholder="—" className="bg-slate-800/50 border-slate-700/50 text-slate-300 min-h-11 h-auto" />
                                     </div>
                                     <div>
                                         <label className="text-xs text-slate-400 mb-1 block">Main Floor Coverings (m²) <span className="text-cyan-500/70">auto</span></label>
-                                        <Input type="text" value={mainFloorCoverings} readOnly placeholder="—" className="bg-slate-800/50 border-slate-700/50 text-slate-300 h-10" />
+                                        <Input type="text" value={mainFloorCoverings} readOnly placeholder="—" className="bg-slate-800/50 border-slate-700/50 text-slate-300 min-h-11 h-auto" />
                                     </div>
                                 </div>
                             </div>
@@ -768,7 +768,7 @@ INSTRUCTIONS:
                             <div>
                                 <label className="text-xs text-slate-400 mb-1 block">Roof</label>
                                 <Select value={roofMaterial} onValueChange={setRoofMaterial}>
-                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white h-10"><SelectValue placeholder="Select roof material" /></SelectTrigger>
+                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto"><SelectValue placeholder="Select roof material" /></SelectTrigger>
                                     <SelectContent className="bg-slate-800 border-slate-700 text-white">
                                         {['Colorbond Steel', 'Concrete Tile', 'Terracotta Tile', 'Slate', 'Metal Deck', 'Flat Membrane'].map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
                                     </SelectContent>
@@ -777,7 +777,7 @@ INSTRUCTIONS:
                             <div>
                                 <label className="text-xs text-slate-400 mb-1 block">External Walls</label>
                                 <Select value={externalWallMaterial} onValueChange={setExternalWallMaterial}>
-                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white h-10"><SelectValue placeholder="Select wall material" /></SelectTrigger>
+                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto"><SelectValue placeholder="Select wall material" /></SelectTrigger>
                                     <SelectContent className="bg-slate-800 border-slate-700 text-white">
                                         {['Brick Veneer', 'Double Brick', 'Weatherboard', 'Hebel (AAC)', 'Rendered Foam', 'Concrete Block', 'Cladding'].map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
                                     </SelectContent>
@@ -786,7 +786,7 @@ INSTRUCTIONS:
                             <div>
                                 <label className="text-xs text-slate-400 mb-1 block">Floor Finish</label>
                                 <Select value={floorFinish} onValueChange={setFloorFinish}>
-                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white h-10"><SelectValue placeholder="Select floor finish" /></SelectTrigger>
+                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto"><SelectValue placeholder="Select floor finish" /></SelectTrigger>
                                     <SelectContent className="bg-slate-800 border-slate-700 text-white">
                                         {['Tiles', 'Timber', 'Carpet', 'Polished Concrete', 'Hybrid Vinyl', 'Stone', 'Laminate'].map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
                                     </SelectContent>
@@ -795,7 +795,7 @@ INSTRUCTIONS:
                             <div>
                                 <label className="text-xs text-slate-400 mb-1 block">Finish Level</label>
                                 <Select value={finishLevel} onValueChange={setFinishLevel}>
-                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white h-10"><SelectValue /></SelectTrigger>
+                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto"><SelectValue /></SelectTrigger>
                                     <SelectContent className="bg-slate-800 border-slate-700 text-white">
                                         {['Low', 'Medium', 'High'].map((f) => <SelectItem key={f} value={f}>{f} (×{FINISH_MULTIPLIERS[f]})</SelectItem>)}
                                     </SelectContent>
@@ -858,7 +858,7 @@ INSTRUCTIONS:
                                                 fileUrl={presentationUrl}
                                                 fileName="presentation-slides.pdf"
                                                 assetType="document"
-                                                className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50 h-10 rounded-md px-4 text-sm"
+                                                className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50 min-h-11 h-auto rounded-md px-4 text-sm"
                                             />
                                         </>
                                     )}

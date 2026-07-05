@@ -188,7 +188,7 @@ export default function Projects() {
             <PalladioGate>
                 <div className="min-h-screen bg-[#0f1117] text-white p-6 md:p-10">
                     <div className="max-w-6xl mx-auto">
-                        <Skeleton className="h-10 w-48 bg-slate-800/50 rounded-lg mb-8" />
+                        <Skeleton className="min-h-11 h-auto w-48 bg-slate-800/50 rounded-lg mb-8" />
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
                                 <Skeleton key={i} className="h-32 w-full bg-slate-800/50 rounded-2xl" />
@@ -223,7 +223,7 @@ export default function Projects() {
                                     </h2>
                                     <div className="shrink-0">
                                         <input type="file" id="file-upload" className="hidden" onChange={handleUploadFile} disabled={isUploading} />
-                                        <label htmlFor="file-upload" className="cursor-pointer bg-slate-800 hover:bg-slate-700 text-sm font-medium px-4 py-2 rounded-lg transition flex items-center gap-2">
+                                        <label htmlFor="file-upload" className="min-h-11 cursor-pointer bg-slate-800 hover:bg-slate-700 text-sm font-medium px-4 py-2 rounded-lg transition flex items-center gap-2">
                                             {isUploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
                                             Upload
                                         </label>
