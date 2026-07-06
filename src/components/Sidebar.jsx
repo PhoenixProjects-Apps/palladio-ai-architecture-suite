@@ -5,6 +5,7 @@ import { Home, MessageSquare, Settings, X, Layers, Building2, MapPin, ClipboardL
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -96,6 +97,10 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
         <button type="button" aria-label="Close Sidebar" onClick={() => setIsMobileOpen(false)} className="md:hidden p-1.5 hover:bg-white/10 rounded-md text-slate-400 min-w-[44px] min-h-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <X size={20} />
         </button>
+      </div>
+
+      <div className="px-3 pb-3">
+        <ThemeToggle collapsed={isCollapsed} />
       </div>
 
       <div className="flex-1 overflow-y-auto py-2 flex flex-col gap-6" style={{ scrollbarWidth: 'none' }}>

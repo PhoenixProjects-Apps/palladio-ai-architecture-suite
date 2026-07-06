@@ -18,8 +18,8 @@ export default function UserHeader({ setIsMobileOpen }) {
         <img loading="lazy" decoding="async" src="https://www.image2url.com/r2/default/images/1782439345351-85257dc4-fda3-43f5-9ae4-2f91ee65350a.png" alt="Palladio AI" className="h-10" />
       </div>
       <div className="flex items-center gap-3">
-        <Link to={createPageUrl('PalladioPricing')} aria-label="View pricing and token balance" className="flex items-center gap-2 text-sm font-semibold text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 px-4 py-2 rounded-full transition border border-amber-500/20 min-h-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-          <Coins size={16} />
+        <Link to={createPageUrl('PalladioPricing')} aria-label="View pricing and token balance" className="flex items-center gap-1.5 text-sm font-semibold text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-2 rounded-full transition border border-amber-500/20 min-h-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <Coins size={15} />
           {user ? (credits ?? 0) : '—'}
         </Link>
         {user ? (
