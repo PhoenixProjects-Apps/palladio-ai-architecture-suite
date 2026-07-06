@@ -6,13 +6,13 @@ import { motion } from 'framer-motion';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 
 const tools = [
-  { id: 'assess', title: 'Assess Plans', desc: 'AI-powered assessment and detailed analysis of floorplans.', icon: FileImage, color: 'from-cyan-500 to-cyan-700', page: 'PalladioAssess' },
-  { id: 'floorplan', title: 'Generate Floorplans', desc: 'AI generated detailed, scaled floorplans for any space.', icon: Layers, color: 'from-violet-500 to-violet-700', page: 'PalladioFloorplan' },
-  { id: 'render', title: '3D Renders', desc: 'Photorealistic AI-rendered architectural visuals from sketches.', icon: Building2, color: 'from-amber-500 to-amber-700', page: 'Render3D' },
-  { id: 'property', title: 'Property Intelligence', desc: 'Retrieve zoning info, land details, planning history and more.', icon: MapPin, color: 'from-emerald-500 to-emerald-700', page: 'PalladioProperty' },
-  { id: 'planner', title: 'Town Planner AI', desc: 'Assess developments against local planning schemes and codes.', icon: ClipboardList, color: 'from-rose-500 to-rose-700', page: 'PalladioPlanner' },
-  { id: 'estimator', title: 'Cost Estimator', desc: 'AI takeoff and material cost estimation using live local data.', icon: Calculator, color: 'from-blue-500 to-blue-700', page: 'PalladioEstimator' },
-];
+{ id: 'assess', title: 'Assess Plans', desc: 'AI-powered assessment and detailed analysis of floorplans.', icon: FileImage, color: 'from-cyan-500 to-cyan-700', page: 'PalladioAssess' },
+{ id: 'floorplan', title: 'Generate Floorplans', desc: 'AI generated detailed, scaled floorplans for any space.', icon: Layers, color: 'from-violet-500 to-violet-700', page: 'PalladioFloorplan' },
+{ id: 'render', title: '3D Renders', desc: 'Photorealistic AI-rendered architectural visuals from sketches.', icon: Building2, color: 'from-amber-500 to-amber-700', page: 'Render3D' },
+{ id: 'property', title: 'Property Intelligence', desc: 'Retrieve zoning info, land details, planning history and more.', icon: MapPin, color: 'from-emerald-500 to-emerald-700', page: 'PalladioProperty' },
+{ id: 'planner', title: 'Town Planner AI', desc: 'Assess developments against local planning schemes and codes.', icon: ClipboardList, color: 'from-rose-500 to-rose-700', page: 'PalladioPlanner' },
+{ id: 'estimator', title: 'Cost Estimator', desc: 'AI takeoff and material cost estimation using live local data.', icon: Calculator, color: 'from-blue-500 to-blue-700', page: 'PalladioEstimator' }];
+
 
 export default function Home() {
   usePullToRefresh({ enabled: true, onRefresh: () => Promise.resolve() });
@@ -21,19 +21,19 @@ export default function Home() {
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 pb-6">
       <div className="max-w-2xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-6 flex flex-col items-center">
-          <img loading="lazy" decoding="async" src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69997bf8be3f3bf35cbd8147/e93fde36f_Lumii_20260222_021318181.png" alt="Palladio AI" className="w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 object-cover bg-background rounded-3xl mb-3 shadow-2xl shadow-black/10 dark:shadow-white/5" />
+          <img loading="lazy" decoding="async" src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69997bf8be3f3bf35cbd8147/e93fde36f_Lumii_20260222_021318181.png" alt="Palladio AI" className="w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 object-cover rounded-3xl mb-3 shadow-2xl shadow-black/10 dark:shadow-white/5 bg-transparent" />
           <h1 className="text-3xl font-bold mb-2 tracking-tight">Your AI-Powered Architecture Suite</h1>
           <p className="text-muted-foreground uppercase tracking-widest text-sm font-medium">Automate. Design. Connect. Build.</p>
         </motion.div>
 
         <div className="grid gap-4">
-          {tools.map((tool, i) => (
-            <motion.div 
-              key={tool.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.1 }}
-            >
+          {tools.map((tool, i) =>
+          <motion.div
+            key={tool.id}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.1 }}>
+            
               <Link to={createPageUrl(tool.page)} className="block group">
                 <div className="bg-card border border-border rounded-2xl p-5 flex items-center gap-5 hover:bg-muted/50 transition-all duration-300">
                   <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${tool.color} flex items-center justify-center shrink-0 shadow-lg`}>
@@ -46,9 +46,9 @@ export default function Home() {
                 </div>
               </Link>
             </motion.div>
-          ))}
+          )}
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 }
