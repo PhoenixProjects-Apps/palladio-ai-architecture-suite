@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import BackButton from "@/components/BackButton";
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Mail, CreditCard, LogOut, Loader2, User, ShieldAlert, Camera, Trash2, FileText, Shield } from 'lucide-react';
+import { ArrowLeft, Mail, CreditCard, LogOut, Loader2, User, Camera, Trash2, FileText, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { base44 } from '@/api/base44Client';
@@ -186,17 +186,6 @@ export default function UserProfile() {
             )}
           </div>
 
-          {user?.role === 'admin' && (
-            <div className="border-t border-white/10 pt-6 pb-2">
-              <h3 className="text-xs sm:text-sm font-medium text-slate-400 uppercase tracking-wider mb-4">Administration</h3>
-              <Link to={createPageUrl('Admin')} className="block">
-                <Button className="w-full bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/20 h-11">
-                  <ShieldAlert size={18} className="mr-2" />
-                  Admin Dashboard
-                </Button>
-              </Link>
-            </div>
-          )}
 
           <div className="border-t border-white/10 pt-6 flex flex-col gap-4">
             <Link to={createPageUrl('PrivacyPolicy')} className="block">
