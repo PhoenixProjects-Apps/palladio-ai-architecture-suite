@@ -145,6 +145,18 @@ const expandSelectedMaterials = (selectedMaterials = []) => {
 };
 
 const ASPECT_RATIOS = ['16:9', '9:16', '1:1', '4:3', '3:4', '4:5'];
+const MAGIC_CANVAS_MAX_EDGE = 1600;
+
+const getCappedCanvasSize = (width, height) => {
+  if (!width || !height) return { width: 0, height: 0 };
+  const longEdge = Math.max(width, height);
+  if (longEdge <= MAGIC_CANVAS_MAX_EDGE) return { width, height };
+  const scale = MAGIC_CANVAS_MAX_EDGE / longEdge;
+  return {
+    width: Math.round(width * scale),
+    height: Math.round(height * scale)
+  };
+};
 
 const buildRenderPrompt = ({
   renderType,
@@ -227,6 +239,7 @@ export default function Render3D() {
   const [renderedImage, setRenderedImage] = useState(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [savedPresetsList, setSavedPresetsList] = useState([]);
+  const [presetsLoaded, setPresetsLoaded] = useState(false);
   const [presetName, setPresetName] = useState('');
   const [isSavingPreset, setIsSavingPreset] = useState(false);
   const [magicEditMode, setMagicEditMode] = useState(false);
@@ -241,13 +254,29 @@ export default function Render3D() {
   const styleInputRef = useRef(null);
 
   useEffect(() => {
-    fetchSavedPresets();
-  }, []);
+    if (showAdvanced && !presetsLoaded) {
+      fetchSavedPresets();
+    }
+  }, [showAdvanced, presetsLoaded]);
 
-  const fetchSavedPresets = async () => {
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  useEffect(() => {
+    return () => {
+      if (stylePreviewUrl) URL.revokeObjectURL(stylePreviewUrl);
+    };
+  }, [stylePreviewUrl]);
+
+  const fetchSavedPresets = async (force = false) => {
+    if (presetsLoaded && !force) return;
     try {
       const data = await base44.entities.RenderPreset.list();
       setSavedPresetsList(data);
+      setPresetsLoaded(true);
     } catch (err) {
       console.error('Failed to fetch presets:', err);
     }
@@ -263,7 +292,7 @@ export default function Render3D() {
         prompt: prompt
       });
       setPresetName('');
-      fetchSavedPresets();
+      fetchSavedPresets(true);
     } catch (err) {
       console.error(err);
     } finally {
@@ -278,8 +307,9 @@ export default function Render3D() {
 
   useEffect(() => {
     if (magicEditMode && imageRef.current && canvasRef.current) {
-      canvasRef.current.width = imageRef.current.naturalWidth;
-      canvasRef.current.height = imageRef.current.naturalHeight;
+      const cappedSize = getCappedCanvasSize(imageRef.current.naturalWidth, imageRef.current.naturalHeight);
+      canvasRef.current.width = cappedSize.width;
+      canvasRef.current.height = cappedSize.height;
       setHasDrawn(false);
     }
   }, [magicEditMode]);
@@ -498,18 +528,17 @@ export default function Render3D() {
 
       setRenderedImage(result.url);
       setMagicEditMode(false);
+      setIsRendering(false);
       
-      try {
-        await base44.entities.ProjectAsset.create({
-           project_id: 'generate-render-history', // pseudo id for history
-           file_url: result.url,
-           file_name: `render-${typeText}-${Date.now()}.jpg`,
-           asset_type: 'render',
-           description: finalPrompt.substring(0, 1000)
-        });
-      } catch (saveErr) {
+      void base44.entities.ProjectAsset.create({
+         project_id: 'generate-render-history', // pseudo id for history
+         file_url: result.url,
+         file_name: `render-${typeText}-${Date.now()}.jpg`,
+         asset_type: 'render',
+         description: finalPrompt.substring(0, 1000)
+      }).catch((saveErr) => {
         console.error("Optional save failed:", saveErr);
-      }
+      });
 
     } catch (err) {
       console.error(err);
@@ -938,8 +967,9 @@ export default function Render3D() {
                 className="w-full block"
                 onLoad={() => {
                   if (magicEditMode && canvasRef.current && imageRef.current) {
-                    canvasRef.current.width = imageRef.current.naturalWidth;
-                    canvasRef.current.height = imageRef.current.naturalHeight;
+                    const cappedSize = getCappedCanvasSize(imageRef.current.naturalWidth, imageRef.current.naturalHeight);
+                    canvasRef.current.width = cappedSize.width;
+                    canvasRef.current.height = cappedSize.height;
                   }
                 }} />
               

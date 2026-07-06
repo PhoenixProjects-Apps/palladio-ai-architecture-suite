@@ -1,20 +1,19 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
-import { ArrowLeft, Layers, Loader2, Upload, Box, Download, Image as ImageIcon } from 'lucide-react';
+import { Layers, Loader2, Upload, Box, Download, Image as ImageIcon } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { base44 } from '@/api/base44Client';
-import ReactMarkdown from 'react-markdown';
 import PalladioGate from '../components/PalladioGate';
 import SaveToProject from '../components/SaveToProject';
 import ChooseProject from '../components/ChooseProject';
-import Floorplan3DRenderer from '../components/Floorplan3DRenderer';
 import { toast } from 'sonner';
-import BrandedExportModal from '../components/BrandedExportModal';
 import { uploadToFirebase, validateUpload } from '@/lib/uploadHelper';
+
+const ReactMarkdown = React.lazy(() => import('react-markdown'));
+const BrandedExportModal = React.lazy(() => import('../components/BrandedExportModal'));
 
 function extractJson(text) {
   if (!text) return null;
@@ -28,6 +27,28 @@ function extractJson(text) {
   return null;
 }
 
+const ms = (start) => Math.round(performance.now() - start);
+
+const buildFloorplanImagePrompt = (description, style) => `High-end 2D architectural floor plan blueprint for: "${description}". Architectural aesthetic: ${style}. Clean crisp vector linework, solid dark navy walls, pure white background, top-down view, metric room labels and dimensions, door swings, window openings, minimal tasteful furniture symbols, professional real-estate layout. Do NOT include borders, frames, logos, title blocks, watermarks, 3D elements, sketch texture, grid lines, external text blocks, signatures, stamps, or text around image edges.`;
+
+const saveFloorplanHistory = (payload, timings, totalStart) => {
+  const saveStart = performance.now();
+  void base44.entities.FloorplanGenerations.create(payload)
+    .then(() => {
+      timings.history_save_ms = ms(saveStart);
+    })
+    .catch((saveErr) => {
+      timings.history_save_ms = ms(saveStart);
+      timings.history_save_failed = true;
+      console.error("Failed to save FloorplanGenerations:", saveErr);
+      toast.warning("Floorplan generated, but failed to save to history.");
+    })
+    .finally(() => {
+      timings.total_generation_ms = ms(totalStart);
+      console.info('[PalladioPerf]', timings);
+    });
+};
+
 export default function PalladioFloorplan() {
   const [tab, setTab] = useState(() => sessionStorage.getItem('pf-tab') || 'text');
   const [selectedProject, setSelectedProject] = useState(null);
@@ -39,11 +60,17 @@ export default function PalladioFloorplan() {
   const [desc, setDesc] = useState(() => sessionStorage.getItem('pf-desc') || '');
   const [isGeneratingText, setIsGeneratingText] = useState(false);
   const [textResult, setTextResult] = useState({ layout: null, image: null, layoutData: null });
-  React.useEffect(() => {
+  useEffect(() => {
     sessionStorage.setItem('pf-tab', tab);
     sessionStorage.setItem('pf-style', style);
-    sessionStorage.setItem('pf-desc', desc);
-  }, [tab, style, desc]);
+  }, [tab, style]);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      sessionStorage.setItem('pf-desc', desc);
+    }, 250);
+    return () => window.clearTimeout(timeout);
+  }, [desc]);
 
   // Tab 2 state
   const [cadFile, setCadFile] = useState(null);
@@ -54,12 +81,19 @@ export default function PalladioFloorplan() {
 
   const handleTextGenerate = async () => {
     if (!desc) return;
+    const totalStart = performance.now();
+    const timings = { feature: 'floorplan_text' };
     setIsGeneratingText(true);
+    setTextResult({ layout: null, image: null, layoutData: null });
     try {
+      const tokenStart = performance.now();
       const tokenRes = await base44.functions.invoke('consumeToken', { amount: 5 });
+      timings.token_check_ms = ms(tokenStart);
       if (tokenRes.data?.error) {
         toast.error("You don't have enough AI tokens. Floorplan generation requires 5 tokens. Please upgrade your plan.");
         setIsGeneratingText(false);
+        timings.total_generation_ms = ms(totalStart);
+        console.info('[PalladioPerf]', timings);
         return;
       }
       
@@ -93,49 +127,67 @@ export default function PalladioFloorplan() {
         required: ["layout_markdown", "image_prompt", "rooms"]
       };
 
-      const spec = await base44.integrations.Core.InvokeLLM({
+      const llmStart = performance.now();
+      const specPromise = base44.integrations.Core.InvokeLLM({
         prompt: llmPrompt,
         response_json_schema: schema
+      }).then((spec) => {
+        timings.llm_layout_ms = ms(llmStart);
+        return spec;
       });
 
-      if (!spec || !spec.image_prompt) {
-        throw new Error("Failed to generate floorplan specification.");
-      }
-
-      const imageRes = await base44.integrations.Core.GenerateImage({
-        prompt: spec.image_prompt
+      const imageStart = performance.now();
+      const imagePromise = base44.integrations.Core.GenerateImage({
+        prompt: buildFloorplanImagePrompt(desc, style)
+      }).then((imageRes) => {
+        timings.image_generation_ms = ms(imageStart);
+        if (!imageRes?.url) throw new Error("Failed to generate floorplan image.");
+        setTextResult((current) => ({ ...current, image: imageRes.url }));
+        setIsGeneratingText(false);
+        return imageRes;
       });
 
-      if (!imageRes || !imageRes.url) {
-        throw new Error("Failed to generate floorplan image.");
+      const [specSettled, imageSettled] = await Promise.allSettled([specPromise, imagePromise]);
+      const spec = specSettled.status === 'fulfilled' ? specSettled.value : null;
+      const imageRes = imageSettled.status === 'fulfilled' ? imageSettled.value : null;
+
+      if (!spec && !imageRes) {
+        throw new Error("Failed to generate floorplan specification and image.");
       }
 
-      setTextResult({
-        layout: spec.layout_markdown || '',
-        image: imageRes.url,
-        layoutData: { rooms: spec.rooms || [] }
-      });
-
-      try {
-        await base44.entities.FloorplanGenerations.create({
-          project_name: "Floorplan Generate",
-          raw_layout_data: { rooms: spec.rooms || [] },
-          ui_style_selection: 'Top-Down',
-          ui_finish_selection: 'Photorealistic',
-          ui_layout_selection: 'Standard 3D',
-          status: 'Completed',
-          output_image_url: imageRes.url,
-          accent_color: '#1e293b',
-          branded_border_enabled: false
-        });
-      } catch (saveErr) {
-        console.error("Failed to save FloorplanGenerations:", saveErr);
-        toast.warning("Floorplan generated, but failed to save to history.");
+      if (spec) {
+        setTextResult((current) => ({
+          layout: spec.layout_markdown || '',
+          image: current.image || imageRes?.url || null,
+          layoutData: { rooms: spec.rooms || [] }
+        }));
+      } else if (imageRes) {
+        timings.llm_layout_failed = true;
+        toast.warning("Floorplan image generated, but structured room data was not generated.");
       }
+
+      if (!imageRes && spec) {
+        timings.image_generation_failed = true;
+        toast.warning("Layout brief generated, but the floorplan image failed. Please try generating again.");
+        setIsGeneratingText(false);
+      }
+
+      saveFloorplanHistory({
+        project_name: "Floorplan Generate",
+        raw_layout_data: { rooms: spec?.rooms || [] },
+        ui_style_selection: 'Top-Down',
+        ui_finish_selection: 'Photorealistic',
+        ui_layout_selection: 'Standard 3D',
+        status: 'Completed',
+        output_image_url: imageRes?.url,
+        accent_color: '#1e293b',
+        branded_border_enabled: false
+      }, timings, totalStart);
     } catch (err) {
       console.error(err);
       toast.error('Generation failed. Please try again.');
-    } finally {
+      timings.total_generation_ms = ms(totalStart);
+      console.info('[PalladioPerf]', timings);
       setIsGeneratingText(false);
     }
   };
@@ -153,7 +205,9 @@ export default function PalladioFloorplan() {
 
     setCadFile(file);
     try {
+      const uploadStart = performance.now();
       const { file_url } = await uploadToFirebase(file);
+      console.info('[PalladioPerf]', { feature: 'floorplan_sketch_upload', upload_ms: ms(uploadStart) });
       setCadFileUrl(file_url);
     } catch (err) {
       console.error(err);
@@ -162,47 +216,52 @@ export default function PalladioFloorplan() {
 
   const handleSketchGenerate = async () => {
     if (!cadFileUrl) return;
+    const totalStart = performance.now();
+    const timings = { feature: 'floorplan_sketch' };
     setIsGeneratingSketch(true);
     try {
+      const tokenStart = performance.now();
       const tokenRes = await base44.functions.invoke('consumeToken', { amount: 5 });
+      timings.token_check_ms = ms(tokenStart);
       if (tokenRes.data?.error) {
         toast.error("You don't have enough AI tokens. Floorplan generation requires 5 tokens. Please upgrade your plan.");
         setIsGeneratingSketch(false);
+        timings.total_generation_ms = ms(totalStart);
+        console.info('[PalladioPerf]', timings);
         return;
       }
       const imagePrompt = `High-end 2D architectural floor plan blueprint, clean crisp vector lines, solid dark navy blue walls, pure white background, minimal vector furniture symbols, clean modern sans-serif typography, crisp METRIC room dimensions (e.g. 5m x 4m), professional real estate layout. A neat, professional, 2D architectural floorplan with dimensions and furniture, top-down view, high quality. The layout should match the provided sketch perfectly. Architectural aesthetic: ${style}. Do NOT include: Borders, frames, margin lines, framing rectangles around the image, Imperial measurements, feet, inches, Photorealistic textures, 3D elements, hand-drawn lines, sketch textures, shadows, gradients, colored floors, messy icons, grid lines, architectural hatching patterns, dark backgrounds, blurry text, title, heading, date, project name, designer name, watermark, logos, stamps, signatures, or any text blocks outside the drawing — absolutely no text, lines, or watermarks at the bottom/edges, only the floorplan itself floating on a pure white background with clear room labels in metric.`;
 
+      const imageStart = performance.now();
       const imageRes = await base44.integrations.Core.GenerateImage({
         prompt: imagePrompt,
         existing_image_urls: [cadFileUrl]
       });
+      timings.image_generation_ms = ms(imageStart);
 
       if (!imageRes || !imageRes.url) {
         throw new Error("Failed to generate floorplan image.");
       }
 
       setSketchResult(imageRes.url);
+      setIsGeneratingSketch(false);
 
-      try {
-        await base44.entities.FloorplanGenerations.create({
-          project_name: "Floorplan Sketch Generate",
-          raw_layout_data: { imageUrl: imageRes.url },
-          ui_style_selection: 'Top-Down',
-          ui_finish_selection: 'Photorealistic',
-          ui_layout_selection: 'Standard 3D',
-          status: 'Completed',
-          output_image_url: imageRes.url,
-          accent_color: '#1e293b',
-          branded_border_enabled: false
-        });
-      } catch (saveErr) {
-        console.error("Failed to save FloorplanGenerations:", saveErr);
-        toast.warning("Floorplan generated, but failed to save to history.");
-      }
+      saveFloorplanHistory({
+        project_name: "Floorplan Sketch Generate",
+        raw_layout_data: { imageUrl: imageRes.url },
+        ui_style_selection: 'Top-Down',
+        ui_finish_selection: 'Photorealistic',
+        ui_layout_selection: 'Standard 3D',
+        status: 'Completed',
+        output_image_url: imageRes.url,
+        accent_color: '#1e293b',
+        branded_border_enabled: false
+      }, timings, totalStart);
     } catch (err) {
       console.error(err);
       toast.error('Generation failed. Please try again.');
-    } finally {
+      timings.total_generation_ms = ms(totalStart);
+      console.info('[PalladioPerf]', timings);
       setIsGeneratingSketch(false);
     }
   };
@@ -295,7 +354,7 @@ export default function PalladioFloorplan() {
                             </div>
 
                             <div>
-                                {textResult.layout ?
+                                {textResult.image || textResult.layout ?
               <div className="space-y-6 animate-in fade-in duration-500">
                                         {textResult.image &&
                 <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-lg">
@@ -303,14 +362,18 @@ export default function PalladioFloorplan() {
                                             </div>
                 }
                                         <div className="flex flex-col md:flex-row gap-3">
-                                            <BrandedExportModal
-                                              imageUrl={textResult.image}
-                                              triggerButton={
-                                                <Button className="w-full md:flex-1 bg-white text-black hover:bg-slate-200 h-12 rounded-xl shadow-lg">
-                                                  <Download size={18} className="mr-2" /> Export Branded
-                                                </Button>
-                                              }
-                                            />
+                                            {textResult.image &&
+                                            <Suspense fallback={null}>
+                                              <BrandedExportModal
+                                                imageUrl={textResult.image}
+                                                triggerButton={
+                                                  <Button className="w-full md:flex-1 bg-white text-black hover:bg-slate-200 h-12 rounded-xl shadow-lg">
+                                                    <Download size={18} className="mr-2" /> Export Branded
+                                                  </Button>
+                                                }
+                                              />
+                                            </Suspense>
+                                            }
                                             <Link to="/Floorplan3D" state={{ layoutData: textResult?.layoutData, sourceImage: textResult?.image }} className="w-full md:flex-1">
                                               <Button
                       className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl shadow-lg shadow-cyan-500/20">
@@ -318,18 +381,25 @@ export default function PalladioFloorplan() {
                                                   <Box size={18} className="mr-2" /> 3D Floorplan Renderer
                                               </Button>
                                             </Link>
+                                            {textResult.image &&
                                             <SaveToProject
                     fileUrl={textResult.image}
                     fileName="floorplan.png"
                     assetType="plan"
                     projectId={selectedProject?.id}
                     className="w-full md:flex-1 h-12 rounded-xl border-violet-500/50 text-violet-300 hover:bg-violet-500/10" />
+                                            }
                   
                                         </div>
 
                                         <div className="bg-white/5 border border-white/10 rounded-2xl p-6 prose prose-invert max-w-none break-words text-sm">
                                             <h3 className="text-violet-400 mt-0">Layout Brief</h3>
-                                            <ReactMarkdown>{textResult.layout}</ReactMarkdown>
+                                            {textResult.layout ?
+                                              <Suspense fallback={<p className="text-slate-400">Loading layout brief...</p>}>
+                                                <ReactMarkdown>{textResult.layout}</ReactMarkdown>
+                                              </Suspense> :
+                                              <p className="text-slate-400">Structured room data is still being generated...</p>
+                                            }
                                         </div>
                                     </div> :
 
@@ -407,14 +477,16 @@ export default function PalladioFloorplan() {
                                               </Button>
                                         </Link>
                                         <div className="flex flex-col md:flex-row gap-3">
-                                            <BrandedExportModal
-                                              imageUrl={sketchResult}
-                                              triggerButton={
-                                                <Button className="w-full md:flex-1 bg-white text-black hover:bg-slate-200 h-12 rounded-xl shadow-lg">
-                                                  <Download size={18} className="mr-2" /> Export Branded
-                                                </Button>
-                                              }
-                                            />
+                                            <Suspense fallback={null}>
+                                              <BrandedExportModal
+                                                imageUrl={sketchResult}
+                                                triggerButton={
+                                                  <Button className="w-full md:flex-1 bg-white text-black hover:bg-slate-200 h-12 rounded-xl shadow-lg">
+                                                    <Download size={18} className="mr-2" /> Export Branded
+                                                  </Button>
+                                                }
+                                              />
+                                            </Suspense>
                                             <SaveToProject
                     fileUrl={sketchResult}
                     fileName="floorplan-sketch.png"
