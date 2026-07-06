@@ -97,7 +97,7 @@ export default function Floorplan3DRenderer({ floorplanImage, onRequireFloorplan
           {renderResult ? (
             <div className="w-full space-y-4 animate-in fade-in duration-500">
               <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-lg">
-                <img src={renderResult} alt="3D floorplan render" className="w-full h-auto" />
+                <img loading="lazy" decoding="async" src={renderResult} alt="3D floorplan render" className="w-full h-auto" />
               </div>
               <a href={renderResult} download="3d-floorplan-render.png" target="_blank" rel="noreferrer">
                 <Button className="w-full bg-white text-black hover:bg-slate-200 h-11 rounded-xl">

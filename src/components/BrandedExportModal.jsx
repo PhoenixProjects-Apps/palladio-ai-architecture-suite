@@ -200,7 +200,7 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
               <Label>Company Logo</Label>
               <div className="mt-2 flex flex-col sm:flex-row sm:items-center gap-4 min-w-0">
                 {logoUrl ? (
-                  <img src={logoUrl} alt="Logo" className="h-12 object-contain bg-white/10 p-1 rounded" crossOrigin="anonymous" />
+                  <img loading="lazy" decoding="async" src={logoUrl} alt="Logo" className="h-12 object-contain bg-white/10 p-1 rounded" crossOrigin="anonymous" />
                 ) : (
                   <div className="h-12 w-24 bg-slate-800 rounded flex items-center justify-center text-xs text-slate-400 border border-slate-700 border-dashed shrink-0">No Logo</div>
                 )}
@@ -320,7 +320,7 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
                   }
                 `}</style>
                 <div className="b44-canvas-floorplan-area">
-                  <img src={imageUrl} alt="Generated Floorplan Layout" crossOrigin="anonymous" />
+                  <img loading="lazy" decoding="async" src={imageUrl} alt="Generated Floorplan Layout" crossOrigin="anonymous" />
                 </div>
                 
                 <div className="b44-canvas-title-block" style={{ borderTop: `3px solid ${accentColor}` }}>
@@ -331,7 +331,7 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
                   
                   <div className="b44-title-block-logo">
                     {logoUrl ? (
-                      <img src={logoUrl} alt="Company Logo" crossOrigin="anonymous" />
+                      <img loading="lazy" decoding="async" src={logoUrl} alt="Company Logo" crossOrigin="anonymous" />
                     ) : (
                       <span className="logo-fallback-text">REAL ESTATE STUDIO</span>
                     )}

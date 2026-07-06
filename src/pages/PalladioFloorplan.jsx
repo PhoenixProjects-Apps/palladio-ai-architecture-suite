@@ -299,7 +299,7 @@ export default function PalladioFloorplan() {
               <div className="space-y-6 animate-in fade-in duration-500">
                                         {textResult.image &&
                 <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-lg">
-                                                <img src={textResult.image} alt="Generated floorplan" className="w-full h-auto" />
+                                                <img loading="lazy" decoding="async" src={textResult.image} alt="Generated floorplan" className="w-full h-auto" />
                                             </div>
                 }
                                         <div className="flex flex-col md:flex-row gap-3">
@@ -397,7 +397,7 @@ export default function PalladioFloorplan() {
                                 {sketchResult ?
               <div className="space-y-6 animate-in fade-in duration-500">
                                         <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-lg p-4">
-                                            <img src={sketchResult} alt="Generated Floorplan" className="w-full rounded-lg" />
+                                            <img loading="lazy" decoding="async" src={sketchResult} alt="Generated Floorplan" className="w-full rounded-lg" />
                                         </div>
                                         <Link to="/Floorplan3D" state={{ layoutData: { imageUrl: sketchResult }, sourceImage: sketchResult }} className="w-full">
                                           <Button

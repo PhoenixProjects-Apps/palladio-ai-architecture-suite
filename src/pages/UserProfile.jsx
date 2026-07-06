@@ -119,7 +119,7 @@ export default function UserProfile() {
                 className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center text-2xl sm:text-3xl font-bold border border-white/10 shadow-lg overflow-hidden relative cursor-pointer"
               >
                 {user?.profile_picture ? (
-                  <img src={user.profile_picture} alt={user?.full_name || 'Profile'} className="w-full h-full object-cover" />
+                  <img loading="lazy" decoding="async" src={user.profile_picture} alt={user?.full_name || 'Profile'} className="w-full h-full object-cover" />
                 ) : (
                   user?.full_name?.charAt(0) || <User size={32} />
                 )}

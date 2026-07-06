@@ -221,7 +221,7 @@ export default function PalladioAssess() {
                       <p className="text-slate-400">Uploading document...</p>
                     </div>
                   ) : previewUrl ? (
-                    <img src={previewUrl} alt="Preview" className="mx-auto max-h-[300px] rounded-xl object-contain shadow-lg" />
+                    <img loading="lazy" decoding="async" src={previewUrl} alt="Preview" className="mx-auto max-h-[300px] rounded-xl object-contain shadow-lg" />
                   ) : file ? (
                     <div className="flex flex-col items-center">
                       <FileImage size={48} className="text-cyan-500 mb-4" />

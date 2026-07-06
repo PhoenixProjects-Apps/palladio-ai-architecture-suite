@@ -245,7 +245,14 @@ export default function Floorplan3D() {
           </button>
 
           {isFailed && (
-            <div className="b44-alert-error" onClick={() => handleGenerate('Clay Model')}>
+            <div
+              role="button"
+              tabIndex={0}
+              aria-label="Try rendering with a standard Clay Model"
+              className="b44-alert-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              onClick={() => handleGenerate('Clay Model')}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleGenerate('Clay Model'); } }}
+            >
               <p>We couldn't render your 3D textures. Click here to try rendering with a standard Clay Model instead.</p>
             </div>
           )}
@@ -255,7 +262,7 @@ export default function Floorplan3D() {
         <div className="flex-1 flex flex-col items-center justify-center p-6 relative overflow-y-auto b44-main-content order-1 md:order-2">
           {outputImageUrl ? (
             <div className="flex flex-col items-center justify-center gap-4 w-full max-w-4xl animate-in fade-in zoom-in duration-500">
-              <img src={outputImageUrl} alt="Generated Floorplan" className="w-full h-auto object-contain rounded-xl shadow-2xl border border-white/10 max-h-[80vh]" />
+              <img loading="lazy" decoding="async" src={outputImageUrl} alt="Generated Floorplan" className="w-full h-auto object-contain rounded-xl shadow-2xl border border-white/10 max-h-[80vh]" />
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mt-2 w-full sm:w-auto">
                 <a href={outputImageUrl} target="_blank" rel="noreferrer" className="min-h-11 inline-flex items-center justify-center text-cyan-400 hover:text-cyan-300 text-sm underline">
                   View Full Resolution
@@ -282,7 +289,7 @@ export default function Floorplan3D() {
               ) : (
                 <div className="flex flex-col items-center gap-4 bg-slate-900/50 p-10 rounded-2xl border border-white/5 border-dashed">
                   <div className="w-full max-w-[280px] rounded-xl bg-slate-800/50 flex items-center justify-center mb-2 aspect-video overflow-hidden border border-white/5 bg-white/5">
-                    <img src={sourceImage || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=600&auto=format&fit=crop"} alt="Floorplan preview" className={`w-full h-full object-cover ${sourceImage ? 'opacity-100' : 'opacity-60 mix-blend-luminosity'}`} />
+                    <img loading="lazy" decoding="async" src={sourceImage || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=600&auto=format&fit=crop"} alt="Floorplan preview" className={`w-full h-full object-cover ${sourceImage ? 'opacity-100' : 'opacity-60 mix-blend-luminosity'}`} />
                   </div>
                   <h3 className="text-lg font-medium text-slate-200">Ready to Render</h3>
                   <p className="text-sm text-slate-400 leading-relaxed">

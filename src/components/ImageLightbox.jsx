@@ -40,7 +40,7 @@ export default function ImageLightbox({ url, onClose }) {
                     </Button>
                 </a>
             </div>
-            <img src={url} alt="Expanded view" className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" />
+            <img loading="lazy" decoding="async" src={url} alt="Expanded view" className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" />
         </div>
     );
 }

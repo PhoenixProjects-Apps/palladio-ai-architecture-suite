@@ -616,6 +616,8 @@ export default function Render3D() {
                 </div> :
                 previewUrl ?
                 <img
+                  loading="lazy"
+                  decoding="async"
                   src={previewUrl}
                   alt="3D view preview"
                   className="mx-auto rounded-xl object-contain h-full w-full" /> :
@@ -677,6 +679,8 @@ export default function Render3D() {
                 </div> :
                 stylePreviewUrl ?
                 <img
+                  loading="lazy"
+                  decoding="async"
                   src={stylePreviewUrl}
                   alt="Style preview"
                   className="mx-auto rounded-xl object-contain h-full w-full" /> :
@@ -927,6 +931,8 @@ export default function Render3D() {
             <div className="rounded-2xl overflow-hidden mb-3 relative" style={{ border: '1px solid rgba(20,184,166,0.35)' }}>
               <img
                 ref={imageRef}
+                loading="lazy"
+                decoding="async"
                 src={renderedImage}
                 alt="AI Architectural Render"
                 className="w-full block"

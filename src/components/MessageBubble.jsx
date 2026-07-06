@@ -154,7 +154,7 @@ export default function MessageBubble({ message, showToolCalls = false }) {
                 {message.file_urls?.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-2">
                         {message.file_urls.map((url, idx) => (
-                            <img key={idx} src={url} alt="Attached" className="max-w-[200px] max-h-[200px] rounded-lg border border-slate-700 object-cover" />
+                            <img key={idx} loading="lazy" decoding="async" src={url} alt="Attached" className="max-w-[200px] max-h-[200px] rounded-lg border border-slate-700 object-cover" />
                         ))}
                     </div>
                 )}

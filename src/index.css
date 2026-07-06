@@ -86,6 +86,10 @@
     @apply bg-background text-foreground;
   }
 
+  input, textarea, select, button[role="combobox"], [contenteditable="true"] {
+    font-size: 16px;
+  }
+
   button, a, nav, [role="button"], .lucide {
     user-select: none;
     -webkit-user-select: none;

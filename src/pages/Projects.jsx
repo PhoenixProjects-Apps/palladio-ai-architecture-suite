@@ -312,7 +312,15 @@ export default function Projects() {
                                 ) : (
                                     <div className="space-y-3">
                                         {chats.map(chat => (
-                                            <div key={chat.id} className="flex items-center justify-between bg-slate-800/50 p-3 rounded-xl border border-white/5 hover:bg-slate-700 transition-colors cursor-pointer" onClick={() => openChat(chat.id)}>
+                                            <div
+                                                key={chat.id}
+                                                role="button"
+                                                tabIndex={0}
+                                                aria-label={`Open discussion ${chat.metadata?.name || 'Discussion'}`}
+                                                className="flex items-center justify-between bg-slate-800/50 p-3 rounded-xl border border-white/5 hover:bg-slate-700 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                                onClick={() => openChat(chat.id)}
+                                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openChat(chat.id); } }}
+                                            >
                                                 <div className="flex items-center gap-3 truncate pr-4">
                                                     <MessageSquare size={16} className="text-slate-400 flex-shrink-0" />
                                                     <span className="truncate text-sm text-slate-200">{chat.metadata?.name || "Discussion"}</span>
@@ -377,9 +385,13 @@ export default function Projects() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {projects.map(project => (
                                 <div 
-                                    key={project.id} 
+                                    key={project.id}
+                                    role="button"
+                                    tabIndex={0}
+                                    aria-label={`Open project ${project.name}`}
                                     onClick={() => openProject(project)}
-                                    className="bg-white/5 border border-white/10 rounded-2xl p-3 hover:bg-white/10 transition-all cursor-pointer group relative hover:border-amber-500/30 shadow-lg"
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openProject(project); } }}
+                                    className="bg-white/5 border border-white/10 rounded-2xl p-3 hover:bg-white/10 transition-all cursor-pointer group relative hover:border-amber-500/30 shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                 >
                                     <h3 className="text-lg font-semibold text-amber-500 mb-2 truncate">{project.name}</h3>
                                     <p className="text-xs text-slate-500 font-medium">Created {new Date(project.created_date).toLocaleDateString()}</p>

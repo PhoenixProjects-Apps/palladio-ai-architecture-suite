@@ -741,7 +741,7 @@ INSTRUCTIONS:
                                         <p className="text-gray-400 text-xs">Uploading...</p>
                                     </div> :
                   previewUrl ?
-                  <img src={previewUrl} alt="preview" className="mx-auto rounded-lg object-contain max-h-[140px]" /> :
+                  <img loading="lazy" decoding="async" src={previewUrl} alt="preview" className="mx-auto rounded-lg object-contain max-h-[140px]" /> :
                   file && !previewUrl ?
                   <div className="flex flex-col items-center gap-2 w-full px-2">
                                         <FileText size={24} className="text-blue-500 shrink-0" />

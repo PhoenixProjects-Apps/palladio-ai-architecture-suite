@@ -83,12 +83,12 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
       <div className="p-4 flex items-center justify-between">
         {!isCollapsed && (
           <div className="flex items-center gap-3">
-            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69997bf8be3f3bf35cbd8147/e93fde36f_Lumii_20260222_021318181.png" alt="Logo" className="w-8 h-8 rounded-lg object-cover" />
+            <img loading="lazy" decoding="async" src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69997bf8be3f3bf35cbd8147/e93fde36f_Lumii_20260222_021318181.png" alt="Logo" className="w-8 h-8 rounded-lg object-cover" />
             <span className="font-bold text-white tracking-tight">Palladio AI</span>
           </div>
         )}
         {isCollapsed && (
-          <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69997bf8be3f3bf35cbd8147/e93fde36f_Lumii_20260222_021318181.png" alt="Logo" className="w-8 h-8 rounded-lg object-cover mx-auto" />
+          <img loading="lazy" decoding="async" src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69997bf8be3f3bf35cbd8147/e93fde36f_Lumii_20260222_021318181.png" alt="Logo" className="w-8 h-8 rounded-lg object-cover mx-auto" />
         )}
         <button type="button" aria-label={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"} onClick={() => setIsCollapsed(!isCollapsed)} className="hidden md:flex p-1.5 hover:bg-white/10 rounded-md text-slate-400 min-w-[44px] min-h-[44px] items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           {isCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}

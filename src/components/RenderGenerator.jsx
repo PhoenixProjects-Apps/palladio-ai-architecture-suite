@@ -145,7 +145,7 @@ export default function RenderGenerator({ projectName = "New Project", rawLayout
 
         {outputImageUrl ? (
           <div className="w-full h-full flex flex-col items-center justify-center gap-4">
-            <img src={outputImageUrl} alt="Generated Floorplan" className="max-w-full max-h-[600px] object-contain rounded-md shadow-2xl border border-white/10" />
+            <img loading="lazy" decoding="async" src={outputImageUrl} alt="Generated Floorplan" className="max-w-full max-h-[600px] object-contain rounded-md shadow-2xl border border-white/10" />
             <a href={outputImageUrl} target="_blank" rel="noreferrer" className="text-cyan-400 hover:text-cyan-300 text-sm underline">
               View Full Resolution
             </a>
