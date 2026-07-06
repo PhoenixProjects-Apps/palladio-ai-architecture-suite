@@ -18,16 +18,14 @@ export default defineConfig({
     react(),
   ],
   build: {
+    chunkSizeWarningLimit: 1200,
     rollupOptions: {
       output: {
         manualChunks(id) {
           if (!id.includes('node_modules')) return undefined;
-          if (id.includes('three')) return 'vendor-3d';
-          if (id.includes('framer-motion')) return 'vendor-motion';
-          if (id.includes('@radix-ui')) return 'vendor-ui';
-          if (id.includes('jspdf')) return 'vendor-pdf';
-          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) return 'vendor-react';
-          return 'vendor-utils';
+          if (id.includes('/three/')) return 'vendor-3d';
+          if (id.includes('/jspdf/')) return 'vendor-pdf';
+          return undefined;
         }
       }
     }
