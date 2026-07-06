@@ -724,8 +724,12 @@ INSTRUCTIONS:
                         </CardHeader>
                         <CardContent className="overflow-hidden">
                             <div
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Upload plan or render file"
                   onClick={() => fileInputRef.current?.click()}
-                  className="rounded-xl p-4 sm:p-6 text-center cursor-pointer transition-all flex flex-col justify-center items-center min-h-[160px] overflow-hidden w-full min-w-0 max-w-full"
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInputRef.current?.click(); } }}
+                  className="rounded-xl p-4 sm:p-6 text-center cursor-pointer transition-all flex flex-col justify-center items-center min-h-[160px] overflow-hidden w-full min-w-0 max-w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                   style={{
                     border: `2px dashed ${fileUrl ? '#3b82f6' : '#334155'}`,
                     backgroundColor: '#0f172a'
@@ -788,7 +792,7 @@ INSTRUCTIONS:
                                         <label className="text-xs text-slate-400 mb-1 block">Ceiling (m²)</label>
                                         <Input type="number" value={ceilingArea} onChange={(e) => setCeilingArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
-                                    <div className="col-span-1 sm:col-span-2 space-y-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                                    <div className="col-span-1 md:col-span-2 space-y-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
                                         <p className="text-xs font-semibold text-slate-300">Roof Area Calculation</p>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                             <div>
@@ -835,11 +839,11 @@ INSTRUCTIONS:
                                         <label className="text-xs text-slate-400 mb-1 block">Patio (m²)</label>
                                         <Input type="number" value={patioArea} onChange={(e) => setPatioArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
-                                    <div className="sm:col-span-2">
+                                    <div className="md:col-span-2">
                                         <label className="text-xs text-slate-400 mb-1 block">Porch (m²)</label>
                                         <Input type="number" value={porchArea} onChange={(e) => setPorchArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
-                                    <div className="sm:col-span-2">
+                                    <div className="md:col-span-2">
                                         <label className="text-xs text-slate-400 mb-1 block">Garage (m²)</label>
                                         <Input type="number" value={garageArea} onChange={(e) => setGarageArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
@@ -856,7 +860,7 @@ INSTRUCTIONS:
                                         <label className="text-xs text-slate-400 mb-1 block">Internal Wall Length (m)</label>
                                         <Input type="number" value={internalWallLength} onChange={(e) => setInternalWallLength(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
-                                    <div className="sm:col-span-2">
+                                    <div className="md:col-span-2">
                                         <label className="text-xs text-slate-400 mb-1 block">Ceiling Height (mm)</label>
                                         <Input type="number" value={ceilingHeight} onChange={(e) => setCeilingHeight(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
@@ -934,12 +938,12 @@ INSTRUCTIONS:
                 <div className="lg:col-span-2 min-w-0 overflow-hidden">
                     {result ?
             <Card className="bg-slate-900 border-slate-800">
-                            <CardHeader className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between border-b border-slate-800 pb-4 min-w-0">
+                            <CardHeader className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between border-b border-slate-800 pb-4 min-w-0">
                                 <div>
                                     <CardTitle className="text-white text-xl">Detailed Estimate</CardTitle>
                                     <CardDescription className="text-slate-400">Based on localized DB and AI takeoff.</CardDescription>
                                 </div>
-                                <div className="text-left sm:text-right min-w-0">
+                                <div className="text-left md:text-right min-w-0">
                                     <p className="text-sm text-slate-400">Grand Total</p>
                                     <p className="text-2xl font-bold text-blue-400">{formatCurrency(result.grand_total)}</p>
                                 </div>

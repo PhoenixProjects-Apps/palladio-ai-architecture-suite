@@ -227,7 +227,7 @@ export default function PalladioFloorplan() {
                     </header>
 
                     {/* Tabs */}
-                    <div className="flex flex-col sm:flex-row gap-1 bg-slate-900 rounded-xl p-1 mb-8 w-full sm:w-max">
+                    <div className="flex flex-col md:flex-row gap-1 bg-slate-900 rounded-xl p-1 mb-8 w-full sm:w-max">
                         <button
               onClick={() => setTab('text')}
               className={`min-h-11 w-full sm:w-auto px-4 sm:px-6 py-2 rounded-lg text-sm font-medium transition-all ${tab === 'text' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
@@ -265,8 +265,9 @@ export default function PalladioFloorplan() {
                                             </SelectContent>
                                         </Select>
                                     </div>
-                                    <label className="text-sm font-medium text-slate-400 mb-3 block">Describe your space</label>
+                                    <label htmlFor="floorplan-description" className="text-sm font-medium text-slate-400 mb-3 block">Describe your space</label>
                                     <Textarea
+                  id="floorplan-description"
                   value={desc}
                   onChange={(e) => setDesc(e.target.value)}
                   placeholder="E.g., A 3 bedroom, 2 bathroom family home with an open plan kitchen/living area..."
@@ -301,16 +302,16 @@ export default function PalladioFloorplan() {
                                                 <img src={textResult.image} alt="Generated floorplan" className="w-full h-auto" />
                                             </div>
                 }
-                                        <div className="flex flex-col sm:flex-row gap-3">
+                                        <div className="flex flex-col md:flex-row gap-3">
                                             <BrandedExportModal
                                               imageUrl={textResult.image}
                                               triggerButton={
-                                                <Button className="w-full sm:flex-1 bg-white text-black hover:bg-slate-200 h-12 rounded-xl shadow-lg">
+                                                <Button className="w-full md:flex-1 bg-white text-black hover:bg-slate-200 h-12 rounded-xl shadow-lg">
                                                   <Download size={18} className="mr-2" /> Export Branded
                                                 </Button>
                                               }
                                             />
-                                            <Link to="/Floorplan3D" state={{ layoutData: textResult?.layoutData, sourceImage: textResult?.image }} className="w-full sm:flex-1">
+                                            <Link to="/Floorplan3D" state={{ layoutData: textResult?.layoutData, sourceImage: textResult?.image }} className="w-full md:flex-1">
                                               <Button
                       className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl shadow-lg shadow-cyan-500/20">
                       
@@ -322,7 +323,7 @@ export default function PalladioFloorplan() {
                     fileName="floorplan.png"
                     assetType="plan"
                     projectId={selectedProject?.id}
-                    className="w-full sm:flex-1 h-12 rounded-xl border-violet-500/50 text-violet-300 hover:bg-violet-500/10" />
+                    className="w-full md:flex-1 h-12 rounded-xl border-violet-500/50 text-violet-300 hover:bg-violet-500/10" />
                   
                                         </div>
 
@@ -361,8 +362,12 @@ export default function PalladioFloorplan() {
                                     </div>
                                     <label className="text-sm font-medium text-slate-400 mb-3 block">Upload existing floorplan sketch</label>
                                     <div
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Upload existing floorplan sketch"
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-white/10 hover:border-violet-500/50 rounded-2xl p-8 text-center cursor-pointer transition-colors bg-slate-900 mb-6">
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInputRef.current?.click(); } }}
+                  className="border-2 border-dashed border-white/10 hover:border-violet-500/50 rounded-2xl p-8 text-center cursor-pointer transition-colors bg-slate-900 mb-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
                   
                                         {cadFile ?
                   <div className="flex flex-col items-center">
@@ -401,11 +406,11 @@ export default function PalladioFloorplan() {
                                                   <Box size={18} className="mr-2" /> 3D Floorplan Renderer
                                               </Button>
                                         </Link>
-                                        <div className="flex flex-col sm:flex-row gap-3">
+                                        <div className="flex flex-col md:flex-row gap-3">
                                             <BrandedExportModal
                                               imageUrl={sketchResult}
                                               triggerButton={
-                                                <Button className="w-full sm:flex-1 bg-white text-black hover:bg-slate-200 h-12 rounded-xl shadow-lg">
+                                                <Button className="w-full md:flex-1 bg-white text-black hover:bg-slate-200 h-12 rounded-xl shadow-lg">
                                                   <Download size={18} className="mr-2" /> Export Branded
                                                 </Button>
                                               }
@@ -415,7 +420,7 @@ export default function PalladioFloorplan() {
                     fileName="floorplan-sketch.png"
                     assetType="plan"
                     projectId={selectedProject?.id}
-                    className="w-full sm:flex-1 h-12 rounded-xl border-violet-500/50 text-violet-300 hover:bg-violet-500/10" />
+                    className="w-full md:flex-1 h-12 rounded-xl border-violet-500/50 text-violet-300 hover:bg-violet-500/10" />
                   
                                         </div>
                                     </div> :

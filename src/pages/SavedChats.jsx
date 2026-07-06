@@ -3,7 +3,7 @@ import { MessageSquare, Send, Plus, Loader2, Trash2, List } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Drawer, DrawerContent, DrawerTrigger, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
-import MessageBubble from '@/components/MessageBubble';
+import VirtualizedMessageList from '@/components/chat/VirtualizedMessageList';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -168,7 +168,7 @@ export default function SavedChats() {
 
   return (
     <PalladioGate>
-      <div className="flex flex-1 w-full bg-[#0f1117] text-slate-200">
+      <div className="flex flex-1 w-full min-h-0 overflow-hidden bg-[#0f1117] text-slate-200">
 
         {/* Sidebar */}
         <div className="w-80 border-r border-slate-800 bg-[#0a0c10] flex flex-col hidden md:flex">
@@ -177,7 +177,7 @@ export default function SavedChats() {
               <MessageSquare size={18} className="text-indigo-400" />
               AI Assistant
             </h2>
-            <Button aria-label="New" onClick={handleNewChat} variant="ghost" size="icon" className="hover:bg-slate-800 text-slate-400">
+            <Button aria-label="Start new chat" onClick={handleNewChat} variant="ghost" size="icon" className="hover:bg-slate-800 text-slate-400">
               <Plus size={18} />
             </Button>
           </div>
@@ -193,13 +193,14 @@ export default function SavedChats() {
                       : "text-slate-400 hover:bg-slate-800 hover:text-slate-200 border border-transparent"
                   )}
                 >
-                  <button onClick={() => selectConversation(c)} className="flex-1 truncate text-left">
+                  <button onClick={() => selectConversation(c)} className="flex-1 truncate text-left min-h-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" aria-label={`Open chat ${c.title || 'New Discussion'}`}>
                     {c.title || "New Discussion"}
                   </button>
                   <button
                     onClick={() => handleDeleteChat(c.id)}
-                    className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 ml-2 shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center p-2"
+                    className="opacity-0 group-hover:opacity-100 focus:opacity-100 text-slate-500 hover:text-red-400 ml-2 shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                     title="Delete chat"
+                    aria-label={`Delete chat ${c.title || 'New Discussion'}`}
                   >
                     <Trash2 size={14} />
                   </button>
@@ -213,13 +214,13 @@ export default function SavedChats() {
         </div>
 
         {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col relative bg-[#0f1117]">
+        <div className="flex-1 flex flex-col min-w-0 min-h-0 relative bg-[#0f1117]">
           {/* Mobile Header */}
           <div className="md:hidden p-4 border-b border-slate-800 flex justify-between items-center bg-[#0a0c10]">
             <div className="flex items-center gap-2">
               <Drawer>
                 <DrawerTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-slate-300 hover:text-white mr-1 -ml-2">
+                  <Button aria-label="Open chat list" variant="ghost" size="icon" className="text-slate-300 hover:text-white mr-1 -ml-2">
                     <List size={20} />
                   </Button>
                 </DrawerTrigger>
@@ -237,13 +238,14 @@ export default function SavedChats() {
                             activeChat?.id === c.id ? "bg-indigo-600/20 text-indigo-400 border border-indigo-500/30" : "hover:bg-slate-800/50 text-slate-200 border border-transparent"
                           )}
                         >
-                          <button onClick={() => selectConversation(c)} className="flex-1 truncate text-left">
+                          <button onClick={() => selectConversation(c)} className="flex-1 truncate text-left min-h-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" aria-label={`Open chat ${c.title || 'New Discussion'}`}>
                             {c.title || "New Discussion"}
                           </button>
                           <button
                             onClick={() => handleDeleteChat(c.id)}
-                            className="text-slate-500 hover:text-red-400 ml-2 shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center p-2"
+                            className="text-slate-500 hover:text-red-400 ml-2 shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                             title="Delete chat"
+                            aria-label={`Delete chat ${c.title || 'New Discussion'}`}
                           >
                             <Trash2 size={16} />
                           </button>
@@ -262,8 +264,8 @@ export default function SavedChats() {
               <SaveToProject textContent={buildChatMarkdown()} fileName={chatFileName} assetType="document" disabled={!activeChat || !messages.length} variant="outline" size="sm" className="bg-slate-800 border-slate-700 text-slate-300 h-8 text-xs">
                 Save to Project
               </SaveToProject>
-              <Button onClick={handleNewChat} variant="outline" size="sm" className="bg-slate-800 border-slate-700">
-                <Plus size={16} className="mr-2" /> New
+              <Button onClick={handleNewChat} aria-label="Start new chat" variant="outline" size="sm" className="bg-slate-800 border-slate-700">
+                <Plus size={16} className="mr-2" aria-hidden="true" /> New
               </Button>
             </div>
           </div>
@@ -275,21 +277,7 @@ export default function SavedChats() {
             </SaveToProject>
           </div>
 
-          <div
-            ref={scrollRef}
-            className="flex-1 p-4 md:p-8 space-y-6 pb-32"
-          >
-            {messages.length === 0 && (
-              <div className="h-full flex flex-col items-center justify-center text-center opacity-50">
-                <MessageSquare size={48} className="mb-4 text-indigo-500" />
-                <h3 className="text-xl font-medium text-white mb-2">How can I help?</h3>
-                <p className="max-w-sm text-slate-400">Ask me about architecture, planning codes, or specific property details.</p>
-              </div>
-            )}
-            {messages.map((m, i) => (
-              <MessageBubble key={i} message={m} showToolCalls={isAdmin} />
-            ))}
-          </div>
+          <VirtualizedMessageList messages={messages} isAdmin={isAdmin} scrollRef={scrollRef} />
 
           <div className="sticky bottom-[calc(env(safe-area-inset-bottom)+64px)] md:bottom-0 left-0 right-0 p-4 z-10 bg-gradient-to-t from-[#0f1117] via-[#0f1117] to-transparent pt-12">
             <div className="max-w-3xl mx-auto">
@@ -297,7 +285,9 @@ export default function SavedChats() {
                 onSubmit={handleSend}
                 className="relative flex items-center bg-slate-800/80 border border-slate-700 rounded-2xl overflow-hidden shadow-xl backdrop-blur-md focus-within:border-indigo-500/50 focus-within:ring-1 focus-within:ring-indigo-500/50 transition-all"
               >
+                <label htmlFor="saved-chat-input" className="sr-only">Message the AI assistant</label>
                 <Input
+                  id="saved-chat-input"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask about planning codes, structural ideas, or property info..."

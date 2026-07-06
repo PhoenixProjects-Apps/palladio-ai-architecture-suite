@@ -273,7 +273,7 @@ export default function PalladioAssess() {
                       <h3 className="text-cyan-400 font-semibold mb-3 flex items-center gap-2"><Building size={18} /> Project Information</h3>
                       <div className="grid md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
                         {piRows.map((r, i) => (
-                          <div key={i} className="flex flex-col sm:flex-row sm:gap-2 min-w-0">
+                          <div key={i} className="flex flex-col md:flex-row md:gap-2 min-w-0">
                             <span className="text-slate-500 md:min-w-[100px] shrink-0">{r.label}</span>
                             <span className="text-slate-200 break-words min-w-0">{r.value}</span>
                           </div>
@@ -345,7 +345,7 @@ export default function PalladioAssess() {
                 </div>
               )}
 
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col md:flex-row gap-3">
                 <SaveToProject
                   textContent={
                     typeof result === 'object'
@@ -354,13 +354,13 @@ export default function PalladioAssess() {
                   }
                   fileName={`${reviewTier}-assessment.md`}
                   assetType="document"
-                  className="w-full sm:flex-1 rounded-xl border-teal-600/50 text-teal-400 hover:bg-teal-500/10 hover:text-teal-300 h-12"
+                  className="w-full md:flex-1 rounded-xl border-teal-600/50 text-teal-400 hover:bg-teal-500/10 hover:text-teal-300 h-12"
                 />
                 <Button
                   onClick={handleExportPdf}
                   disabled={exporting}
                   aria-busy={exporting}
-                  className="w-full sm:flex-1 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white h-12"
+                  className="w-full md:flex-1 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white h-12"
                 >
                   {exporting ? <Loader2 size={16} className="animate-spin mr-2" /> : <Download size={16} className="mr-2" />}
                   Download PDF
@@ -368,7 +368,7 @@ export default function PalladioAssess() {
                 <Button
                   onClick={() => { setResult(null); setFile(null); setFileUrl(null); setPreviewUrl(null); }}
                   variant="outline"
-                  className="w-full sm:flex-1 rounded-xl border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white h-12"
+                  className="w-full md:flex-1 rounded-xl border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white h-12"
                 >
                   Analyse Another Plan
                 </Button>

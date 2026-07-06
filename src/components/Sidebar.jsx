@@ -4,46 +4,17 @@ import { createPageUrl } from '@/utils';
 import { Home, MessageSquare, Settings, X, Layers, Building2, MapPin, ClipboardList, FileImage, PanelLeftClose, PanelLeftOpen, ShieldAlert, CreditCard, Folder, Bell, PenTool, LogIn, Info, ChevronUp, BookOpen, ShieldCheck, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
-  const [user, setUser] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const { user, credits, isAuthenticated } = useAuth();
   const location = useLocation();
 
   useEffect(() => {
-    let currentUser = null;
-    let unsubscribe = null;
-
-    base44.auth.me().then(async (u) => {
-      if (!u) return;
-      currentUser = u;
-      try {
-        const fullUser = await base44.entities.User.get(u.id);
-        setUser({ ...u, ...fullUser });
-      } catch {
-        setUser(u);
-      }
-    });
-
-    // Subscribe to User entity changes only after confirming auth
-    base44.auth.isAuthenticated().then((authenticated) => {
-      if (!authenticated) return;
-      unsubscribe = base44.entities.User?.subscribe?.((event) => {
-        if (event.type === 'update' && currentUser && event.id === currentUser.id) {
-          setUser(prev => prev ? { ...prev, tokens: event.data.tokens } : prev);
-        }
-      });
-    });
-
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!user) return;
+    if (!isAuthenticated || !user?.email) return;
     const loadUnreadCount = async () => {
       try {
         const notifs = await base44.entities.Notification.filter({ user_email: user.email, is_read: false });
@@ -57,7 +28,7 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
       loadUnreadCount();
     });
     return () => unsubscribe && unsubscribe();
-  }, [user]);
+  }, [isAuthenticated, user?.email]);
 
   const isActive = (path) => {
     if (!path) return false;
@@ -90,7 +61,7 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
 
   const bottomItems = user
     ? [
-        { name: `Tokens: ${user.tokens !== undefined ? user.tokens : 5}`, icon: CreditCard, path: '/PalladioPricing', isTokenDisplay: true },
+        { name: `Tokens: ${credits ?? user.tokens ?? 5}`, icon: CreditCard, path: '/PalladioPricing', isTokenDisplay: true },
         { name: 'Settings', icon: Settings, path: '/UserProfile' },
         { name: 'Notifications', icon: Bell, path: '/Notifications', badge: unreadCount },
         { name: 'About', icon: Building2, path: '/about' },
@@ -172,7 +143,8 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen }) {
 
       <div className="border-t border-border relative">
         <button
-          aria-label="Toggle Info Menu"
+          aria-label="Toggle info menu"
+          aria-expanded={showInfo}
           onClick={() => setShowInfo(!showInfo)}
           className={`flex items-center gap-3 px-3 py-3 w-full text-left text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors ${isCollapsed ? 'justify-center' : ''}`}
           title={isCollapsed ? 'Info' : ''}

@@ -598,8 +598,12 @@ export default function Render3D() {
               )}
             </div>
             <div
+                role="button"
+                tabIndex={0}
+                aria-label="Upload 3D building view image"
                 onClick={() => fileInputRef.current?.click()}
-                className="rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col justify-center items-center h-[200px]"
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInputRef.current?.click(); } }}
+                className="rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col justify-center items-center h-[200px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                 style={{
                   border: `2px dashed ${fileUrl ? '#14b8a6' : '#334155'}`,
                   backgroundColor: '#0f172a'
@@ -634,6 +638,7 @@ export default function Render3D() {
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
+                  aria-label="Upload 3D building view image"
                   onChange={handleFileSelect}
                   className="hidden" />
                 
@@ -654,8 +659,12 @@ export default function Render3D() {
               </p>
             </div>
             <div
+                role="button"
+                tabIndex={0}
+                aria-label="Upload style reference image"
                 onClick={() => styleInputRef.current?.click()}
-                className="rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col justify-center items-center h-[200px]"
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); styleInputRef.current?.click(); } }}
+                className="rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col justify-center items-center h-[200px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                 style={{
                   border: `2px dashed ${styleFileUrl ? '#14b8a6' : '#334155'}`,
                   backgroundColor: '#0f172a'
@@ -690,6 +699,7 @@ export default function Render3D() {
                   ref={styleInputRef}
                   type="file"
                   accept="image/*"
+                  aria-label="Upload style reference image"
                   onChange={handleStyleSelect}
                   className="hidden" />
                 
@@ -705,11 +715,11 @@ export default function Render3D() {
 
         {/* Presets */}
         <div>
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-3">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mb-3">
             <h2 className="text-white text-sm font-semibold">Rendering Presets</h2>
             {savedPresetsList.length > 0 &&
               <Select onValueChange={(id) => applyPreset(savedPresetsList.find((p) => p.id === id))}>
-                <SelectTrigger className="bg-slate-900 border-slate-700 text-white text-xs min-h-11 w-full sm:w-[160px]">
+                <SelectTrigger className="bg-slate-900 border-slate-700 text-white text-xs min-h-11 w-full md:w-[160px]">
                   <Bookmark size={14} className="mr-2 text-teal-400" />
                   <SelectValue placeholder="Load preset..." />
                 </SelectTrigger>
@@ -812,6 +822,8 @@ export default function Render3D() {
                   <label className="block text-xs mb-1.5 text-slate-400">Seed Configuration</label>
                   <div className="flex gap-2 items-center">
                     <Input 
+                      id="render-seed"
+                      aria-label="Random seed"
                       type="number" 
                       placeholder="Random Seed (leave blank)" 
                       value={seed} 
@@ -839,14 +851,18 @@ export default function Render3D() {
         <div>
           <h2 className="text-white text-sm font-semibold mb-3">AI Instructions</h2>
           <Textarea
-              value={prompt}
+          id="render-instructions"
+          aria-label="AI rendering instructions"
+          value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="E.g. 'Add lush landscaping and people walking, a water feature at the entrance. Use warm Mediterranean tones with olive trees lining the path...'"
               className="bg-slate-900 border-slate-700 text-white placeholder:text-slate-600 text-sm rounded-xl min-h-[110px] resize-none mb-3" />
             
           
-          <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex flex-col md:flex-row gap-2">
             <Input
+                id="render-preset-name"
+                aria-label="Preset name"
                 placeholder="Preset name (e.g. My Custom Villa)"
                 value={presetName}
                 onChange={(e) => setPresetName(e.target.value)}
@@ -865,11 +881,11 @@ export default function Render3D() {
         </div>
 
         {/* Render Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col md:flex-row gap-3">
           <Button
               onClick={() => handleRender('exterior')}
               disabled={!fileUrl || isRendering}
-              className="sm:flex-1 py-6 text-base font-semibold rounded-xl disabled:opacity-40"
+              className="md:flex-1 py-6 text-base font-semibold rounded-xl disabled:opacity-40"
               style={{ backgroundColor: '#14b8a6', color: 'white' }}>
               
             {isRendering && currentRenderType === 'exterior' ?
@@ -887,7 +903,7 @@ export default function Render3D() {
           <Button
               onClick={() => handleRender('interior')}
               disabled={!fileUrl || isRendering}
-              className="sm:flex-1 py-6 text-base font-semibold rounded-xl disabled:opacity-40"
+              className="md:flex-1 py-6 text-base font-semibold rounded-xl disabled:opacity-40"
               style={{ backgroundColor: '#8b5cf6', color: 'white' }}>
               
             {isRendering && currentRenderType === 'interior' ?
@@ -936,13 +952,13 @@ export default function Render3D() {
 
               }
             </div>
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col md:flex-row gap-3">
               <a
                 href={renderedImage}
                 download="palladio-render.jpg"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="sm:flex-1"
+                className="md:flex-1"
                 style={{ textDecoration: 'none' }}>
                 
                 <Button variant="outline" className="w-full rounded-xl border-teal-600/50 text-teal-400 hover:bg-teal-500/10 hover:text-teal-300">
@@ -953,7 +969,7 @@ export default function Render3D() {
               <Button
                 onClick={() => handleRender(currentRenderType || 'exterior')}
                 variant="outline"
-                className="sm:flex-1 rounded-xl border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white">
+                className="md:flex-1 rounded-xl border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white">
                 
                 <RefreshCcw size={15} className="mr-2" />
                 Re-render
@@ -962,7 +978,7 @@ export default function Render3D() {
                 fileUrl={renderedImage}
                 fileName="palladio-render.jpg"
                 assetType="render"
-                className="sm:flex-1 rounded-xl border-teal-600/50 text-teal-400 hover:bg-teal-500/10 hover:text-teal-300" />
+                className="md:flex-1 rounded-xl border-teal-600/50 text-teal-400 hover:bg-teal-500/10 hover:text-teal-300" />
               
             </div>
             
@@ -993,6 +1009,8 @@ export default function Render3D() {
                   <div className="flex items-center gap-3 mb-2">
                     <span className="text-xs text-slate-400">Brush Size:</span>
                     <input
+                    id="brush-size"
+                    aria-label="Brush size"
                     type="range"
                     min="10"
                     max="100"
@@ -1004,6 +1022,8 @@ export default function Render3D() {
 
                   <p className="text-xs text-slate-400 mt-2">Describe what you want to change in the highlighted area.</p>
                   <Textarea
+                  id="magic-edit-prompt"
+                  aria-label="Magic edit instructions"
                   value={magicEditPrompt}
                   onChange={(e) => setMagicEditPrompt(e.target.value)}
                   placeholder="E.g. 'Make the sky darker', 'Change the wood siding to brick', 'Add a person walking on the sidewalk'"

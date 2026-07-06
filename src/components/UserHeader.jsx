@@ -18,12 +18,12 @@ export default function UserHeader({ setIsMobileOpen }) {
         <img src="https://www.image2url.com/r2/default/images/1782439345351-85257dc4-fda3-43f5-9ae4-2f91ee65350a.png" alt="Palladio AI" className="h-10" />
       </div>
       <div className="flex items-center gap-3">
-        <Link to={createPageUrl('PalladioPricing')} className="flex items-center gap-2 text-sm font-semibold text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 px-4 py-2 rounded-full transition border border-amber-500/20">
+        <Link to={createPageUrl('PalladioPricing')} aria-label="View pricing and token balance" className="flex items-center gap-2 text-sm font-semibold text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 px-4 py-2 rounded-full transition border border-amber-500/20 min-h-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <Coins size={16} />
           {user ? (credits ?? 0) : '—'}
         </Link>
         {user ? (
-          <Link to={createPageUrl('UserProfile')} className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-foreground font-bold hover:opacity-80 transition shadow-lg border border-border overflow-hidden">
+          <Link to={createPageUrl('UserProfile')} aria-label="Open user profile" className="w-11 h-11 rounded-full bg-muted flex items-center justify-center text-foreground font-bold hover:opacity-80 transition shadow-lg border border-border overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             {user.profile_picture ? (
               <img src={user.profile_picture} alt={user.full_name || 'Profile'} className="w-10 h-10 object-cover" />
             ) : (
@@ -31,7 +31,7 @@ export default function UserHeader({ setIsMobileOpen }) {
             )}
           </Link>
         ) : (
-          <button onClick={() => base44.auth.redirectToLogin()} className="text-sm font-semibold text-muted-foreground hover:text-foreground bg-muted/50 hover:bg-muted px-4 py-2 rounded-full transition">
+          <button type="button" onClick={() => base44.auth.redirectToLogin()} className="text-sm font-semibold text-muted-foreground hover:text-foreground bg-muted/50 hover:bg-muted px-4 py-2 rounded-full transition min-h-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             Sign In
           </button>
         )}
