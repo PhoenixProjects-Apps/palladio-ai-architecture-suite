@@ -21,7 +21,7 @@ export default function Home() {
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 pb-6">
       <div className="max-w-2xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-6 flex flex-col items-center">
-          <img loading="lazy" decoding="async" src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69997bf8be3f3bf35cbd8147/e93fde36f_Lumii_20260222_021318181.png" alt="Palladio AI" className="w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 object-cover rounded-3xl mb-3 shadow-2xl shadow-black/10 dark:shadow-white/5 bg-transparent" />
+          <img loading="lazy" decoding="async" src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69997bf8be3f3bf35cbd8147/e93fde36f_Lumii_20260222_021318181.png" alt="Palladio AI" className="w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 object-cover rounded-3xl mb-3 shadow-2xl shadow-black/10 dark:shadow-white/5 bg-background" />
           <h1 className="text-3xl font-bold mb-2 tracking-tight">Your AI-Powered Architecture Suite</h1>
           <p className="text-muted-foreground uppercase tracking-widest text-sm font-medium">Automate. Design. Connect. Build.</p>
         </motion.div>
