@@ -13,6 +13,8 @@ import ProjectDetailsForm from '@/components/ProjectDetailsForm';
 import ChooseProject from '@/components/ChooseProject';
 import { exportAssessmentToPdf } from '@/lib/exportPdf';
 import { toast } from 'sonner';
+import useWorkspaceMode from '@/hooks/useWorkspaceMode';
+import WorkspaceCompanionNotice from '@/components/workspace/WorkspaceCompanionNotice';
 
 function extractJson(text) {
   if (!text) return null;
@@ -42,6 +44,7 @@ function buildProjectInfoCard(pi) {
 
 export default function PalladioAssess() {
   const { setCredits } = useAuth();
+  const { isCompactWorkspace } = useWorkspaceMode();
   const [file, setFile] = useState(null);
   const [fileUrl, setFileUrl] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -152,6 +155,10 @@ export default function PalladioAssess() {
 
   const formValid = projectDetails.projectName.trim() && projectDetails.clientName.trim() && projectDetails.address.trim();
   const piRows = result && typeof result === 'object' ? buildProjectInfoCard(result.project_info) : null;
+  const isStage2MobileCompanion = isCompactWorkspace && reviewTier === 'construction';
+  const resultSummary = typeof result === 'object'
+    ? result?.overview || result?.summary || result?.plan_type || 'Assessment completed.'
+    : result ? String(result).slice(0, 520) : '';
 
   return (
     <PalladioGate>
@@ -211,6 +218,20 @@ export default function PalladioAssess() {
                   </button>
                 </div>
 
+                {isStage2MobileCompanion && (
+                  <WorkspaceCompanionNotice
+                    icon={AlertCircle}
+                    eyebrow="Workspace Mode recommended"
+                    title="Stage 2 mobile companion"
+                    description="Stage 2 is a detailed construction-documentation audit. For drawing-by-drawing amendment review, use Workspace Mode on desktop or tablet. On mobile you can upload files, start/check the assessment, and view/download final reports."
+                    features={[
+                      'Upload construction drawings safely from mobile.',
+                      'Start the same Stage 2 assessment without changing report format.',
+                      'Use desktop/tablet for detailed amendment review.'
+                    ]}
+                  />
+                )}
+
                 <div
                   onClick={() => fileInputRef.current?.click()}
                   className="border-2 border-dashed border-white/10 hover:border-cyan-500/50 rounded-3xl p-6 sm:p-12 text-center cursor-pointer transition-colors bg-white/5 min-w-0"
@@ -264,6 +285,43 @@ export default function PalladioAssess() {
                 )}
               </div>
             )
+          ) : isStage2MobileCompanion ? (
+            <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <WorkspaceCompanionNotice
+                icon={Download}
+                eyebrow="Stage 2 report ready"
+                title="Mobile companion summary"
+                description="Your Stage 2 assessment is available. Use desktop or tablet Workspace Mode for detailed drawing-by-drawing amendment review."
+                features={[
+                  'Review the high-level summary here.',
+                  'Download the full PDF report from mobile.',
+                  'Open on desktop/tablet for the detailed amendment workspace.'
+                ]}
+              >
+                <div className="rounded-2xl bg-slate-950/50 border border-white/10 p-4">
+                  <p className="text-sm text-slate-300 leading-relaxed break-words">{resultSummary}</p>
+                </div>
+              </WorkspaceCompanionNotice>
+
+              <div className="flex flex-col gap-3">
+                <Button
+                  onClick={handleExportPdf}
+                  disabled={exporting}
+                  aria-busy={exporting}
+                  className="w-full rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white h-12"
+                >
+                  {exporting ? <Loader2 size={16} className="animate-spin mr-2" /> : <Download size={16} className="mr-2" />}
+                  Download PDF
+                </Button>
+                <Button
+                  onClick={() => { setResult(null); setFile(null); setFileUrl(null); setPreviewUrl(null); }}
+                  variant="outline"
+                  className="w-full rounded-xl border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white h-12"
+                >
+                  Analyse Another Plan
+                </Button>
+              </div>
+            </div>
           ) : (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               {typeof result === 'object' ? (

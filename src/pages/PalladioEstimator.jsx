@@ -16,6 +16,8 @@ import SaveToProject from '@/components/SaveToProject';
 import ChooseProject from '@/components/ChooseProject';
 import { SITE_DIFFICULTY_RATES, CITY_OPTIONS, REGIONAL_COST_RATES, FINISH_MULTIPLIERS, COUNCIL_FEE_BASE, REGIONAL_FEE_MULTIPLIER, STATES, STOREYS_OPTIONS, ROOF_MATERIALS, EXTERNAL_WALL_MATERIALS, FLOOR_FINISHES, FINISH_LEVELS_OPTIONS } from '@/lib/estimatorData';
 import { calculateDerivedQuantities, calculateSilentCosts, calculateRoofSurfaceArea, normaliseEstimateResult } from '@/lib/estimator/calculateEstimate';
+import useWorkspaceMode from '@/hooks/useWorkspaceMode';
+import WorkspaceCompanionNotice from '@/components/workspace/WorkspaceCompanionNotice';
 
 
 
@@ -180,6 +182,7 @@ export default function PalladioEstimator() {
   const [extractionWarnings, setExtractionWarnings] = useState([]);
   const [isLoadingConfig, setIsLoadingConfig] = useState(false);
   const fileInputRef = useRef(null);
+  const { isCompactWorkspace } = useWorkspaceMode();
 
   const buildEstimatorDataJson = () => {
     return JSON.stringify({
@@ -644,6 +647,141 @@ INSTRUCTIONS:
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  if (isCompactWorkspace) {
+    const revisedTotal = result ? result.grand_total + (silentCosts ? silentCosts.total : 0) : null;
+
+    return (
+      <div className="min-h-screen bg-[#0f1117] text-white p-4 pb-[calc(env(safe-area-inset-bottom)+96px)] overflow-x-hidden">
+        <div className="max-w-md mx-auto space-y-5 min-w-0">
+          <header className="flex items-center gap-3 border-b border-white/10 pb-4">
+            <BackButton aria-label="Go Back" className="hover:bg-white/10 rounded-full shrink-0" />
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg shrink-0">
+              <Calculator size={20} />
+            </div>
+            <div className="min-w-0">
+              <h1 className="font-bold text-lg text-white">Estimator Companion</h1>
+              <p className="text-sm text-slate-400">Workspace Mode recommended</p>
+            </div>
+          </header>
+
+          <WorkspaceCompanionNotice
+            icon={Calculator}
+            eyebrow="Estimator Workspace Mode recommended"
+            title="Mobile companion"
+            description="Full estimating uses detailed quantity inputs, rate assumptions, roof calculations, and export preparation. Mobile supports quick review and project capture; use desktop/tablet for the full estimate workspace."
+            features={[
+              'Capture or upload a source plan from mobile.',
+              'Review an estimate summary if one exists in this session.',
+              'Use desktop/tablet for line-item editing, quantity overrides and formal export preparation.'
+            ]}
+          />
+
+          <div className="grid grid-cols-2 gap-3">
+            <ChooseProject onSelect={handleLoadFromProject} className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50 min-h-11 h-auto px-3 text-xs rounded-xl">
+              {isLoadingConfig ? <Loader2 size={16} className="animate-spin mr-1" /> : "Load Config"}
+            </ChooseProject>
+            <SaveToProject textContent={buildEstimatorDataJson()} fileName="estimator-data.json" assetType="document" className="border-slate-700 text-slate-300 hover:text-white bg-slate-800/50 min-h-11 h-auto px-3 text-xs rounded-xl">
+              Save Capture
+            </SaveToProject>
+          </div>
+
+          <Card className="bg-slate-900 border-slate-800 overflow-hidden">
+            <CardHeader>
+              <CardTitle className="text-white text-base">Source Plan Upload</CardTitle>
+              <CardDescription className="text-slate-400">Upload now, then continue the full estimate on desktop/tablet.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div
+                role="button"
+                tabIndex={0}
+                aria-label="Upload plan or render file"
+                onClick={() => fileInputRef.current?.click()}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInputRef.current?.click(); } }}
+                className="rounded-2xl p-5 text-center cursor-pointer transition-all flex flex-col justify-center items-center min-h-[160px] overflow-hidden w-full min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                style={{ border: `2px dashed ${fileUrl ? '#3b82f6' : '#334155'}`, backgroundColor: '#0f172a' }}
+              >
+                {isUploading ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 size={24} className="animate-spin text-blue-500" />
+                    <p className="text-gray-400 text-sm">Uploading...</p>
+                  </div>
+                ) : previewUrl ? (
+                  <img loading="lazy" decoding="async" src={previewUrl} alt="preview" className="mx-auto rounded-lg object-contain max-h-[140px]" />
+                ) : file ? (
+                  <div className="flex flex-col items-center gap-2 w-full px-2">
+                    <FileText size={24} className="text-blue-500 shrink-0" />
+                    <p className="text-white text-sm font-medium break-all whitespace-normal text-center max-w-full">{file.name}</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <Upload size={26} className="text-slate-500" />
+                    <p className="text-white text-sm font-medium">Upload File</p>
+                    <p className="text-slate-500 text-xs mt-1">Image or PDF plan</p>
+                  </div>
+                )}
+                <input ref={fileInputRef} type="file" aria-label="Upload floor plan file" accept="image/*,.pdf" onChange={handleFileSelect} className="hidden" />
+              </div>
+
+              {fileUrl && (
+                <Button
+                  onClick={handleAutoExtract}
+                  disabled={isExtracting || isAnalyzing}
+                  aria-busy={isExtracting}
+                  variant="secondary"
+                  className="w-full mt-4 border border-slate-700 text-cyan-400 hover:text-cyan-300 hover:bg-slate-800 bg-slate-800/50 h-11 rounded-xl">
+                  {isExtracting ? <><Loader2 className="animate-spin mr-2" size={18} /> Extracting Quantities...</> : <><Sparkles className="mr-2" size={18} /> Auto-Extract Quantities</>}
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+
+          {result ? (
+            <Card className="bg-slate-900 border-slate-800">
+              <CardHeader>
+                <CardTitle className="text-white text-base">Estimate Summary</CardTitle>
+                <CardDescription className="text-slate-400">Use Workspace Mode for full line-item review.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="rounded-2xl bg-blue-500/10 border border-blue-500/20 p-4">
+                  <p className="text-sm text-slate-400">Grand Total</p>
+                  <p className="text-3xl font-bold text-blue-400 mt-1">{formatCurrency(result.grand_total)}</p>
+                  {silentCosts && <p className="text-sm text-cyan-300 mt-2">Revised with additional costs: {formatCurrency(revisedTotal)}</p>}
+                </div>
+                <div className="flex flex-col gap-3">
+                  <SaveToProject textContent={buildEstimateText()} fileName="cost-estimate.md" assetType="document" className="w-full border-slate-700 text-slate-300 hover:text-white bg-slate-800/50 min-h-11 px-4 text-xs rounded-xl" />
+                  <Button variant="outline" onClick={handleDownload} className="w-full border-slate-700 text-slate-300 hover:text-white bg-slate-800/50 min-h-11 rounded-xl">
+                    <Download size={16} className="mr-2" /> Download CSV
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={handleGeneratePresentation}
+                    disabled={isGeneratingPresentation}
+                    aria-busy={isGeneratingPresentation}
+                    className="w-full border-blue-700/50 text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 bg-blue-900/20 min-h-11 rounded-xl">
+                    {isGeneratingPresentation ? <><Loader2 size={16} className="mr-2 animate-spin" /> Generating...</> : <><Presentation size={16} className="mr-2" /> Presentation Slide</>}
+                  </Button>
+                  {presentationUrl && (
+                    <a href={presentationUrl} target="_blank" rel="noreferrer" className="w-full">
+                      <Button className="w-full bg-emerald-600 hover:bg-emerald-500 text-white min-h-11 rounded-xl">
+                        <Download size={16} className="mr-2" /> View Presentation
+                      </Button>
+                    </a>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="bg-slate-900 border-slate-800">
+              <CardContent className="p-5">
+                <p className="text-sm text-slate-300 leading-relaxed">No estimate is open on this mobile session yet. Capture the plan here, then open the estimator on desktop/tablet for full quantity inputs, roof settings, rate review and formal export preparation.</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0f1117] text-white p-4 sm:p-6 pb-8 overflow-x-hidden">
