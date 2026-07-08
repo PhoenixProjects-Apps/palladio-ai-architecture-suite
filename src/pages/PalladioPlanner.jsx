@@ -13,6 +13,7 @@ import SaveToProject from '../components/SaveToProject';
 import { toast } from 'sonner';
 import { exportPlanningToPdf } from '@/lib/exportPlanningPdf';
 import { uploadToFirebase } from '@/lib/uploadHelper';
+import { addGoldCoastDevelopmentISourceToPropertyData, isGoldCoastPropertyContext } from '@/lib/goldCoastDevelopmentI';
 
 const devTypes = [
 "New Dwelling", "Extension/Addition", "Subdivision",
@@ -150,6 +151,7 @@ Use current public sources where available, including:
 - the council interactive mapping / property search tool
 - state planning / title-style public information where available
 - official development application form pages
+${isGoldCoastPropertyContext(addr) ? '- City of Gold Coast Development.i (https://developmenti.goldcoast.qld.gov.au/) for Gold Coast property/application history, referral agency/building/application information, and basic property information. Use this as a local authority property/application source, not as a replacement for formal City Plan overlay/zoning verification.' : ''}
 
 CRITICAL REQUIREMENTS:
 
@@ -260,7 +262,7 @@ Return ONLY valid JSON matching this exact structure:
 }
 `;
 
-  const buildCouncilOverlaysText = (data = {}) => {
+  const buildCouncilOverlaysText = (data = {}, addr = address) => {
     const parts = [];
 
     if (data.zoning) {
@@ -291,6 +293,10 @@ Return ONLY valid JSON matching this exact structure:
 
     if (data.verification_notes) {
       parts.push(`Verification notes: ${data.verification_notes}`);
+    }
+
+    if (isGoldCoastPropertyContext(data, addr)) {
+      parts.push('Local source: City of Gold Coast Development.i for development application history, referral agency/building/application information, and basic property information. City Plan/ePlan zoning and overlays still require separate formal verification.');
     }
 
     return parts.join('; ');
@@ -343,7 +349,7 @@ Return ONLY valid JSON matching this exact structure:
       if (cached && cached.length > 0 && !isShallowLegacyCache(cached[0])) {
         const record = cached[0];
   
-        const hydrated = {
+        const hydrated = addGoldCoastDevelopmentISourceToPropertyData({
           lot_rp: record.lot_rp || '',
           lot_no: record.lot_no || '',
           rp_no: record.rp_no || '',
@@ -358,7 +364,7 @@ Return ONLY valid JSON matching this exact structure:
           forms_and_applications: Array.isArray(record.forms_and_applications) ? record.forms_and_applications : [],
           source_links: Array.isArray(record.source_links) ? record.source_links : [],
           verification_notes: record.verification_notes || ''
-        };
+        }, addr, record);
   
         // Rebuild council text if old cache record is too shallow
         if (
@@ -370,7 +376,7 @@ Return ONLY valid JSON matching this exact structure:
             !hydrated.neighbourhood_plan
           )
         ) {
-          hydrated.council_overlays_text = buildCouncilOverlaysText(hydrated);
+          hydrated.council_overlays_text = buildCouncilOverlaysText(hydrated, addr);
         }
   
         setPropertyData(hydrated);
@@ -440,9 +446,9 @@ Return ONLY valid JSON matching this exact structure:
         }
       });
   
-      const council_overlays_text = buildCouncilOverlaysText(response);
+      const council_overlays_text = buildCouncilOverlaysText(response, addr);
   
-      const finalData = {
+      const finalData = addGoldCoastDevelopmentISourceToPropertyData({
         address: addr,
         lot_rp: response.lot_rp || '',
         lot_no: response.lot_no || '',
@@ -459,7 +465,7 @@ Return ONLY valid JSON matching this exact structure:
         source_links: Array.isArray(response.source_links) ? response.source_links : [],
         verification_notes: response.verification_notes || '',
         last_verified_at: new Date().toISOString()
-      };
+      }, addr, response);
   
       // 3. Save rich cache
       await base44.entities.PropertyCache.create(finalData);
@@ -470,7 +476,7 @@ Return ONLY valid JSON matching this exact structure:
     } catch (err) {
       console.error('Property lookup failed:', err);
   
-      setPropertyData({
+      setPropertyData(addGoldCoastDevelopmentISourceToPropertyData({
         lot_rp: '',
         lot_no: '',
         rp_no: '',
@@ -485,7 +491,7 @@ Return ONLY valid JSON matching this exact structure:
         forms_and_applications: [],
         source_links: [],
         verification_notes: 'Automatic lookup failed.'
-      });
+      }, addr));
   
     } finally {
       setIsFetchingProperty(false);

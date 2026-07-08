@@ -10,6 +10,54 @@ Deno.serve(async (req) => {
 
     if (!address) return Response.json({ error: "Address is required" }, { status: 400 });
 
+    const GOLD_COAST_DEVELOPMENT_I_URL = 'https://developmenti.goldcoast.qld.gov.au/';
+    const GOLD_COAST_DEVELOPMENT_I_SOURCE = {
+      name: 'Open Development.i property search',
+      link: GOLD_COAST_DEVELOPMENT_I_URL
+    };
+    const GOLD_COAST_SUBURBS = [
+      'advancetown', 'arundel', 'ashmore', 'biggera waters', 'bilinga', 'bonogin', 'broadbeach',
+      'broadbeach waters', 'bundall', 'burleigh heads', 'burleigh waters', 'carrara', 'clear island waters',
+      'coolangatta', 'coombabah', 'coomera', 'currumbin', 'currumbin valley', 'currumbin waters',
+      'elanora', 'helensvale', 'highland park', 'hollywell', 'hope island', 'jacobs well', 'labrador',
+      'main beach', 'maudsland', 'mermaid beach', 'mermaid waters', 'miami', 'molendinar', 'mudgeeraba',
+      'nerang', 'nobbys beach', 'ormeau', 'oxenford', 'pacific pines', 'palm beach', 'paradise point',
+      'parkwood', 'pimpama', 'reedy creek', 'robina', 'runaway bay', 'southport', 'surfers paradise',
+      'tallebudgera', 'tugun', 'varsity lakes', 'worongary'
+    ];
+    const normaliseContext = (values) => values.filter(Boolean).map((value) => typeof value === 'string' ? value : JSON.stringify(value)).join(' ').toLowerCase();
+    const isGoldCoastPropertyContext = (...values) => {
+      const text = normaliseContext(values);
+      if (!text) return false;
+      if (text.includes('city of gold coast') || text.includes('gold coast qld') || text.includes('gold coast, qld')) return true;
+      if (text.includes('gold coast') && (text.includes('qld') || text.includes('queensland') || text.includes('australia'))) return true;
+      const hasQueenslandContext = text.includes('qld') || text.includes('queensland') || text.includes('australia');
+      return hasQueenslandContext && GOLD_COAST_SUBURBS.some((suburb) => text.includes(suburb));
+    };
+    const withGoldCoastDevelopmentISource = (links = [], ...context) => {
+      const safeLinks = Array.isArray(links) ? links.filter(Boolean) : [];
+      if (!isGoldCoastPropertyContext(...context)) return safeLinks;
+      const exists = safeLinks.some((link) => String(link?.link || '').includes('developmenti.goldcoast.qld.gov.au') || String(link?.name || '').toLowerCase().includes('development.i'));
+      return exists ? safeLinks : [GOLD_COAST_DEVELOPMENT_I_SOURCE, ...safeLinks];
+    };
+    const appendGoldCoastDevelopmentINote = (note = '', ...context) => {
+      if (!isGoldCoastPropertyContext(...context)) return note || '';
+      const addition = 'For Gold Coast properties, manually verify property/application history and basic property information in City of Gold Coast Development.i.';
+      if (String(note || '').includes('Development.i')) return note || '';
+      return [note, addition].filter(Boolean).join(' ');
+    };
+    const addGoldCoastDevelopmentISourceToPropertyData = (data = {}, ...context) => {
+      if (!isGoldCoastPropertyContext(data, ...context)) return data;
+      const councilText = String(data.council_overlays_text || '');
+      const developmentINote = 'Local source: City of Gold Coast Development.i for development application history, referral agency/building/application information, and basic property information.';
+      return {
+        ...data,
+        source_links: withGoldCoastDevelopmentISource(data.source_links, data, ...context),
+        verification_notes: appendGoldCoastDevelopmentINote(data.verification_notes, data, ...context),
+        council_overlays_text: councilText.includes('Development.i') ? councilText : [councilText, developmentINote].filter(Boolean).join('; ')
+      };
+    };
+
     const isShallowLegacyCache = (record) => {
       const text = record?.council_overlays_text || '';
       return (
@@ -27,7 +75,15 @@ Deno.serve(async (req) => {
     // Check if the property data is already cached
     const cached = await base44.asServiceRole.entities.PropertyCache.filter({ address });
     if (cached && cached.length > 0 && !isShallowLegacyCache(cached[0])) {
-      return Response.json({ data: cached[0], cached: true });
+      const hydrated = addGoldCoastDevelopmentISourceToPropertyData(cached[0], address);
+      if (hydrated !== cached[0]) {
+        void base44.asServiceRole.entities.PropertyCache.update(cached[0].id, {
+          source_links: hydrated.source_links,
+          verification_notes: hydrated.verification_notes,
+          council_overlays_text: hydrated.council_overlays_text
+        }).catch((err) => console.error('Failed to update Gold Coast Development.i source metadata:', err));
+      }
+      return Response.json({ data: hydrated, cached: true });
     }
 
     // Not in cache, fetch using LLM and internet context
@@ -45,7 +101,9 @@ Use current public sources where available, including:
 
 CRITICAL REQUIREMENTS:
 
-1. ZONING
+${isGoldCoastPropertyContext(addr) ? 'For Gold Coast / City of Gold Coast properties, use City of Gold Coast Development.i (https://developmenti.goldcoast.qld.gov.au/) as an official local source for development application history, referral agency assessments, building/application information, and basic property information. Include it in source_links as the base portal URL only; do not invent direct query URLs. Keep City Plan/ePlan zoning and overlays as separate planning scheme verification sources.' : ''}
+
+  1. ZONING
 Return the EXACT, SPECIFIC zone name used by the local planning scheme.
 For Brisbane City Council under City Plan 2014, examples include:
 - Low density residential zone
@@ -226,8 +284,10 @@ Return ONLY valid JSON matching this exact structure.
       verification_notes: result.verification_notes || ''
     };
 
+    const finalData = addGoldCoastDevelopmentISourceToPropertyData(newData, address, result);
+
     // Save to cache for future requests
-    const saved = await base44.asServiceRole.entities.PropertyCache.create(newData);
+    const saved = await base44.asServiceRole.entities.PropertyCache.create(finalData);
 
     return Response.json({ data: saved, cached: false });
   } catch (error) {

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import BackButton from "@/components/BackButton";
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, MapPin, Loader2, AlertTriangle, Building, Home as HomeIcon, TrendingUp, Info } from 'lucide-react';
+import { MapPin, Loader2, AlertTriangle, Building, Home as HomeIcon, TrendingUp, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
@@ -10,6 +10,7 @@ import AddressAutocomplete from '../components/AddressAutocomplete';
 import PalladioGate from '../components/PalladioGate';
 import SaveToProject from '../components/SaveToProject';
 import { toast } from 'sonner';
+import { addGoldCoastDevelopmentISourceToPropertyData, isGoldCoastPropertyContext } from '@/lib/goldCoastDevelopmentI';
 
 export default function PalladioProperty() {
   const [address, setAddress] = useState('');
@@ -28,6 +29,7 @@ export default function PalladioProperty() {
       }
       const prompt = `Provide a detailed property intelligence report for the following address in Australia: "${address}". 
             Search the web for zoning info, local planning scheme details, development potential, and neighbourhood insights.
+            ${isGoldCoastPropertyContext(address) ? 'For Gold Coast / City of Gold Coast properties, use City of Gold Coast Development.i (https://developmenti.goldcoast.qld.gov.au/) as an official local source for development application history, referral agency/building/application information, and basic property information. Include the base portal URL in source_links only; do not invent direct query URLs. Keep City Plan/ePlan zoning and overlays as separate formal planning scheme verification sources.' : ''}
             You MUST return the output as a valid JSON object matching this exact structure:
             {
                 "overview": "Brief summary",
@@ -36,6 +38,7 @@ export default function PalladioProperty() {
                 "neighbourhood": "Markdown text about the area",
                 "planning_trends": "Markdown text about local council trends",
                 "key_facts": [{"label": "Fact Title", "value": "Fact Value"}],
+                "source_links": [{"name": "Source name", "link": "https://..."}],
                 "disclaimer": "Standard disclaimer about verifying with council"
             }`;
 
@@ -51,11 +54,12 @@ export default function PalladioProperty() {
             neighbourhood: { type: "string" },
             planning_trends: { type: "string" },
             key_facts: { type: "array", items: { type: "object", properties: { label: { type: "string" }, value: { type: "string" } } } },
+            source_links: { type: "array", items: { type: "object", properties: { name: { type: "string" }, link: { type: "string" } } } },
             disclaimer: { type: "string" }
           }
         }
       });
-      setResult(response);
+      setResult(addGoldCoastDevelopmentISourceToPropertyData(response, address));
     } catch (err) {
       console.error(err);
     } finally {
@@ -110,6 +114,20 @@ export default function PalladioProperty() {
               )}
                             </div>
 
+                            {result.source_links?.length > 0 &&
+                            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 shadow-md">
+                                <h3 className="text-emerald-400 font-semibold mb-3 flex items-center gap-2"><Info size={18} /> Official Sources</h3>
+                                <div className="flex flex-col gap-2">
+                                    {result.source_links.map((source, idx) =>
+                                    <a key={idx} href={source.link} target="_blank" rel="noreferrer" className="min-h-11 inline-flex items-center justify-between gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-200 hover:bg-emerald-500/20">
+                                        <span>{source.name}</span>
+                                        <Info size={16} className="shrink-0" />
+                                    </a>
+                                    )}
+                                </div>
+                            </div>
+                            }
+
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div className="bg-white/5 border border-white/10 rounded-2xl p-6 prose prose-invert max-w-none break-words shadow-md">
                                     <h3 className="text-emerald-400 flex items-center gap-2 m-0 mb-4"><MapPin size={20} /> Zoning & Overlays</h3>
@@ -135,7 +153,7 @@ export default function PalladioProperty() {
                             </div>
 
                             <SaveToProject
-              textContent={`# Property Intelligence Report\n\n**Address:** ${address}\n\n## Overview\n${result.overview}\n\n## Zoning & Overlays\n${result.zoning}\n\n## Development Potential\n${result.development_potential}\n\n## Neighbourhood\n${result.neighbourhood}\n\n## Planning Trends\n${result.planning_trends}\n\n## Key Facts\n${(result.key_facts || []).map((f) => `- **${f.label}:** ${f.value}`).join('\n')}\n\n---\n${result.disclaimer || ''}`}
+              textContent={`# Property Intelligence Report\n\n**Address:** ${address}\n\n## Overview\n${result.overview}\n\n## Zoning & Overlays\n${result.zoning}\n\n## Development Potential\n${result.development_potential}\n\n## Neighbourhood\n${result.neighbourhood}\n\n## Planning Trends\n${result.planning_trends}\n\n## Key Facts\n${(result.key_facts || []).map((f) => `- **${f.label}:** ${f.value}`).join('\n')}\n\n## Official Sources\n${(result.source_links || []).map((source) => `- [${source.name}](${source.link})`).join('\n')}\n\n---\n${result.disclaimer || ''}`}
               fileName="property-report.md"
               assetType="document"
               className="w-full border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/10 h-12 rounded-xl" />

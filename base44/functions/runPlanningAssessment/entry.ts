@@ -30,6 +30,28 @@ Deno.serve(async (req) => {
     const description = body?.description || 'No description provided';
     const propertyData = body?.propertyData || {};
 
+    const GOLD_COAST_DEVELOPMENT_I_URL = 'https://developmenti.goldcoast.qld.gov.au/';
+    const GOLD_COAST_SUBURBS = [
+      'advancetown', 'arundel', 'ashmore', 'biggera waters', 'bilinga', 'bonogin', 'broadbeach',
+      'broadbeach waters', 'bundall', 'burleigh heads', 'burleigh waters', 'carrara', 'clear island waters',
+      'coolangatta', 'coombabah', 'coomera', 'currumbin', 'currumbin valley', 'currumbin waters',
+      'elanora', 'helensvale', 'highland park', 'hollywell', 'hope island', 'jacobs well', 'labrador',
+      'main beach', 'maudsland', 'mermaid beach', 'mermaid waters', 'miami', 'molendinar', 'mudgeeraba',
+      'nerang', 'nobbys beach', 'ormeau', 'oxenford', 'pacific pines', 'palm beach', 'paradise point',
+      'parkwood', 'pimpama', 'reedy creek', 'robina', 'runaway bay', 'southport', 'surfers paradise',
+      'tallebudgera', 'tugun', 'varsity lakes', 'worongary'
+    ];
+    const normaliseContext = (values) => values.filter(Boolean).map((value) => typeof value === 'string' ? value : JSON.stringify(value)).join(' ').toLowerCase();
+    const isGoldCoastPropertyContext = (...values) => {
+      const text = normaliseContext(values);
+      if (!text) return false;
+      if (text.includes('city of gold coast') || text.includes('gold coast qld') || text.includes('gold coast, qld')) return true;
+      if (text.includes('gold coast') && (text.includes('qld') || text.includes('queensland') || text.includes('australia'))) return true;
+      const hasQueenslandContext = text.includes('qld') || text.includes('queensland') || text.includes('australia');
+      return hasQueenslandContext && GOLD_COAST_SUBURBS.some((suburb) => text.includes(suburb));
+    };
+    const isGoldCoast = isGoldCoastPropertyContext(address, propertyData);
+
     const overlaysString = Array.isArray(propertyData.overlays)
       ? propertyData.overlays.join(', ')
       : (propertyData.overlays || 'N/A');
@@ -69,6 +91,14 @@ Known property context:
 Important:
 Do not treat "No flood, bushfire, or heritage overlays detected" as meaning no planning overlays exist.
 If overlay_confidence is LOW or overlays include "UNVERIFIED", explicitly flag that manual council mapping verification is required.
+${isGoldCoast ? `
+Gold Coast official source context:
+- City of Gold Coast Development.i: ${GOLD_COAST_DEVELOPMENT_I_URL}
+- Use Development.i as an official local source for development application history, referral agency assessments, building/application information, and basic property information.
+- Cite City of Gold Coast Development.i where relevant.
+- Keep City Plan/ePlan zoning and overlays as separate formal planning scheme verification sources; do not state that Development.i replaces City Plan overlay/zoning verification.
+- If data is incomplete or confidence is low, recommend opening Development.i for manual property/application verification.
+` : ''}
 `;
 
     const responseSchema = {
