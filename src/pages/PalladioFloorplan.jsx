@@ -366,7 +366,7 @@ export default function PalladioFloorplan() {
               className={`min-h-11 w-full sm:w-auto px-4 sm:px-6 py-2 rounded-lg text-sm font-medium transition-all ${tab === 'text' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
                             Generate from Text
                         </button>
-                        <button className="hover:bg-white/10 rounded-full shrink-0"
+                        <button
               onClick={() => setTab('sketch')}
               className={`min-h-11 w-full sm:w-auto px-4 sm:px-6 py-2 rounded-lg text-sm font-medium transition-all ${tab === 'sketch' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
                             Sketch to Floorplan
