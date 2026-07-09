@@ -371,11 +371,6 @@ export default function PalladioFloorplan() {
               className={`min-h-11 w-full sm:w-auto px-4 sm:px-6 py-2 rounded-lg text-sm font-medium transition-all ${tab === 'sketch' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
                             Sketch to Floorplan
                         </button>
-                        <Link
-              to="/Floorplan3D" state={{ layoutData: textResult?.layoutData || (sketchResult ? { imageUrl: sketchResult } : null), sourceImage: textResult?.image || sketchResult }}
-              className={`min-h-11 w-full sm:w-auto px-4 sm:px-6 py-2 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white flex items-center justify-center`}>
-                            3D Floorplan Renderer
-                        </Link>
                     </div>
 
                     {tab === 'text' &&
