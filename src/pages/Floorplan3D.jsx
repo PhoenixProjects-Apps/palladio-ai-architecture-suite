@@ -81,6 +81,11 @@ export default function Floorplan3D() {
       <PalladioGate>
         <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] p-6 bg-[#0a0a14]">
           <div className="bg-slate-900/50 p-10 rounded-3xl border border-white/10 text-center max-w-md">
+            <BackButton aria-label="Go Back" className="hover:bg-white/10 rounded-full shrink-0" />
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center shadow-lg shrink-0">
+                <Layers size={20} />
+            </div>
+            <h1 className="font-bold text-lg sm:text-xl flex-1 min-w-0 whitespace-nowrap overflow-hidden text-ellipsis">Floorplans</h1>
             <div className="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
               <Box className="w-8 h-8 text-cyan-400" />
             </div>
