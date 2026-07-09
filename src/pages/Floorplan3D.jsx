@@ -79,6 +79,20 @@ export default function Floorplan3D() {
   if (!rawLayoutData) {
     return (
       <PalladioGate>
+        <header className="flex flex-wrap items-center gap-3 sm:gap-4 mb-8 border-b border-white/10 pb-4 min-w-0">
+          <BackButton aria-label="Go Back" className="hover:bg-white/10 rounded-full shrink-0" />
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center shadow-lg shrink-0">
+            <Layers size={20} />
+          </div>
+          <h1 className="font-bold text-lg sm:text-xl flex-1 min-w-0 whitespace-nowrap overflow-hidden text-ellipsis">Floorplans</h1>
+            <div className="ml-auto shrink-0">
+              <ChooseProject
+                selected={selectedProject}
+                onSelect={setSelectedProject}
+                className="border-violet-500/50 text-violet-300 hover:bg-violet-500/10"
+              />
+            </div>
+          </header>
         <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] p-6 bg-[#0a0a14]">
           <div className="bg-slate-900/50 p-10 rounded-3xl border border-white/10 text-center max-w-md">
             <div className="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
