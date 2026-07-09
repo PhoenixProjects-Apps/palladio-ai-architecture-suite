@@ -22,12 +22,15 @@ function compileMasterPrompt(generationRecord) {
   const styleChoice = generationRecord.ui_style_selection;
   const finishChoice = generationRecord.ui_finish_selection;
   const layoutChoice = generationRecord.ui_layout_selection;
+  const shapeChoice = generationRecord.footprint_shape;
 
   const perspectivePhrase = perspectiveMap[styleChoice] || perspectiveMap["Isometric"];
   const finishPhrase = finishMap[finishChoice] || finishMap["Photorealistic"];
   const layoutPhrase = layoutMap[layoutChoice] || layoutMap["Standard 3D"];
+  
+  const shapePhrase = shapeChoice && shapeChoice !== 'Any Shape' ? `Strict architectural footprint shape: ${shapeChoice}, ` : '';
 
-  return `${baselinePrompt} ${perspectivePhrase}, ${finishPhrase}, ${layoutPhrase}.`.replace(/\s+/g, ' ').trim();
+  return `${baselinePrompt} ${shapePhrase}${perspectivePhrase}, ${finishPhrase}, ${layoutPhrase}.`.replace(/\s+/g, ' ').trim();
 }
 
 Deno.serve(async (req) => {
