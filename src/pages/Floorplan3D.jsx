@@ -288,20 +288,6 @@ export default function Floorplan3D() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-4 bg-slate-900/50 p-10 rounded-2xl border border-white/5 border-dashed">
-                    <header className="flex flex-wrap items-center gap-3 sm:gap-4 mb-8 border-b border-white/10 pb-4 min-w-0">
-                        <BackButton aria-label="Go Back" className="hover:bg-white/10 rounded-full shrink-0" />
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center shadow-lg shrink-0">
-                            <Layers size={20} />
-                        </div>
-                        <h1 className="font-bold text-lg sm:text-xl flex-1 min-w-0 whitespace-nowrap overflow-hidden text-ellipsis">Floorplans</h1>
-                        <div className="ml-auto shrink-0">
-                            <ChooseProject
-                                selected={selectedProject}
-                                onSelect={setSelectedProject}
-                                className="border-violet-500/50 text-violet-300 hover:bg-violet-500/10"
-                            />
-                        </div>
-                    </header>
                   <div className="w-full max-w-[280px] rounded-xl bg-slate-800/50 flex items-center justify-center mb-2 aspect-video overflow-hidden border border-white/5 bg-white/5">
                     <img loading="lazy" decoding="async" src={sourceImage || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=600&auto=format&fit=crop"} alt="Floorplan preview" className={`w-full h-full object-cover ${sourceImage ? 'opacity-100' : 'opacity-60 mix-blend-luminosity'}`} />
                   </div>
