@@ -358,7 +358,7 @@ export default function PalladioFloorplan() {
                             />
                         </div>
                     </header>
-                    <h1 className="text-m sm:text-xl flex-1 min-w-0 whitespace-nowrap overflow-hidden text-ellipsis">3D Floorplan Generation is available after 2D Plan is Generated</h1>
+                    <label className="text-sm font-medium text-slate-400 mb-3 block">3D Floorplan Generation is available after 2D Plan is Generated</label>
                     {/* Tabs */}
                     <div className="flex flex-col md:flex-row gap-1 bg-slate-900 rounded-xl p-1 mb-8 w-full sm:w-max">
                         <button
