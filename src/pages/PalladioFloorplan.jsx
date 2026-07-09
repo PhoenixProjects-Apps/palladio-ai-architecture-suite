@@ -18,11 +18,11 @@ const BrandedExportModal = React.lazy(() => import('../components/BrandedExportM
 function extractJson(text) {
   if (!text) return null;
   let s = String(text).trim().replace(/```json/gi, '').replace(/```/g, '').trim();
-  try {return JSON.parse(s);} catch (_) {}
+  try { return JSON.parse(s); } catch (_) {}
   const start = s.indexOf('{');
   const end = s.lastIndexOf('}');
   if (start !== -1 && end !== -1 && end > start) {
-    try {return JSON.parse(s.slice(start, end + 1));} catch (_) {}
+    try { return JSON.parse(s.slice(start, end + 1)); } catch (_) {}
   }
   return null;
 }
@@ -33,20 +33,20 @@ const buildFloorplanImagePrompt = (description, style, shape) => `High-end 2D ar
 
 const saveFloorplanHistory = (payload, timings, totalStart) => {
   const saveStart = performance.now();
-  void base44.entities.FloorplanGenerations.create(payload).
-  then(() => {
-    timings.history_save_ms = ms(saveStart);
-  }).
-  catch((saveErr) => {
-    timings.history_save_ms = ms(saveStart);
-    timings.history_save_failed = true;
-    console.error("Failed to save FloorplanGenerations:", saveErr);
-    toast.warning("Floorplan generated, but failed to save to history.");
-  }).
-  finally(() => {
-    timings.total_generation_ms = ms(totalStart);
-    console.info('[PalladioPerf]', timings);
-  });
+  void base44.entities.FloorplanGenerations.create(payload)
+    .then(() => {
+      timings.history_save_ms = ms(saveStart);
+    })
+    .catch((saveErr) => {
+      timings.history_save_ms = ms(saveStart);
+      timings.history_save_failed = true;
+      console.error("Failed to save FloorplanGenerations:", saveErr);
+      toast.warning("Floorplan generated, but failed to save to history.");
+    })
+    .finally(() => {
+      timings.total_generation_ms = ms(totalStart);
+      console.info('[PalladioPerf]', timings);
+    });
 };
 
 const SHAPES = ['Any Shape', 'Square', 'Rectangle', 'L-Shape', 'U-Shape'];
@@ -116,14 +116,14 @@ export default function PalladioFloorplan() {
   const [style, setStyle] = useState(() => sessionStorage.getItem('pf-style') || 'Modern');
   const [selectedShape, setSelectedShape] = useState('Any Shape');
   const [selectedLayoutPreset, setSelectedLayoutPreset] = useState('Custom');
-
+  
   const ARCH_STYLES = ['Modern', 'Minimalist', 'Industrial', 'Heritage', 'Contemporary', 'Scandinavian', 'Coastal', 'Mid-Century'];
 
   // Tab 1 state
   const [desc, setDesc] = useState(() => sessionStorage.getItem('pf-desc') || '');
   const [isGeneratingText, setIsGeneratingText] = useState(false);
   const [textResult, setTextResult] = useState({ layout: null, image: null, layoutData: null });
-
+  
   useEffect(() => {
     sessionStorage.setItem('pf-tab', tab);
     sessionStorage.setItem('pf-style', style);
@@ -160,10 +160,10 @@ export default function PalladioFloorplan() {
         console.info('[PalladioPerf]', timings);
         return;
       }
-
-      const presetRules = selectedLayoutPreset && AUSTRALIAN_LAYOUTS[selectedLayoutPreset] ?
-      JSON.stringify(AUSTRALIAN_LAYOUTS[selectedLayoutPreset], null, 2) :
-      "No strict zoning preset provided. Rely on user description.";
+      
+      const presetRules = selectedLayoutPreset && AUSTRALIAN_LAYOUTS[selectedLayoutPreset]
+        ? JSON.stringify(AUSTRALIAN_LAYOUTS[selectedLayoutPreset], null, 2)
+        : "No strict zoning preset provided. Rely on user description.";
 
       const llmPrompt = `Act as an architect and real estate marketing expert. Create a detailed layout brief for: "${desc}". The architectural style is ${style}.
       
@@ -352,13 +352,13 @@ export default function PalladioFloorplan() {
                         <h1 className="font-bold text-lg sm:text-xl flex-1 min-w-0 whitespace-nowrap overflow-hidden text-ellipsis">Floorplans</h1>
                         <div className="ml-auto shrink-0">
                             <ChooseProject
-                selected={selectedProject}
-                onSelect={setSelectedProject}
-                className="border-violet-500/50 text-violet-300 hover:bg-violet-500/10" />
-              
+                                selected={selectedProject}
+                                onSelect={setSelectedProject}
+                                className="border-violet-500/50 text-violet-300 hover:bg-violet-500/10"
+                            />
                         </div>
                     </header>
-                    <label className="text-sm font-medium text-slate-400 mb-3 block">Complete 2D Floorplan Generation to access the 3D Floorplan Tool</label>
+                    <label className="text-sm justify-center font-medium text-slate-400 mb-3 block">3D Floorplan Generation is available after 2D Plan is Generated</label>
                     {/* Tabs */}
                     <div className="flex flex-col md:flex-row gap-1 bg-slate-900 rounded-xl p-1 mb-8 w-full sm:w-max">
                         <button
@@ -388,8 +388,8 @@ export default function PalladioFloorplan() {
                                                 </SelectTrigger>
                                                 <SelectContent className="bg-slate-900 border-slate-700">
                                                     {ARCH_STYLES.map((s) =>
-                        <SelectItem key={s} value={s} className="text-white cursor-pointer">{s}</SelectItem>
-                        )}
+                          <SelectItem key={s} value={s} className="text-white cursor-pointer">{s}</SelectItem>
+                          )}
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -401,8 +401,8 @@ export default function PalladioFloorplan() {
                                                 </SelectTrigger>
                                                 <SelectContent className="bg-slate-900 border-slate-700">
                                                     {SHAPES.map((s) =>
-                        <SelectItem key={s} value={s} className="text-white cursor-pointer">{s}</SelectItem>
-                        )}
+                          <SelectItem key={s} value={s} className="text-white cursor-pointer">{s}</SelectItem>
+                          )}
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -416,25 +416,25 @@ export default function PalladioFloorplan() {
                                             </SelectTrigger>
                                             <SelectContent className="bg-slate-900 border-slate-700">
                                                 {Object.keys(AUSTRALIAN_LAYOUTS).map((presetKey) =>
-                      <SelectItem key={presetKey} value={presetKey} className="text-white cursor-pointer">{presetKey}</SelectItem>
-                      )}
+                                                  <SelectItem key={presetKey} value={presetKey} className="text-white cursor-pointer">{presetKey}</SelectItem>
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     </div>
 
                                     <label htmlFor="floorplan-description" className="text-sm font-medium text-slate-400 mb-3 block">Describe your space {selectedLayoutPreset !== 'Custom' && "(Optional)"}</label>
                                     <Textarea
-                  id="floorplan-description"
-                  value={desc}
-                  onChange={(e) => setDesc(e.target.value)}
-                  placeholder={selectedLayoutPreset !== 'Custom' ? "Add extra custom details to the selected layout preset..." : "E.g., A 3 bedroom, 2 bathroom family home with an open plan kitchen/living area..."}
-                  className="bg-slate-900 border-slate-700 text-white min-h-[120px] rounded-xl mb-3" />
+                                      id="floorplan-description"
+                                      value={desc}
+                                      onChange={(e) => setDesc(e.target.value)}
+                                      placeholder={selectedLayoutPreset !== 'Custom' ? "Add extra custom details to the selected layout preset..." : "E.g., A 3 bedroom, 2 bathroom family home with an open plan kitchen/living area..."}
+                                      className="bg-slate-900 border-slate-700 text-white min-h-[120px] rounded-xl mb-3" />
                                 </div>
                                 <Button
-                onClick={handleTextGenerate}
-                disabled={!desc && selectedLayoutPreset === 'Custom' || isGeneratingText}
-                aria-busy={isGeneratingText}
-                className="w-full bg-violet-600 hover:bg-violet-700 text-white h-12 rounded-xl shadow-lg shadow-violet-500/20">
+                                  onClick={handleTextGenerate}
+                                  disabled={(!desc && selectedLayoutPreset === 'Custom') || isGeneratingText}
+                                  aria-busy={isGeneratingText}
+                                  className="w-full bg-violet-600 hover:bg-violet-700 text-white h-12 rounded-xl shadow-lg shadow-violet-500/20">
                                     {isGeneratingText ? <><Loader2 size={18} className="animate-spin mr-2" /> Generating...</> : "Generate Floorplan"}
                                 </Button>
                             </div>
@@ -449,17 +449,17 @@ export default function PalladioFloorplan() {
                 }
                                         <div className="flex flex-col md:flex-row gap-3">
                                             {textResult.image &&
-                  <Suspense fallback={null}>
+                                            <Suspense fallback={null}>
                                               <BrandedExportModal
-                      imageUrl={textResult.image}
-                      triggerButton={
-                      <Button className="w-full md:flex-1 bg-white text-black hover:bg-slate-200 h-12 rounded-xl shadow-lg">
+                                                imageUrl={textResult.image}
+                                                triggerButton={
+                                                  <Button className="w-full md:flex-1 bg-white text-black hover:bg-slate-200 h-12 rounded-xl shadow-lg">
                                                     <Download size={18} className="mr-2" /> Export Branded
                                                   </Button>
-                      } />
-                    
+                                                }
+                                              />
                                             </Suspense>
-                  }
+                                            }
                                             <Link to="/Floorplan3D" state={{ layoutData: textResult?.layoutData, sourceImage: textResult?.image }} className="w-full md:flex-1">
                                               <Button
                       className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl shadow-lg shadow-cyan-500/20">
@@ -468,24 +468,24 @@ export default function PalladioFloorplan() {
                                               </Button>
                                             </Link>
                                             {textResult.image &&
-                  <SaveToProject
+                                            <SaveToProject
                     fileUrl={textResult.image}
                     fileName="floorplan.png"
                     assetType="plan"
                     projectId={selectedProject?.id}
                     className="w-full md:flex-1 h-12 rounded-xl border-violet-500/50 text-violet-300 hover:bg-violet-500/10" />
-                  }
+                                            }
                   
                                         </div>
 
                                         <div className="bg-white/5 border border-white/10 rounded-2xl p-6 prose prose-invert max-w-none break-words text-sm">
                                             <h3 className="text-violet-400 mt-0">Layout Brief</h3>
                                             {textResult.layout ?
-                  <Suspense fallback={<p className="text-slate-400">Loading layout brief...</p>}>
+                                              <Suspense fallback={<p className="text-slate-400">Loading layout brief...</p>}>
                                                 <ReactMarkdown>{textResult.layout}</ReactMarkdown>
                                               </Suspense> :
-                  <p className="text-slate-400">Structured room data is still being generated...</p>
-                  }
+                                              <p className="text-slate-400">Structured room data is still being generated...</p>
+                                            }
                                         </div>
                                     </div> :
 
@@ -522,7 +522,7 @@ export default function PalladioFloorplan() {
                   tabIndex={0}
                   aria-label="Upload existing floorplan sketch"
                   onClick={() => fileInputRef.current?.click()}
-                  onKeyDown={(e) => {if (e.key === 'Enter' || e.key === ' ') {e.preventDefault();fileInputRef.current?.click();}}}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInputRef.current?.click(); } }}
                   className="border-2 border-dashed border-white/10 hover:border-violet-500/50 rounded-2xl p-8 text-center cursor-pointer transition-colors bg-slate-900 mb-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
                   
                                         {cadFile ?
@@ -557,7 +557,7 @@ export default function PalladioFloorplan() {
                                         </div>
                                         <Link to="/Floorplan3D" state={{ layoutData: { imageUrl: sketchResult }, sourceImage: sketchResult }} className="w-full">
                                           <Button
-                    className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl shadow-lg shadow-cyan-500/20">
+                                          className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl shadow-lg shadow-cyan-500/20">
 
                                                   <Box size={18} className="mr-2" /> 3D Floorplan Renderer
                                               </Button>
@@ -565,13 +565,13 @@ export default function PalladioFloorplan() {
                                         <div className="flex flex-col md:flex-row gap-3">
                                             <Suspense fallback={null}>
                                               <BrandedExportModal
-                      imageUrl={sketchResult}
-                      triggerButton={
-                      <Button className="w-full md:flex-1 bg-white text-black hover:bg-slate-200 h-12 rounded-xl shadow-lg">
+                                                imageUrl={sketchResult}
+                                                triggerButton={
+                                                  <Button className="w-full md:flex-1 bg-white text-black hover:bg-slate-200 h-12 rounded-xl shadow-lg">
                                                     <Download size={18} className="mr-2" /> Export Branded
                                                   </Button>
-                      } />
-                    
+                                                }
+                                              />
                                             </Suspense>
                                             <SaveToProject
                     fileUrl={sketchResult}
