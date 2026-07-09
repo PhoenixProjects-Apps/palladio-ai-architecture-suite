@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link, useLocation } from 'react-router-dom';
-import { ArrowLeft, Loader2, Box, Download, Layers } from 'lucide-react';
+import { Loader2, Box, Download, Layers } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -79,25 +79,32 @@ export default function Floorplan3D() {
   if (!rawLayoutData) {
     return (
       <PalladioGate>
-        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] p-6 bg-[#0a0a14]">
-          <div className="bg-slate-900/50 p-10 rounded-3xl border border-white/10 text-center max-w-md">
-            <BackButton aria-label="Go Back" className="hover:bg-white/10 rounded-full shrink-0" />
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center shadow-lg shrink-0">
+        <div className="min-h-screen bg-[#0f1117] text-white p-4 sm:p-6 pb-12 sm:pb-24 overflow-x-hidden">
+          <div className="max-w-5xl mx-auto">
+            <header className="flex flex-wrap items-center gap-3 sm:gap-4 mb-8 border-b border-white/10 pb-4 min-w-0">
+              <BackButton aria-label="Go Back" className="hover:bg-white/10 rounded-full shrink-0" />
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center shadow-lg shrink-0">
                 <Layers size={20} />
+              </div>
+              <h1 className="font-bold text-lg sm:text-xl flex-1 min-w-0 whitespace-nowrap overflow-hidden text-ellipsis">3D Floorplan</h1>
+            </header>
+
+            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-220px)] p-6">
+              <div className="bg-slate-900/50 p-10 rounded-3xl border border-white/10 text-center max-w-md">
+                <div className="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Box className="w-8 h-8 text-cyan-400" />
+                </div>
+                <h2 className="text-xl font-semibold text-white mb-3">No Layout Data Found</h2>
+                <p className="text-slate-400 mb-8">
+                  You need to generate or import a 2D floorplan layout first before rendering it in 3D.
+                </p>
+                <Link to="/PalladioFloorplan">
+                  <Button className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl">
+                    Go to 2D Floorplan Generator
+                  </Button>
+                </Link>
+              </div>
             </div>
-            <h1 className="font-bold text-lg sm:text-xl flex-1 min-w-0 whitespace-nowrap overflow-hidden text-ellipsis">Floorplans</h1>
-            <div className="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <Box className="w-8 h-8 text-cyan-400" />
-            </div>
-            <h2 className="text-xl font-semibold text-white mb-3">No Layout Data Found</h2>
-            <p className="text-slate-400 mb-8">
-              You need to generate or import a 2D floorplan layout first before rendering it in 3D.
-            </p>
-            <Link to="/PalladioFloorplan">
-              <Button className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl">
-                Go to 2D Floorplan Generator
-              </Button>
-            </Link>
           </div>
         </div>
       </PalladioGate>
@@ -113,7 +120,7 @@ export default function Floorplan3D() {
           border-right: 1px solid #1f242c;
           padding: 24px;
           width: 320px;
-          height: 100vh;
+          min-height: calc(100vh - 152px);
           display: flex;
           flex-direction: column;
           box-sizing: border-box;
@@ -184,11 +191,21 @@ export default function Floorplan3D() {
         }
       `}} />
 
-      <div className="flex flex-col md:flex-row min-h-[calc(100vh-64px)] bg-[#0a0a14] overflow-y-auto md:overflow-hidden relative">
+      <div className="min-h-screen bg-[#0f1117] text-white">
+        <div className="px-4 sm:px-6 pt-4 sm:pt-6">
+          <header className="flex flex-wrap items-center gap-3 sm:gap-4 mb-4 border-b border-white/10 pb-4 min-w-0">
+            <BackButton aria-label="Go Back" className="hover:bg-white/10 rounded-full shrink-0" />
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center shadow-lg shrink-0">
+              <Layers size={20} />
+            </div>
+            <h1 className="font-bold text-lg sm:text-xl flex-1 min-w-0 whitespace-nowrap overflow-hidden text-ellipsis">3D Floorplan</h1>
+          </header>
+        </div>
+
+        <div className="flex flex-col md:flex-row min-h-[calc(100vh-152px)] bg-[#0a0a14] overflow-y-auto md:overflow-hidden relative">
         {/* Sidebar */}
         <div className="b44-sidebar-generator order-2 md:order-1">
           <div className="b44-sidebar-title">
-            <BackButton aria-label="Go Back" className="text-white hover:text-cyan-400 mr-2 flex items-center justify-center p-1 rounded hover:bg-white/10 transition-colors h-8 w-8" />
             Rendering Preferences
           </div>
 
@@ -305,6 +322,7 @@ export default function Floorplan3D() {
             </div>
           )}
         </div>
+      </div>
       </div>
     </PalladioGate>
   );
