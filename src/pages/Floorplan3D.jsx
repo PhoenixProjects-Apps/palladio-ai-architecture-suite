@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link, useLocation } from 'react-router-dom';
-import { ArrowLeft, Loader2, Box, Download } from 'lucide-react';
+import { ArrowLeft, Loader2, Box, Download, Layers } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
