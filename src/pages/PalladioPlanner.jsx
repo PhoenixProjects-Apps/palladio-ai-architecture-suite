@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { exportPlanningToPdf } from '@/lib/exportPlanningPdf';
 import { uploadToFirebase } from '@/lib/uploadHelper';
 import { addGoldCoastDevelopmentISourceToPropertyData, isGoldCoastPropertyContext } from '@/lib/goldCoastDevelopmentI';
+import { runPlanningAssessment } from '@/lib/planningAssessment';
 
 const devTypes = [
 "New Dwelling", "Extension/Addition", "Subdivision",
@@ -553,11 +554,7 @@ Return ONLY valid JSON matching this exact structure:
         setIsAnalyzing(false);
         return;
       }
-      const response = await base44.functions.invoke('runPlanningAssessment', {
-        address, devType: selectedType, description, propertyData
-      });
-      const data = response.data;
-      if (data?.error) throw new Error(data.error);
+      const data = await runPlanningAssessment({ address, devType: selectedType, description, propertyData });
       if (!data?.output) throw new Error('No assessment was returned.');
       setResult(data.output);
       toast.success("Assessment complete! Save to Project or Download PDF below.");

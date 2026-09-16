@@ -12,6 +12,7 @@ import SaveToProject from '@/components/SaveToProject';
 import ProjectDetailsForm from '@/components/ProjectDetailsForm';
 import ChooseProject from '@/components/ChooseProject';
 import { exportAssessmentToPdf } from '@/lib/exportPdf';
+import { runPlanFileAssessment } from '@/lib/planFileAssessment';
 import { toast } from 'sonner';
 import useWorkspaceMode from '@/hooks/useWorkspaceMode';
 import WorkspaceCompanionNotice from '@/components/workspace/WorkspaceCompanionNotice';
@@ -116,18 +117,12 @@ export default function PalladioAssess() {
       }
       if (tokenRes.data?.tokens !== undefined) setCredits(tokenRes.data.tokens);
 
-      // Call the synchronous assessment task
-      const runRes = await base44.functions.invoke('runPlanAssessment', {
-        action: 'run',
-        fileUrl: fileUrl,
-        tier: reviewTier,
-        projectDetails
-      });
+      // Run the assessment directly from the client (token already consumed above)
+      const runRes = await runPlanFileAssessment({ fileUrl, tier: reviewTier, projectDetails });
       
-      if (runRes.data?.error) throw new Error(runRes.data.error);
-      if (!runRes.data?.output) throw new Error("No output received from the assessment.");
+      if (!runRes?.output) throw new Error("No output received from the assessment.");
 
-      setResult(runRes.data.output);
+      setResult(runRes.output);
 
       if (projectDetails.projectId) {
         toast.success("Assessment complete! Ready to save.");
