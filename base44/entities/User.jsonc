@@ -13,7 +13,7 @@
     "tokens": {
       "type": "number",
       "description": "The number of AI tokens the user has available.",
-      "default": 5
+      "default": 100
     },
     "profile_picture": {
       "type": "string",
