@@ -60,7 +60,7 @@ export default function PalladioGate({ children }) {
                     <LogIn size={32} className="text-cyan-400" />
                 </div>
                 <h2 className="text-2xl font-bold text-white mb-2">Sign in to continue</h2>
-                <p className="text-slate-400 max-w-md mb-8">Create an account or sign in to access Palladio AI's architecture tools. New users get 10 free AI tokens to get started.</p>
+                <p className="text-slate-400 max-w-md mb-8">Create an account or sign in to access Palladio AI's architecture tools. New users get 100 free AI tokens to get started.</p>
                 <Button onClick={() => base44.auth.redirectToLogin()} className="bg-white text-black hover:bg-slate-200 px-8 py-6 rounded-xl font-semibold text-lg">
                     Sign In / Sign Up
                 </Button>

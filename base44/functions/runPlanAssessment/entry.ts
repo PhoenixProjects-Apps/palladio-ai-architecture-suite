@@ -12,14 +12,9 @@ Deno.serve(async (req) => {
 
     if (body?.action !== 'run') return Response.json({ error: "Invalid action" }, { status: 400 });
 
-    try {
-      const consumeRes = await base44.functions.invoke('consumeToken', { amount: 1 });
-      if (!consumeRes.data || !consumeRes.data.success) {
-        return Response.json({ error: "Insufficient tokens" }, { status: 403 });
-      }
-    } catch (err) {
-      return Response.json({ error: err.response?.data?.error || "Insufficient tokens" }, { status: 403 });
-    }
+    // Token gating is handled by the calling page (consumeToken runs there with
+    // the user's auth context). Calling it from here double-charges and loses
+    // the auth context, which surfaced as false "Insufficient tokens" errors.
     if (!fileUrl) return Response.json({ error: "A valid file URL is required" }, { status: 400 });
 
     const tierLabel = body?.tier === 'construction'

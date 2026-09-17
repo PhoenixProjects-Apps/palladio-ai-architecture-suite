@@ -18,6 +18,18 @@ export const AuthProvider = ({ children }) => {
     checkAppState();
   }, []);
 
+  // Keep the top-bar balance live: token consumption updates the UserCredits
+  // record and this subscription pushes the new balance into context.
+  useEffect(() => {
+    if (!isAuthenticated) return undefined;
+    const unsubscribe = base44.entities.UserCredits.subscribe((event) => {
+      if ((event?.type === 'create' || event?.type === 'update') && event?.data?.tokens !== undefined) {
+        setCredits(event.data.tokens);
+      }
+    });
+    return unsubscribe;
+  }, [isAuthenticated]);
+
   const checkAppState = async () => {
     try {
       setIsLoadingPublicSettings(true);

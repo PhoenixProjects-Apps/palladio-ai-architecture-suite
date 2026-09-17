@@ -14,14 +14,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    try {
-      const consumeRes = await base44.functions.invoke('consumeToken', { amount: 1 });
-      if (!consumeRes.data || !consumeRes.data.success) {
-        return Response.json({ error: "Insufficient tokens" }, { status: 403 });
-      }
-    } catch (err) {
-      return Response.json({ error: err.response?.data?.error || "Insufficient tokens" }, { status: 403 });
-    }
+    // Token gating is handled by the calling page (consumeToken runs there with
+    // the user's auth context). Calling it from here double-charges and loses
+    // the auth context, which surfaced as false "Insufficient tokens" errors.
 
     const body = await req.json().catch(() => ({}));
 
