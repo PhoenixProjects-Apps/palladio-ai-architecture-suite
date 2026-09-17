@@ -8,6 +8,10 @@
     "project_name": {
       "type": "string"
     },
+    "footprint_shape": {
+      "type": "string",
+      "default": "Any Shape"
+    },
     "raw_layout_data": {
       "type": "object"
     },

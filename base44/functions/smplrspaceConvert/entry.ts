@@ -22,14 +22,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Invalid file_url format' }, { status: 400 });
     }
 
-    try {
-      const consumeRes = await base44.functions.invoke('consumeToken', { amount: 1 });
-      if (!consumeRes.data || !consumeRes.data.success) {
-        return Response.json({ error: "Insufficient tokens" }, { status: 403 });
-      }
-    } catch (err) {
-      return Response.json({ error: err.response?.data?.error || "Insufficient tokens" }, { status: 403 });
-    }
+    // Token gating belongs to the calling page (consumeToken runs there with
+    // the user's auth context); invoking it from here loses that context and
+    // fails as a false "Insufficient tokens" error.
 
     // SMPLRSPACE uses QueryClient to create spaces
     // First, we need to upload the floor plan to their system

@@ -460,7 +460,7 @@ export default function PalladioFloorplan() {
                                               />
                                             </Suspense>
                                             }
-                                            <Link to="/Floorplan3D" state={{ layoutData: textResult?.layoutData, sourceImage: textResult?.image }} className="w-full md:flex-1">
+                                            <Link to="/Floorplan3D" state={{ layoutData: textResult?.layoutData, sourceImage: textResult?.image, footprintShape: selectedShape }} className="w-full md:flex-1">
                                               <Button
                       className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl shadow-lg shadow-cyan-500/20">
                       
@@ -555,7 +555,7 @@ export default function PalladioFloorplan() {
                                         <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-lg p-4">
                                             <img loading="lazy" decoding="async" src={sketchResult} alt="Generated Floorplan" className="w-full rounded-lg" />
                                         </div>
-                                        <Link to="/Floorplan3D" state={{ layoutData: { imageUrl: sketchResult }, sourceImage: sketchResult }} className="w-full">
+                                        <Link to="/Floorplan3D" state={{ layoutData: { imageUrl: sketchResult }, sourceImage: sketchResult, footprintShape: selectedShape }} className="w-full">
                                           <Button
                                           className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 rounded-xl shadow-lg shadow-cyan-500/20">
 

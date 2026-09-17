@@ -13,6 +13,7 @@ export default function Floorplan3D() {
   const location = useLocation();
   const rawLayoutData = location.state?.layoutData;
   const sourceImage = location.state?.sourceImage;
+  const footprintShape = location.state?.footprintShape;
 
   const [perspective, setPerspective] = useState('Isometric');
   const [finish, setFinish] = useState('Photorealistic');
@@ -58,6 +59,7 @@ export default function Floorplan3D() {
         ui_style_selection: perspective,
         ui_finish_selection: currentFinish,
         ui_layout_selection: layout,
+        footprint_shape: footprintShape || 'Any Shape',
         status: 'Draft'
       });
 
