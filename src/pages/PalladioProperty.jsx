@@ -16,6 +16,30 @@ export default function PalladioProperty() {
   const [address, setAddress] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [result, setResult] = useState(null);
+  const [titleDetails, setTitleDetails] = useState(null);
+  const [titleChecked, setTitleChecked] = useState(false);
+  const [isFetchingTitle, setIsFetchingTitle] = useState(false);
+
+  const handleAddressSelect = async (addr) => {
+    setAddress(addr);
+    if (!addr) {
+      setTitleDetails(null);
+      setTitleChecked(false);
+      return;
+    }
+    setIsFetchingTitle(true);
+    try {
+      // Official Queensland cadastre lookup (instant, no AI tokens) for Lot/RP and site area
+      const res = await base44.functions.invoke('lookupCadastre', { address: addr });
+      setTitleDetails(res.data?.data || null);
+    } catch (err) {
+      console.error(err);
+      setTitleDetails(null);
+    } finally {
+      setTitleChecked(true);
+      setIsFetchingTitle(false);
+    }
+  };
 
   const handleSearch = async () => {
     if (!address) return;
@@ -83,7 +107,7 @@ export default function PalladioProperty() {
                         <div className="flex flex-col md:flex-row gap-4">
                             <div className="flex-1">
                                 <label className="text-sm font-medium text-slate-400 mb-2 block">Property Address (Australia)</label>
-                                <AddressAutocomplete value={address} onChange={setAddress} onSelect={setAddress} />
+                                <AddressAutocomplete value={address} onChange={setAddress} onSelect={handleAddressSelect} />
                             </div>
                             <div className="flex items-end">
                                 <Button
@@ -97,6 +121,43 @@ export default function PalladioProperty() {
                             </div>
                         </div>
                     </div>
+
+                    {(isFetchingTitle || titleChecked) &&
+                        <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mb-8 shadow-xl">
+                            <h3 className="text-emerald-400 font-semibold mb-3 flex items-center gap-2"><Info size={18} /> Title & Site Details</h3>
+                            {isFetchingTitle ? (
+                                <p className="text-sm text-slate-400 flex items-center gap-2">
+                                    <Loader2 size={16} className="animate-spin" /> Checking the official Queensland cadastre…
+                                </p>
+                            ) : titleDetails ? (
+                                <>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <div className="bg-white/5 border border-white/10 rounded-xl p-4 min-w-0 break-words">
+                                            <p className="text-xs text-slate-400 mb-1">Lot</p>
+                                            <p className="font-semibold text-white">{titleDetails.lot_no || '—'}</p>
+                                        </div>
+                                        <div className="bg-white/5 border border-white/10 rounded-xl p-4 min-w-0 break-words">
+                                            <p className="text-xs text-slate-400 mb-1">RP / Plan</p>
+                                            <p className="font-semibold text-white">{titleDetails.rp_no || '—'}</p>
+                                        </div>
+                                        <div className="bg-white/5 border border-white/10 rounded-xl p-4 min-w-0 break-words">
+                                            <p className="text-xs text-slate-400 mb-1">Site Area</p>
+                                            <p className="font-semibold text-white">{titleDetails.site_area || '—'}</p>
+                                        </div>
+                                        <div className="bg-white/5 border border-white/10 rounded-xl p-4 min-w-0 break-words">
+                                            <p className="text-xs text-slate-400 mb-1">Tenure</p>
+                                            <p className="font-semibold text-white">{titleDetails.tenure || '—'}</p>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-slate-500 mt-3 break-words">
+                                        {titleDetails.lot_rp} — {titleDetails.matched_address}. Sourced from the Queensland Digital Cadastre (DNRM); verify with a title search before lodgement.
+                                    </p>
+                                </>
+                            ) : (
+                                <p className="text-sm text-slate-400">Lot & RP details couldn't be verified automatically for this address — verify with a title search or council property report.</p>
+                            )}
+                        </div>
+                    }
 
                     {result &&
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -153,7 +214,7 @@ export default function PalladioProperty() {
                             </div>
 
                             <SaveToProject
-              textContent={`# Property Intelligence Report\n\n**Address:** ${address}\n\n## Overview\n${result.overview}\n\n## Zoning & Overlays\n${result.zoning}\n\n## Development Potential\n${result.development_potential}\n\n## Neighbourhood\n${result.neighbourhood}\n\n## Planning Trends\n${result.planning_trends}\n\n## Key Facts\n${(result.key_facts || []).map((f) => `- **${f.label}:** ${f.value}`).join('\n')}\n\n## Official Sources\n${(result.source_links || []).map((source) => `- [${source.name}](${source.link})`).join('\n')}\n\n---\n${result.disclaimer || ''}`}
+              textContent={`# Property Intelligence Report\n\n**Address:** ${address}\n\n${titleDetails ? `## Title & Site Details\n- **Lot on Plan:** ${titleDetails.lot_rp}\n- **Site Area:** ${titleDetails.site_area}\n- **Tenure:** ${titleDetails.tenure}\n\n` : ''}## Overview\n${result.overview}\n\n## Zoning & Overlays\n${result.zoning}\n\n## Development Potential\n${result.development_potential}\n\n## Neighbourhood\n${result.neighbourhood}\n\n## Planning Trends\n${result.planning_trends}\n\n## Key Facts\n${(result.key_facts || []).map((f) => `- **${f.label}:** ${f.value}`).join('\n')}\n\n## Official Sources\n${(result.source_links || []).map((source) => `- [${source.name}](${source.link})`).join('\n')}\n\n---\n${result.disclaimer || ''}`}
               fileName="property-report.md"
               assetType="document"
               className="w-full border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/10 h-12 rounded-xl" />

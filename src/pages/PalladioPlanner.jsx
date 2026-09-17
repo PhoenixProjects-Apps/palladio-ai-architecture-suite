@@ -12,8 +12,7 @@ import PalladioGate from '../components/PalladioGate';
 import SaveToProject from '../components/SaveToProject';
 import { toast } from 'sonner';
 import { exportPlanningToPdf } from '@/lib/exportPlanningPdf';
-import { uploadToFirebase } from '@/lib/uploadHelper';
-import { addGoldCoastDevelopmentISourceToPropertyData, isGoldCoastPropertyContext } from '@/lib/goldCoastDevelopmentI';
+import { uploadSecureFile } from '@/lib/uploadHelper';
 
 const devTypes = [
 "New Dwelling", "Extension/Addition", "Subdivision",
@@ -140,359 +139,51 @@ export default function PalladioPlanner() {
   const [docResult, setDocResult] = useState(null);
   const [exporting, setExporting] = useState(false);
 
-  const buildPropertyResearchPrompt = (addr) => `
-You are a property research assistant retrieving OFFICIAL Australian planning scheme data.
 
-Research this property address:
-${addr}
 
-Use current public sources where available, including:
-- the relevant local council planning scheme
-- the council interactive mapping / property search tool
-- state planning / title-style public information where available
-- official development application form pages
-${isGoldCoastPropertyContext(addr) ? '- City of Gold Coast Development.i (https://developmenti.goldcoast.qld.gov.au/) for Gold Coast property/application history, referral agency/building/application information, and basic property information. Use this as a local authority property/application source, not as a replacement for formal City Plan overlay/zoning verification.' : ''}
 
-CRITICAL REQUIREMENTS:
 
-1. ZONING
-Return the EXACT, SPECIFIC zone name used by the local planning scheme.
-For Brisbane City Council under City Plan 2014, examples include:
-- Low density residential zone
-- Low-medium density residential zone
-- Medium density residential zone
-- Character residential zone
-- Rural residential zone
-- Mixed use zone
-- Centre zone
-- Community facilities zone
-- Emerging community zone
 
-Do NOT return generic labels like:
-- Residential
-- General Residential
-- Housing
-- Urban
-
-If the exact zone cannot be verified, return:
-"UNVERIFIED - manual confirmation required"
-
-2. NEIGHBOURHOOD / LOCAL PLAN
-Check whether the address is inside a neighbourhood plan, local plan, precinct, locality plan, or equivalent local planning area.
-Return the exact name if verified.
-If none is found, return:
-"None verified"
-If uncertain, return:
-"UNVERIFIED - check council mapping tool"
-
-3. POSITIVE OVERLAYS
-Explicitly check these overlay categories one by one:
-- Flood
-- Bushfire
-- Heritage / Traditional building character
-- Airport environs / ANEF / OLS
-- Road hierarchy / transport corridor
-- Bicycle network
-- Waterway corridor
-- Biodiversity / environmental significance
-- Landslide / steep land / slope constraint
-- Coastal hazard
-- Extractive resources
-- Infrastructure / trunk infrastructure
-- Acid sulfate soils
-- Stormwater / overland flow
-- Any other mapped local council overlay
-
-Only include an overlay in "overlays" if there is genuine evidence it applies.
-
-4. NEGATIVE OVERLAY CHECKS
-If a major overlay category is checked and does NOT apply, store that as a negative check.
-Example:
-"No flood overlay detected"
-"No bushfire overlay detected"
-"No heritage overlay detected"
-
-Do not confuse negative checks with positive overlays.
-
-5. EMPTY OVERLAY RULE
-If positive overlays cannot be confidently verified, DO NOT return an empty overlays array without explanation.
-Instead:
-overlays: ["UNVERIFIED - check council mapping tool"]
-overlay_confidence: "LOW"
-
-6. LOT / RP / SITE AREA
-Return:
-- lot_rp
-- lot_no
-- rp_no
-- site_area
-
-7. FORMS AND APPLICATIONS
-Return links to the relevant local council's actual development application forms and property/planning search tools.
-
-8. SOURCE LINKS
-Return useful source links used or recommended, including council mapping/property search pages.
-
-Return ONLY valid JSON matching this exact structure:
-
-{
-  "lot_rp": "Lot and RP numbers",
-  "lot_no": "Lot number only",
-  "rp_no": "Registered plan number only",
-  "site_area": "Site area in square metres",
-  "zoning": "Exact specific zone name or UNVERIFIED",
-  "zoning_confidence": "HIGH | MEDIUM | LOW",
-  "neighbourhood_plan": "Exact neighbourhood/local plan name, None verified, or UNVERIFIED",
-  "overlays": ["Positive overlay 1", "Positive overlay 2"],
-  "negative_overlay_checks": ["No flood overlay detected", "No bushfire overlay detected"],
-  "overlay_confidence": "HIGH | MEDIUM | LOW",
-  "forms_and_applications": [
-    {
-      "name": "Form or tool name",
-      "link": "https://..."
-    }
-  ],
-  "source_links": [
-    {
-      "name": "Source name",
-      "link": "https://..."
-    }
-  ],
-  "verification_notes": "Short note explaining any uncertainty or manual-check requirement."
-}
-`;
-
-  const buildCouncilOverlaysText = (data = {}, addr = address) => {
-    const parts = [];
-
-    if (data.zoning) {
-      parts.push(`Zoning: ${data.zoning}`);
-    }
-
-    if (data.zoning_confidence) {
-      parts.push(`Zoning confidence: ${data.zoning_confidence}`);
-    }
-
-    if (data.neighbourhood_plan) {
-      parts.push(`Neighbourhood / Local Plan: ${data.neighbourhood_plan}`);
-    }
-
-    if (Array.isArray(data.overlays) && data.overlays.length > 0) {
-      parts.push(`Positive overlays: ${data.overlays.join(', ')}`);
-    } else {
-      parts.push(`Positive overlays: UNVERIFIED - check council mapping tool`);
-    }
-
-    if (Array.isArray(data.negative_overlay_checks) && data.negative_overlay_checks.length > 0) {
-      parts.push(`Negative overlay checks: ${data.negative_overlay_checks.join('; ')}`);
-    }
-
-    if (data.overlay_confidence) {
-      parts.push(`Overlay confidence: ${data.overlay_confidence}`);
-    }
-
-    if (data.verification_notes) {
-      parts.push(`Verification notes: ${data.verification_notes}`);
-    }
-
-    if (isGoldCoastPropertyContext(data, addr)) {
-      parts.push('Local source: City of Gold Coast Development.i for development application history, referral agency/building/application information, and basic property information. City Plan/ePlan zoning and overlays still require separate formal verification.');
-    }
-
-    return parts.join('; ');
-  };
-
-  const isShallowLegacyCache = (record) => {
-    const text = record?.council_overlays_text || '';
-
-    return (
-      (!record?.overlays || record.overlays.length === 0) &&
-      !record?.neighbourhood_plan &&
-      !record?.overlay_confidence &&
-      (
-        text.includes('No bushfire') ||
-        text.includes('No flood') ||
-        text.includes('No heritage')
-      )
-    );
-  };
 
   const handleAddressSelect = async (addr) => {
     setAddress(addr);
-  
+
     if (!addr) {
       setPropertyData({
-        lot_rp: '',
-        lot_no: '',
-        rp_no: '',
-        site_area: '',
-        zoning: '',
-        zoning_confidence: '',
-        neighbourhood_plan: '',
-        overlays: [],
-        negative_overlay_checks: [],
-        overlay_confidence: '',
-        council_overlays_text: '',
-        forms_and_applications: [],
-        source_links: [],
-        verification_notes: ''
+        lot_rp: '', lot_no: '', rp_no: '', site_area: '', zoning: '', zoning_confidence: '',
+        neighbourhood_plan: '', overlays: [], negative_overlay_checks: [], overlay_confidence: '',
+        council_overlays_text: '', forms_and_applications: [], source_links: [], verification_notes: ''
       });
       return;
     }
-  
+
     setIsFetchingProperty(true);
-  
+
     try {
-      // 1. Check cache first
-      const cached = await base44.entities.PropertyCache.filter({ address: addr });
-  
-      if (cached && cached.length > 0 && !isShallowLegacyCache(cached[0])) {
-        const record = cached[0];
-  
-        const hydrated = addGoldCoastDevelopmentISourceToPropertyData({
-          lot_rp: record.lot_rp || '',
-          lot_no: record.lot_no || '',
-          rp_no: record.rp_no || '',
-          site_area: record.site_area || '',
-          zoning: record.zoning || '',
-          zoning_confidence: record.zoning_confidence || '',
-          neighbourhood_plan: record.neighbourhood_plan || '',
-          overlays: Array.isArray(record.overlays) ? record.overlays : [],
-          negative_overlay_checks: Array.isArray(record.negative_overlay_checks) ? record.negative_overlay_checks : [],
-          overlay_confidence: record.overlay_confidence || '',
-          council_overlays_text: record.council_overlays_text || '',
-          forms_and_applications: Array.isArray(record.forms_and_applications) ? record.forms_and_applications : [],
-          source_links: Array.isArray(record.source_links) ? record.source_links : [],
-          verification_notes: record.verification_notes || ''
-        }, addr, record);
-  
-        // Rebuild council text if old cache record is too shallow
-        if (
-          !hydrated.council_overlays_text ||
-          hydrated.council_overlays_text.trim() === '' ||
-          (
-            hydrated.council_overlays_text.includes('No bushfire') &&
-            hydrated.overlays.length === 0 &&
-            !hydrated.neighbourhood_plan
-          )
-        ) {
-          hydrated.council_overlays_text = buildCouncilOverlaysText(hydrated, addr);
-        }
-  
-        setPropertyData(hydrated);
-        setIsFetchingProperty(false);
-        return;
-      }
-  
-      // 2. No cache found — research once
-      const prompt = buildPropertyResearchPrompt(addr);
-  
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt,
-        add_context_from_internet: true,
-        model: 'gemini_3_flash',
-        response_json_schema: {
-          type: "object",
-          properties: {
-            lot_rp: { type: "string" },
-            lot_no: { type: "string" },
-            rp_no: { type: "string" },
-            site_area: { type: "string" },
-            zoning: { type: "string" },
-            zoning_confidence: { type: "string", enum: ["HIGH", "MEDIUM", "LOW"] },
-            neighbourhood_plan: { type: "string" },
-            overlays: { type: "array", items: { type: "string" } },
-            negative_overlay_checks: { type: "array", items: { type: "string" } },
-            overlay_confidence: { type: "string", enum: ["HIGH", "MEDIUM", "LOW"] },
-            forms_and_applications: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  name: { type: "string" },
-                  link: { type: "string" }
-                },
-                required: ["name", "link"]
-              }
-            },
-            source_links: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  name: { type: "string" },
-                  link: { type: "string" }
-                },
-                required: ["name", "link"]
-              }
-            },
-            verification_notes: { type: "string" }
-          },
-          required: [
-            "lot_rp",
-            "lot_no",
-            "rp_no",
-            "site_area",
-            "zoning",
-            "zoning_confidence",
-            "neighbourhood_plan",
-            "overlays",
-            "negative_overlay_checks",
-            "overlay_confidence",
-            "forms_and_applications",
-            "source_links",
-            "verification_notes"
-          ]
-        }
+      // Server-side lookup: council records + official QLD cadastre (lot/plan/site area) + cache
+      const res = await base44.functions.invoke('lookupPropertyDetails', { address: addr });
+      const data = res.data?.data;
+      if (!data) throw new Error('No property data returned');
+
+      setPropertyData({
+        lot_rp: data.lot_rp || '',
+        lot_no: data.lot_no || '',
+        rp_no: data.rp_no || '',
+        site_area: data.site_area || '',
+        zoning: data.zoning || '',
+        zoning_confidence: data.zoning_confidence || '',
+        neighbourhood_plan: data.neighbourhood_plan || '',
+        overlays: Array.isArray(data.overlays) ? data.overlays : [],
+        negative_overlay_checks: Array.isArray(data.negative_overlay_checks) ? data.negative_overlay_checks : [],
+        overlay_confidence: data.overlay_confidence || '',
+        council_overlays_text: data.council_overlays_text || '',
+        forms_and_applications: Array.isArray(data.forms_and_applications) ? data.forms_and_applications : [],
+        source_links: Array.isArray(data.source_links) ? data.source_links : [],
+        verification_notes: data.verification_notes || ''
       });
-  
-      const council_overlays_text = buildCouncilOverlaysText(response, addr);
-  
-      const finalData = addGoldCoastDevelopmentISourceToPropertyData({
-        address: addr,
-        lot_rp: response.lot_rp || '',
-        lot_no: response.lot_no || '',
-        rp_no: response.rp_no || '',
-        site_area: response.site_area || '',
-        zoning: response.zoning || '',
-        zoning_confidence: response.zoning_confidence || 'LOW',
-        neighbourhood_plan: response.neighbourhood_plan || '',
-        overlays: Array.isArray(response.overlays) ? response.overlays : ["UNVERIFIED - check council mapping tool"],
-        negative_overlay_checks: Array.isArray(response.negative_overlay_checks) ? response.negative_overlay_checks : [],
-        overlay_confidence: response.overlay_confidence || 'LOW',
-        council_overlays_text,
-        forms_and_applications: Array.isArray(response.forms_and_applications) ? response.forms_and_applications : [],
-        source_links: Array.isArray(response.source_links) ? response.source_links : [],
-        verification_notes: response.verification_notes || '',
-        last_verified_at: new Date().toISOString()
-      }, addr, response);
-  
-      // 3. Save rich cache
-      await base44.entities.PropertyCache.create(finalData);
-  
-      // 4. Use rich data in UI
-      setPropertyData(finalData);
-  
     } catch (err) {
       console.error('Property lookup failed:', err);
-  
-      setPropertyData(addGoldCoastDevelopmentISourceToPropertyData({
-        lot_rp: '',
-        lot_no: '',
-        rp_no: '',
-        site_area: '',
-        zoning: 'UNVERIFIED - manual confirmation required',
-        zoning_confidence: 'LOW',
-        neighbourhood_plan: 'UNVERIFIED - check council mapping tool',
-        overlays: ['UNVERIFIED - check council mapping tool'],
-        negative_overlay_checks: [],
-        overlay_confidence: 'LOW',
-        council_overlays_text: 'UNVERIFIED - manual confirmation required. Check council mapping tool before relying on this assessment.',
-        forms_and_applications: [],
-        source_links: [],
-        verification_notes: 'Automatic lookup failed.'
-      }, addr));
-  
+      toast.error("Property lookup failed. You can still enter the details manually below.");
     } finally {
       setIsFetchingProperty(false);
     }
@@ -588,7 +279,7 @@ Return ONLY valid JSON matching this exact structure:
         setIsAnalyzingDoc(false);
         return;
       }
-      const resFile = await uploadToFirebase(docFile);
+      const resFile = await uploadSecureFile(docFile);
       const file_url = resFile?.file_url;
       if (!file_url) throw new Error('Upload failed');
       setIsUploading(false);

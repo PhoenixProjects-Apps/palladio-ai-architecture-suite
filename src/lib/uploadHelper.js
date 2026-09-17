@@ -11,38 +11,20 @@ export const validateUpload = (file, allowedTypes, maxMb = 25) => {
   return null;
 };
 
-export async function uploadToFirebase(file) {
-  try {
-    // 1. Get the pre-signed URL from our backend function
-    const authRes = await base44.functions.invoke('getUploadUrl', {
-      fileName: file.name || 'upload.bin',
-      fileType: file.type || 'application/octet-stream'
-    });
+// Secure upload for confidential plan documents:
+// private storage + short-lived signed URL the AI can read.
+export async function uploadSecureFile(file) {
+  const upload = await base44.integrations.Core.UploadPrivateFile({ file });
+  if (!upload?.file_uri) throw new Error('Upload failed');
+  const signed = await base44.integrations.Core.CreateFileSignedUrl({ file_uri: upload.file_uri, expires_in: 7200 });
+  if (!signed?.signed_url) throw new Error('Could not generate a secure access URL');
+  return { file_url: signed.signed_url, file_uri: upload.file_uri };
+}
 
-    const { uploadUrl, file_url, error } = authRes.data || {};
-    if (error) throw new Error(error);
-    if (!uploadUrl || !file_url) throw new Error('Could not secure upload permission');
-
-    // 2. Upload the file directly to the pre-signed URL
-    const uploadRes = await fetch(uploadUrl, {
-      method: 'PUT',
-      body: file,
-      headers: {
-        'Content-Type': file.type || 'application/octet-stream',
-      },
-    });
-
-    if (!uploadRes.ok) {
-      throw new Error(`Direct upload failed with status: ${uploadRes.status}`);
-    }
-
-    // 3. Return the public URL
-    return { file_url };
-  } catch (err) {
-    console.warn("Direct upload failed (likely CORS), falling back to Base44 Core UploadFile:", err);
-    
-    // Fallback: Use Base44 internal storage integration if Firebase fails
-    const res = await base44.integrations.Core.UploadFile({ file });
-    return { file_url: res.file_url || res.url };
-  }
+// Permanent, shareable URL for assets saved into projects (reports, exports, logos).
+export async function uploadPublicFile(file) {
+  const res = await base44.integrations.Core.UploadPublicFile({ file });
+  const url = res?.file_url || res?.url;
+  if (!url) throw new Error('Upload failed');
+  return { file_url: url };
 }

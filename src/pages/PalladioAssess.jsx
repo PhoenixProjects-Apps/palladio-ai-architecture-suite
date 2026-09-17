@@ -12,6 +12,7 @@ import SaveToProject from '@/components/SaveToProject';
 import ProjectDetailsForm from '@/components/ProjectDetailsForm';
 import ChooseProject from '@/components/ChooseProject';
 import { exportAssessmentToPdf } from '@/lib/exportPdf';
+import { uploadSecureFile } from '@/lib/uploadHelper';
 import { toast } from 'sonner';
 import useWorkspaceMode from '@/hooks/useWorkspaceMode';
 import WorkspaceCompanionNotice from '@/components/workspace/WorkspaceCompanionNotice';
@@ -76,21 +77,7 @@ export default function PalladioAssess() {
     setIsUploading(true);
 
     try {
-      const authRes = await base44.functions.invoke('getUploadUrl', {
-        fileName: selectedFile.name,
-        fileType: selectedFile.type
-      });
-      
-      const { uploadUrl, file_url } = authRes.data || {};
-      if (!uploadUrl || !file_url) throw new Error('Could not secure upload permission');
-
-      const uploadRes = await fetch(uploadUrl, {
-        method: 'PUT',
-        body: selectedFile,
-        headers: { 'Content-Type': selectedFile.type },
-      });
-
-      if (!uploadRes.ok) throw new Error('Direct upload failed');
+      const { file_url } = await uploadSecureFile(selectedFile);
       setFileUrl(file_url);
     } catch (err) {
       console.error(err);

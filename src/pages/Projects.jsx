@@ -13,7 +13,7 @@ import PalladioGate from '@/components/PalladioGate';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
-import { uploadToFirebase } from '@/lib/uploadHelper';
+import { uploadPublicFile } from '@/lib/uploadHelper';
 
 export default function Projects() {
     const [projects, setProjects] = useState([]);
@@ -140,7 +140,7 @@ export default function Projects() {
         if (!file || !selectedProject) return;
         setIsUploading(true);
         try {
-            const { file_url } = await uploadToFirebase(file);
+            const { file_url } = await uploadPublicFile(file);
             const newAsset = await base44.entities.ProjectAsset.create({
                 project_id: selectedProject.id,
                 file_name: file.name,

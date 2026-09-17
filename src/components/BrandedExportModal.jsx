@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { base44 } from '@/api/base44Client';
-import { uploadToFirebase } from '@/lib/uploadHelper';
+import { uploadPublicFile } from '@/lib/uploadHelper';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
 
@@ -28,7 +28,7 @@ export default function BrandedExportModal({ generationId, imageUrl, triggerButt
     if (!file) return;
     setIsUploading(true);
     try {
-      const { file_url } = await uploadToFirebase(file);
+      const { file_url } = await uploadPublicFile(file);
       setLogoUrl(file_url);
     } catch (err) {
       console.error(err);

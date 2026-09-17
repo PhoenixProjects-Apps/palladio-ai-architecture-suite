@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { lookupQldCadastre, QLD_GEOCODER_SOURCE } from '../../shared/qldCadastre.ts';
 
 Deno.serve(async (req) => {
   try {
@@ -9,6 +10,31 @@ Deno.serve(async (req) => {
     const { address } = await req.json().catch(() => ({}));
 
     if (!address) return Response.json({ error: "Address is required" }, { status: 400 });
+
+    // Deterministic title data (Lot / RP / site area) from the official Queensland cadastre.
+    // Cadastre values are authoritative and override the LLM's unverified guesses.
+    const cadastre = await lookupQldCadastre(address).catch(() => null);
+    const applyCadastre = (data = {}) => {
+      if (!cadastre) return data;
+      const links = Array.isArray(data.source_links) ? data.source_links.filter(Boolean) : [];
+      if (!links.some((link) => String(link?.link || '').includes('geocode.information.qld.gov.au'))) {
+        links.unshift(QLD_GEOCODER_SOURCE);
+      }
+      let notes = String(data.verification_notes || '');
+      const cadastreNote = 'Lot/plan and site area sourced from the Queensland Digital Cadastre (DNRM) via the Queensland Geocoder.';
+      if (!notes.includes('Queensland Digital Cadastre')) {
+        notes = [notes, cadastreNote].filter(Boolean).join(' ');
+      }
+      return {
+        ...data,
+        lot_no: cadastre.lot_no,
+        rp_no: cadastre.rp_no,
+        lot_rp: cadastre.lot_rp,
+        site_area: cadastre.site_area,
+        source_links: links,
+        verification_notes: notes
+      };
+    };
 
     const GOLD_COAST_DEVELOPMENT_I_URL = 'https://developmenti.goldcoast.qld.gov.au/';
     const GOLD_COAST_DEVELOPMENT_I_SOURCE = {
@@ -75,14 +101,16 @@ Deno.serve(async (req) => {
     // Check if the property data is already cached
     const cached = await base44.asServiceRole.entities.PropertyCache.filter({ address });
     if (cached && cached.length > 0 && !isShallowLegacyCache(cached[0])) {
-      const hydrated = addGoldCoastDevelopmentISourceToPropertyData(cached[0], address);
-      if (hydrated !== cached[0]) {
-        void base44.asServiceRole.entities.PropertyCache.update(cached[0].id, {
-          source_links: hydrated.source_links,
-          verification_notes: hydrated.verification_notes,
-          council_overlays_text: hydrated.council_overlays_text
-        }).catch((err) => console.error('Failed to update Gold Coast Development.i source metadata:', err));
-      }
+      const hydrated = applyCadastre(addGoldCoastDevelopmentISourceToPropertyData(cached[0], address));
+      void base44.asServiceRole.entities.PropertyCache.update(cached[0].id, {
+        lot_no: hydrated.lot_no,
+        rp_no: hydrated.rp_no,
+        lot_rp: hydrated.lot_rp,
+        site_area: hydrated.site_area,
+        source_links: hydrated.source_links,
+        verification_notes: hydrated.verification_notes,
+        council_overlays_text: hydrated.council_overlays_text
+      }).catch((err) => console.error('Failed to update cached property data:', err));
       return Response.json({ data: hydrated, cached: true });
     }
 
@@ -284,7 +312,7 @@ Return ONLY valid JSON matching this exact structure.
       verification_notes: result.verification_notes || ''
     };
 
-    const finalData = addGoldCoastDevelopmentISourceToPropertyData(newData, address, result);
+    const finalData = applyCadastre(addGoldCoastDevelopmentISourceToPropertyData(newData, address, result));
 
     // Save to cache for future requests
     const saved = await base44.asServiceRole.entities.PropertyCache.create(finalData);

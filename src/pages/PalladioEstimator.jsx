@@ -9,7 +9,7 @@ import { ArrowLeft, Upload, Loader2, Calculator, Database, FileText, DollarSign,
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
-import { uploadToFirebase } from '@/lib/uploadHelper';
+import { uploadSecureFile } from '@/lib/uploadHelper';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import SaveToProject from '@/components/SaveToProject';
@@ -411,7 +411,7 @@ Return this JSON shape exactly:
 
     setIsUploading(true);
     try {
-      const res = await uploadToFirebase(selectedFile);
+      const res = await uploadSecureFile(selectedFile);
       const url = res?.file_url;
       if (!url) throw new Error('Upload failed');
       setFileUrl(url);

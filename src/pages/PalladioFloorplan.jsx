@@ -10,7 +10,7 @@ import PalladioGate from '../components/PalladioGate';
 import SaveToProject from '../components/SaveToProject';
 import ChooseProject from '../components/ChooseProject';
 import { toast } from 'sonner';
-import { uploadToFirebase, validateUpload } from '@/lib/uploadHelper';
+import { uploadSecureFile, validateUpload } from '@/lib/uploadHelper';
 
 const ReactMarkdown = React.lazy(() => import('react-markdown'));
 const BrandedExportModal = React.lazy(() => import('../components/BrandedExportModal'));
@@ -280,7 +280,7 @@ export default function PalladioFloorplan() {
     setCadFile(file);
     try {
       const uploadStart = performance.now();
-      const { file_url } = await uploadToFirebase(file);
+      const { file_url } = await uploadSecureFile(file);
       console.info('[PalladioPerf]', { feature: 'floorplan_sketch_upload', upload_ms: ms(uploadStart) });
       setCadFileUrl(file_url);
     } catch (err) {
