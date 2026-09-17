@@ -7,7 +7,7 @@
     },
     "tokens": {
       "type": "number",
-      "default": 100
+      "default": 5
     }
   },
   "required": [
