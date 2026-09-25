@@ -152,15 +152,29 @@ export function getDeterministicQuantityForLineItem(item, quantities = {}) {
   return null;
 }
 
+const FINISH_LEVEL_CATEGORIES = ['flooring', 'interior walls', 'windows'];
+const FINISH_ITEM_NAME_PATTERN = /finish|fixture|joinery/;
+const STRUCTURAL_CATEGORIES = ['foundation', 'framing', 'roofing', 'site setup'];
+
+function shouldApplyFinishMultiplier(item) {
+  const category = normaliseText(item.category);
+  if (STRUCTURAL_CATEGORIES.some((c) => category.includes(c))) return false;
+  if (FINISH_LEVEL_CATEGORIES.some((c) => category.includes(c))) return true;
+  return FINISH_ITEM_NAME_PATTERN.test(normaliseText(item.item_name));
+}
+
 export function normaliseEstimateResult(rawResult = {}, {
   difficultyPercent = 0,
   storeys,
-  quantities = {}
+  quantities = {},
+  finishMultiplier = 1
 } = {}) {
   const originalItems = Array.isArray(rawResult.line_items) ? rawResult.line_items : [];
 
   const parsedStoreys = parseInt(storeys, 10);
   const isMultiStorey = Number.isFinite(parsedStoreys) && parsedStoreys >= 2;
+  const finishMultiplierValue = toNumber(finishMultiplier, 1) || 1;
+  const finishCategories = new Set();
 
   const normalisedItems = originalItems
     .filter(Boolean)
@@ -170,7 +184,9 @@ export function normaliseEstimateResult(rawResult = {}, {
       const override = getDeterministicQuantityForLineItem(item, quantities);
       const quantity = override ? override.quantity : toNumber(item.quantity, 0);
       const unit = override ? override.unit : (item.unit || 'each');
-      const unitCost = toNumber(item.unit_cost, 0);
+      const finishApplies = finishMultiplierValue !== 1 && shouldApplyFinishMultiplier(item);
+      if (finishApplies && item.category) finishCategories.add(item.category);
+      const unitCost = roundCurrency(toNumber(item.unit_cost, 0) * (finishApplies ? finishMultiplierValue : 1));
       const totalCost = roundCurrency(quantity * unitCost);
 
       return {
@@ -179,6 +195,7 @@ export function normaliseEstimateResult(rawResult = {}, {
         unit,
         unit_cost: unitCost,
         total_cost: totalCost,
+        finish_multiplier_applied: finishApplies,
         quantity_source: override ? override.source : (item.quantity_source || 'ai')
       };
     });
@@ -190,6 +207,9 @@ export function normaliseEstimateResult(rawResult = {}, {
   const assumptions = Array.isArray(rawResult.assumptions) ? [...rawResult.assumptions] : [];
   assumptions.push('Estimator post-processing recalculated line item totals, subtotal, site difficulty markup and grand total deterministically.');
   assumptions.push('Scaffolding is handled by the auto-calculated silent costs section to avoid duplicate allowance.');
+  if (finishMultiplierValue !== 1) {
+    assumptions.push(`Finish level ×${finishMultiplierValue} multiplier applied deterministically by the app to finish-related line items (${finishCategories.size ? [...finishCategories].join(', ') : 'no matching finish line items'}). Structural categories (Foundation, Framing, Roofing, Site Setup) excluded.`);
+  }
 
   return {
     ...rawResult,
@@ -200,4 +220,12 @@ export function normaliseEstimateResult(rawResult = {}, {
     grand_total: grandTotal,
     assumptions
   };
+}
+
+export function calculateFinalTotals({ subtotal, difficultyMarkup = 0, additionalCosts = 0, marginPercent = 0, includeGst = true }) {
+  const base = toNumber(subtotal, 0) + toNumber(difficultyMarkup, 0) + toNumber(additionalCosts, 0);
+  const marginCost = roundCurrency(base * (toNumber(marginPercent, 0) / 100));
+  const withMargin = base + marginCost;
+  const gstCost = includeGst ? roundCurrency(withMargin * 0.1) : 0;
+  return { marginCost, gstCost, total: roundCurrency(withMargin + gstCost) };
 }

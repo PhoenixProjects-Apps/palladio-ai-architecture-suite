@@ -3,6 +3,7 @@ import BackButton from "@/components/BackButton";
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ArrowLeft, Upload, Loader2, Calculator, Database, FileText, DollarSign, Download, Eye, Sparkles, Presentation } from 'lucide-react';
@@ -15,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import SaveToProject from '@/components/SaveToProject';
 import ChooseProject from '@/components/ChooseProject';
 import { SITE_DIFFICULTY_RATES, CITY_OPTIONS, REGIONAL_COST_RATES, FINISH_MULTIPLIERS, COUNCIL_FEE_BASE, REGIONAL_FEE_MULTIPLIER, STATES, STOREYS_OPTIONS, ROOF_MATERIALS, EXTERNAL_WALL_MATERIALS, FLOOR_FINISHES, FINISH_LEVELS_OPTIONS } from '@/lib/estimatorData';
-import { calculateDerivedQuantities, calculateSilentCosts, calculateRoofSurfaceArea, normaliseEstimateResult } from '@/lib/estimator/calculateEstimate';
+import { calculateDerivedQuantities, calculateSilentCosts, calculateRoofSurfaceArea, normaliseEstimateResult, calculateFinalTotals } from '@/lib/estimator/calculateEstimate';
 import useWorkspaceMode from '@/hooks/useWorkspaceMode';
 import WorkspaceCompanionNotice from '@/components/workspace/WorkspaceCompanionNotice';
 
@@ -145,6 +146,8 @@ export default function PalladioEstimator() {
   const [city, setCity] = useState('Gold Coast');
   const [storeys, setStoreys] = useState('1');
   const [difficulty, setDifficulty] = useState('Level / Standard');
+  const [buildersMargin, setBuildersMargin] = useState('20');
+  const [includeGst, setIncludeGst] = useState(true);
 
   // Quantities / Areas
   const [floorArea, setFloorArea] = useState('');
@@ -257,6 +260,17 @@ export default function PalladioEstimator() {
   const roofArea = React.useMemo(() => {
     return calculateRoofSurfaceArea({ roofFootprintArea, roofPitchDegrees, roofComplexity, roofWastePercent, roofAreaOverride });
   }, [roofFootprintArea, roofPitchDegrees, roofComplexity, roofWastePercent, roofAreaOverride]);
+
+  const finalTotals = React.useMemo(() => {
+    if (!result) return null;
+    return calculateFinalTotals({
+      subtotal: result.subtotal,
+      difficultyMarkup: result.site_difficulty_markup_cost,
+      additionalCosts: silentCosts ? silentCosts.total : 0,
+      marginPercent: parseFloat(buildersMargin) || 0,
+      includeGst
+    });
+  }, [result, silentCosts, buildersMargin, includeGst]);
 
   useEffect(() => {
     const ewl = parseFloat(externalWallLength) || 0;
@@ -447,7 +461,7 @@ Site details:
 - State: ${state}, City: ${city}
 - Storeys: ${storeys}
 - Site Difficulty: ${difficulty} (Apply a ${markup}% markup to the subtotal as 'site_difficulty_markup_cost')
-- Finish Level: ${finishLevel} (Apply a ×${FINISH_MULTIPLIERS[finishLevel]} multiplier to all finish/material line items)
+- Finish Level: ${finishLevel} (finish-level pricing calibration is applied by the app after your response)
 
 App-Supplied Deterministic Quantities:
 - Floor Area: ${floorArea || 'not provided'} m²
@@ -469,7 +483,7 @@ Selected Materials:
 - External Walls: ${externalWallMaterial || 'not specified'}
 - Floor Finish: ${floorFinish || 'not specified'}
 
-Regional baseline construction cost for ${city}, ${state} (2025 market data):
+Regional baseline construction cost for ${city}, ${state} (2026 market data):
 - Low: $${regionalRate.low}/sqm, High: $${regionalRate.high}/sqm, Average: $${regionalRate.avg}/sqm
 
 Available Cost Database for this region:
@@ -525,6 +539,7 @@ INSTRUCTIONS:
       const normalisedResult = normaliseEstimateResult(rawResult, {
         difficultyPercent: SITE_DIFFICULTY_RATES[difficulty] || 0,
         storeys,
+        finishMultiplier: FINISH_MULTIPLIERS[finishLevel] || 1,
         quantities: {
           floorArea,
           wetArea,
@@ -566,7 +581,7 @@ INSTRUCTIONS:
   const buildEstimateText = () => {
     if (!result) return '';
     let text = '# Cost Estimate\n\n';
-    text += `**Grand Total:** ${formatCurrency(result.grand_total)}\n\n`;
+    text += `**Total (${includeGst ? 'incl GST' : 'ex GST'}):** ${formatCurrency(finalTotals.total)}\n\n`;
     text += '## Line Items\n\n';
     text += '| Category | Item | Qty | Unit | Rate | Total |\n';
     text += '|----------|------|-----|------|------|-------|\n';
@@ -587,8 +602,11 @@ INSTRUCTIONS:
       text += `- Approval Fees (${state}): ${formatCurrency(silentCosts.council)}\n`;
       if (silentCosts.scaffolding > 0) text += `- Scaffolding (2+ storeys): ${formatCurrency(silentCosts.scaffolding)}\n`;
       text += `\n**Additional Costs Total:** ${formatCurrency(silentCosts.total)}\n`;
-      text += `**Revised Grand Total:** ${formatCurrency(result.grand_total + silentCosts.total)}\n`;
     }
+    text += `**Builder's Margin (${buildersMargin}%):** +${formatCurrency(finalTotals.marginCost)}\n`;
+    if (includeGst) text += `**GST (10%):** +${formatCurrency(finalTotals.gstCost)}\n`;
+    text += `**TOTAL (${includeGst ? 'incl GST' : 'ex GST'}):** ${formatCurrency(finalTotals.total)}\n\n`;
+    text += `> Preliminary materials estimate. Excludes land, landscaping, driveways, pool, and site-specific works. GST and margin applied per settings above.\n`;
     return text;
   };
 
@@ -599,7 +617,7 @@ INSTRUCTIONS:
       const res = await base44.functions.invoke('generatePresentation', {
         presentation_data: {
           ...result,
-          grand_total: result.grand_total + (silentCosts ? silentCosts.total : 0),
+          grand_total: finalTotals.total,
           location_profile: `${city}, ${state}`,
           total_floor_area_sqm: `${floorArea || 0} sqm`,
           level_of_finish: finishLevel
@@ -634,7 +652,11 @@ INSTRUCTIONS:
     if (result.site_difficulty_markup_cost > 0) {
       rows.push(['', '', '', '', `Site Difficulty Markup (${SITE_DIFFICULTY_RATES[difficulty]}%)`, result.site_difficulty_markup_cost]);
     }
-    rows.push(['', '', '', '', 'Grand Total', result.grand_total]);
+    if (silentCosts) rows.push(['', '', '', '', 'Additional Costs', silentCosts.total]);
+    rows.push(['', '', '', '', `Builder's Margin (${buildersMargin}%)`, finalTotals.marginCost]);
+    if (includeGst) rows.push(['', '', '', '', 'GST (10%)', finalTotals.gstCost]);
+    rows.push(['', '', '', '', `TOTAL (${includeGst ? 'incl GST' : 'ex GST'})`, finalTotals.total]);
+    rows.push(['', 'Preliminary materials estimate. Excludes land, landscaping, driveways, pool, and site-specific works. GST and margin applied per settings above.']);
     rows.push([]);
     rows.push(['Assumptions:']);
     result.assumptions.forEach(a => rows.push([a]));
@@ -649,8 +671,6 @@ INSTRUCTIONS:
   };
 
   if (isCompactWorkspace) {
-    const revisedTotal = result ? result.grand_total + (silentCosts ? silentCosts.total : 0) : null;
-
     return (
       <div className="min-h-screen bg-[#0f1117] text-white p-4 pb-[calc(env(safe-area-inset-bottom)+96px)] overflow-x-hidden">
         <div className="max-w-md mx-auto space-y-5 min-w-0">
@@ -744,9 +764,9 @@ INSTRUCTIONS:
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="rounded-2xl bg-blue-500/10 border border-blue-500/20 p-4">
-                  <p className="text-sm text-slate-400">Grand Total</p>
-                  <p className="text-3xl font-bold text-blue-400 mt-1">{formatCurrency(result.grand_total)}</p>
-                  {silentCosts && <p className="text-sm text-cyan-300 mt-2">Revised with additional costs: {formatCurrency(revisedTotal)}</p>}
+                  <p className="text-sm text-slate-400">Total ({includeGst ? 'incl GST' : 'ex GST'})</p>
+                  <p className="text-3xl font-bold text-blue-400 mt-1">{formatCurrency(finalTotals.total)}</p>
+                  <p className="text-xs text-slate-500 mt-2 leading-relaxed">Preliminary materials estimate. Excludes land, landscaping, driveways, pool, and site-specific works. GST and margin applied per settings above.</p>
                 </div>
                 <div className="flex flex-col gap-3">
                   <SaveToProject textContent={buildEstimateText()} fileName="cost-estimate.md" assetType="document" className="w-full border-slate-700 text-slate-300 hover:text-white bg-slate-800/50 min-h-11 px-4 text-xs rounded-xl" />
@@ -852,6 +872,28 @@ INSTRUCTIONS:
                                         {Object.keys(SITE_DIFFICULTY_RATES).map((s) => <SelectItem key={s} value={s}>{s} (+{SITE_DIFFICULTY_RATES[s]}%)</SelectItem>)}
                                     </SelectContent>
                                 </Select>
+                            </div>
+                            <div>
+                                <label htmlFor="builders-margin" className="text-xs text-slate-400 mb-1 block">Builder's Margin (%)</label>
+                                <Input
+                                    id="builders-margin"
+                                    type="number"
+                                    min="0"
+                                    max="25"
+                                    step="0.5"
+                                    value={buildersMargin}
+                                    onChange={(e) => {
+                                        const n = parseFloat(e.target.value);
+                                        setBuildersMargin(e.target.value === '' ? '' : String(Math.min(25, Math.max(0, Number.isFinite(n) ? n : 0))));
+                                    }}
+                                    className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto"
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="include-gst" className="text-xs text-slate-400 mb-1 block">Include GST</label>
+                                <div className="flex items-center min-h-11">
+                                    <Switch id="include-gst" checked={includeGst} onCheckedChange={setIncludeGst} aria-label="Include GST" />
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
@@ -1082,8 +1124,8 @@ INSTRUCTIONS:
                                     <CardDescription className="text-slate-400">Based on localized DB and AI takeoff.</CardDescription>
                                 </div>
                                 <div className="text-left md:text-right min-w-0">
-                                    <p className="text-sm text-slate-400">Grand Total</p>
-                                    <p className="text-2xl font-bold text-blue-400">{formatCurrency(result.grand_total)}</p>
+                                    <p className="text-sm text-slate-400">Total ({includeGst ? 'incl GST' : 'ex GST'})</p>
+                                    <p className="text-2xl font-bold text-blue-400">{formatCurrency(finalTotals.total)}</p>
                                 </div>
                             </CardHeader>
                             <CardContent className="pt-6">
@@ -1157,13 +1199,44 @@ INSTRUCTIONS:
                                                     </TableCell>
                                                 </TableRow>
                       }
+                                            {silentCosts &&
+                      <TableRow className="border-slate-800 bg-cyan-900/10">
+                                                    <TableCell colSpan={2} className="text-right text-cyan-400">
+                                                        Additional Costs (design/engineering/council/gutter/scaffolding)
+                                                    </TableCell>
+                                                    <TableCell className="text-right text-cyan-400 font-medium">
+                                                        +{formatCurrency(silentCosts.total)}
+                                                    </TableCell>
+                                                </TableRow>
+                      }
+                                            {(parseFloat(buildersMargin) || 0) > 0 &&
+                      <TableRow className="border-slate-800 bg-indigo-900/10">
+                                                    <TableCell colSpan={2} className="text-right text-indigo-300">
+                                                        Builder's Margin ({buildersMargin}%)
+                                                    </TableCell>
+                                                    <TableCell className="text-right text-indigo-300 font-medium">
+                                                        +{formatCurrency(finalTotals.marginCost)}
+                                                    </TableCell>
+                                                </TableRow>
+                      }
+                                            {includeGst &&
+                      <TableRow className="border-slate-800 bg-slate-800/30">
+                                                    <TableCell colSpan={2} className="text-right text-slate-300">
+                                                        GST 10%
+                                                    </TableCell>
+                                                    <TableCell className="text-right text-slate-300 font-medium">
+                                                        +{formatCurrency(finalTotals.gstCost)}
+                                                    </TableCell>
+                                                </TableRow>
+                      }
                                             <TableRow className="border-t-2 border-slate-700">
-                                                <TableCell colSpan={2} className="text-right font-bold text-white">Grand Total</TableCell>
-                                                <TableCell className="text-right font-bold text-blue-400 text-lg">{formatCurrency(result.grand_total)}</TableCell>
+                                                <TableCell colSpan={2} className="text-right font-bold text-white">TOTAL ({includeGst ? 'incl GST' : 'ex GST'})</TableCell>
+                                                <TableCell className="text-right font-bold text-blue-400 text-lg">{formatCurrency(finalTotals.total)}</TableCell>
                                             </TableRow>
                                         </TableBody>
                                     </Table>
                                 </div>
+                                <p className="text-xs text-slate-500 mt-2 mb-4 leading-relaxed">Preliminary materials estimate. Excludes land, landscaping, driveways, pool, and site-specific works. GST and margin applied per settings above.</p>
 
                                 {silentCosts && (
                                     <div className="rounded-xl border border-slate-800 mb-4 bg-slate-800/20">
@@ -1201,10 +1274,6 @@ INSTRUCTIONS:
                                                 <span className="text-sm font-semibold text-slate-200">Additional Costs Total</span>
                                                 <span className="text-sm font-bold text-cyan-400">{formatCurrency(silentCosts.total)}</span>
                                             </div>
-                                            <div className="flex justify-between items-center px-4 py-3 border-t-2 border-slate-700">
-                                                <span className="text-base font-bold text-white">Revised Grand Total</span>
-                                                <span className="text-base font-bold text-blue-400">{formatCurrency(result.grand_total + silentCosts.total)}</span>
-                                            </div>
                                         </div>
                                     </div>
                                 )}
@@ -1216,8 +1285,8 @@ INSTRUCTIONS:
                                         </DialogHeader>
                                         <div className="space-y-4">
                                             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-                                                <span className="text-slate-400 text-sm">Grand Total</span>
-                                                <span className="text-2xl font-bold text-blue-400">{formatCurrency(result.grand_total)}</span>
+                                                <span className="text-slate-400 text-sm">Total ({includeGst ? 'incl GST' : 'ex GST'})</span>
+                                                <span className="text-2xl font-bold text-blue-400">{formatCurrency(finalTotals.total)}</span>
                                             </div>
                                             <div className="overflow-x-auto rounded-xl border border-slate-800">
                                                 <EstimateTable lineItems={result.line_items} formatCurrency={formatCurrency} />
