@@ -25,7 +25,7 @@
           "with": {
             "function_name": "onProjectUpdate",
             "args": {
-              "internal_secret": "palladio_internal_automation_secret"
+              "internal_secret": "w9XtzaMjsfYVvMgAOEnZirVPBtTxHa0-"
             }
           },
           "then": "end"
