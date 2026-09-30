@@ -1,51 +1,88 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.18';
 
-Deno.serve(async (req) => {
-    try {
-        const base44 = createClientFromRequest(req);
+// Input shape (platform legacy automation compat layer — do not change):
+//   { event: { type: 'create' }, data: <ProjectAsset record>, internal_secret: string }
+// The internal secret authenticates the workflow engine; without it the
+// endpoint fails closed and no notifications are created.
+export default async function(req) {
+  try {
+    const payload = await req.json().catch(() => ({}));
+    const { event, data, internal_secret } = payload || {};
 
-        const payload = await req.json();
-        const { event, data, internal_secret } = payload;
-        
-        const expectedSecret = Deno.env.get('INTERNAL_AUTOMATION_SECRET');
-        if (!expectedSecret || expectedSecret.length < 16) {
-            return Response.json({ error: "Unauthorized: Missing or weak internal secret" }, { status: 401 });
-        }
-        
-        if (!internal_secret || internal_secret.length !== expectedSecret.length) {
-            return Response.json({ error: "Unauthorized" }, { status: 401 });
-        }
-        
-        let match = 0;
-        for (let i = 0; i < expectedSecret.length; i++) {
-            match |= expectedSecret.charCodeAt(i) ^ internal_secret.charCodeAt(i);
-        }
-        if (match !== 0) {
-            return Response.json({ error: "Unauthorized" }, { status: 401 });
-        }
-        
-        if (event.type === 'create') {
-            
-            // Get project to find the owner
-            const project = await base44.asServiceRole.entities.Project.get(data.project_id);
-            if (!project) return Response.json({ success: true });
-            
-            // Get user to check preferences
-            const users = await base44.asServiceRole.entities.User.filter({ email: project.created_by });
-            const user = users[0];
-            
-            const prefs = user?.notification_preferences || { file_uploads: true };
-            if (prefs.file_uploads !== false) {
-                await base44.asServiceRole.entities.Notification.create({
-                    user_email: project.created_by,
-                    title: "New File Added",
-                    message: `File "${data.file_name}" was added to project "${project.name}"`,
-                    link: `Projects`
-                });
-            }
-        }
-        return Response.json({ success: true });
-    } catch (error) {
-        return Response.json({ error: error.message }, { status: 500 });
+    // Fail-closed authentication against INTERNAL_AUTOMATION_SECRET.
+    const expectedSecret = Deno.env.get('INTERNAL_AUTOMATION_SECRET');
+    if (!expectedSecret || expectedSecret.length < 16) {
+      console.error('onProjectAssetCreate: INTERNAL_AUTOMATION_SECRET is not configured — notification delivery is paused. Set it in Settings → Secrets (must match the workflow internal_secret argument).');
+      return Response.json({ error: 'Notification delivery is not configured' }, { status: 401 });
     }
-});
+    if (!internal_secret || internal_secret.length !== expectedSecret.length) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    let match = 0;
+    for (let i = 0; i < expectedSecret.length; i++) {
+      match |= expectedSecret.charCodeAt(i) ^ internal_secret.charCodeAt(i);
+    }
+    if (match !== 0) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (event?.type !== 'create' || !data?.id) {
+      console.log('onProjectAssetCreate: ignoring payload without create event/data');
+      return Response.json({ success: true, ignored: true });
+    }
+
+    const base44 = createClientFromRequest(req);
+
+    // Resolve the owning project, then the owner via the project's owner
+    // relationship: Project.created_by_id (a user id) -> User record -> email.
+    if (!data.project_id) {
+      console.log(`onProjectAssetCreate: asset ${data.id} has no project_id — no notification sent`);
+      return Response.json({ success: true, ignored: true });
+    }
+    let project = null;
+    try {
+      project = await base44.asServiceRole.entities.Project.get(data.project_id);
+    } catch (_) {
+      project = null;
+    }
+    if (!project?.created_by_id) {
+      console.log(`onProjectAssetCreate: project ${data.project_id} not found or has no owner — no notification sent`);
+      return Response.json({ success: true, ignored: true });
+    }
+    let owner = null;
+    try {
+      owner = await base44.asServiceRole.entities.User.get(project.created_by_id);
+    } catch (_) {
+      owner = null;
+    }
+    if (!owner?.email) {
+      console.log(`onProjectAssetCreate: owner ${project.created_by_id} not found — no notification sent`);
+      return Response.json({ success: true, ignored: true });
+    }
+
+    // Preserve the owner's notification preference semantics.
+    const prefs = owner.notification_preferences || { file_uploads: true };
+    if (prefs.file_uploads === false) {
+      return Response.json({ success: true, skipped: 'preference' });
+    }
+
+    // Best-effort idempotency claim keyed to the created asset. NOT atomic —
+    // see onProjectUpdate for the documented residual duplicate window.
+    const dedupeKey = `project_asset_create:${data.id}`;
+    const seen = await base44.asServiceRole.entities.Notification.filter({ description: dedupeKey });
+    if (seen.length > 0) {
+      return Response.json({ success: true, duplicate: true });
+    }
+
+    await base44.asServiceRole.entities.Notification.create({
+      user_email: owner.email,
+      title: 'New File Added',
+      message: `File "${data.file_name}" was added to project "${project.name}"`,
+      description: dedupeKey
+    });
+    return Response.json({ success: true });
+  } catch (error) {
+    console.error('onProjectAssetCreate error:', error.message);
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+}

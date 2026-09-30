@@ -6,12 +6,19 @@ const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
 async function grantCredits(base44, email, amount) {
   if (!email) return;
   const existing = await base44.asServiceRole.entities.UserCredits.filter({ user_email: email });
-  if (existing.length > 0) {
-    await base44.asServiceRole.entities.UserCredits.update(existing[0].id, {
-      tokens: (existing[0].tokens ?? 0) + amount
-    });
-  } else {
+  if (existing.length === 0) {
     await base44.asServiceRole.entities.UserCredits.create({ user_email: email, tokens: amount });
+    return;
+  }
+  // Atomic increment — concurrent grants cannot lose updates. (Duplicate rows
+  // for one email should not exist; if they ever do, each is incremented and a
+  // warning is logged.)
+  if (existing.length > 1) console.warn(`grantCredits: multiple credit rows for ${email}`);
+  for (const row of existing) {
+    await base44.asServiceRole.entities.UserCredits.updateMany(
+      { id: row.id },
+      { $inc: { tokens: amount } }
+    );
   }
 }
 
@@ -41,6 +48,16 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     
     try {
+        // Idempotency: Stripe can redeliver the same event on retry. Skip
+        // events already recorded as processed. NOTE: check-then-record is not
+        // a distributed atomic claim; Stripe redelivers sequentially, so this
+        // holds in practice — residual risk documented in the remediation report.
+        const seen = await base44.asServiceRole.entities.StripeWebhookEvent.filter({ event_id: event.id });
+        if (seen.length > 0) {
+          console.log(`Skipping already-processed Stripe event ${event.id} (${event.type})`);
+          return new Response(JSON.stringify({ received: true, duplicate: true }), { status: 200 });
+        }
+
         if (event.type === 'checkout.session.completed') {
             const session = event.data.object;
             const customerEmail = session.customer_details?.email || session.customer_email;
@@ -54,6 +71,11 @@ Deno.serve(async (req) => {
                 const tokenAmount = parseInt(session.metadata?.token_amount || '100', 10);
                 await grantCredits(base44, customerEmail, tokenAmount);
                 console.log(`Granted ${tokenAmount} tokens to ${customerEmail} via token pack purchase`);
+                await base44.asServiceRole.entities.StripeWebhookEvent.create({
+                  event_id: event.id,
+                  event_type: event.type,
+                  processed_at: new Date().toISOString()
+                });
                 return new Response(JSON.stringify({ received: true }), { status: 200 });
             }
             
@@ -119,6 +141,13 @@ Deno.serve(async (req) => {
             }
         }
 
+        // Record the event AFTER successful processing so retries that fail
+        // mid-way are re-attempted, while completed work is skipped.
+        await base44.asServiceRole.entities.StripeWebhookEvent.create({
+          event_id: event.id,
+          event_type: event.type,
+          processed_at: new Date().toISOString()
+        });
         return new Response(JSON.stringify({ received: true }), { status: 200 });
     } catch (error) {
         console.error("Error processing webhook:", error);

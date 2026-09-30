@@ -1,6 +1,6 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 
-Deno.serve(async (req) => {
+export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
@@ -20,27 +20,48 @@ Deno.serve(async (req) => {
     const email = user.email;
     if (!email) return Response.json({ error: 'No email on account' }, { status: 400 });
 
-    const existing = await base44.entities.UserCredits.filter({ user_email: email });
-    const current = existing.length > 0 ? (existing[0].tokens ?? 0) : 0;
-    if (current < amount) {
+    // Atomic conditional debit: the tokens >= amount condition is evaluated in
+    // the same server-side update that decrements, so two concurrent debits
+    // against a balance sufficient for only one cause exactly one debit and
+    // one rejection — no lost updates, no overspend, no negative balance.
+    const rows = await base44.entities.UserCredits.filter({ user_email: email });
+    if (rows.length === 0) {
       return Response.json({
-        error: `Insufficient tokens. This action requires ${amount} token(s), but you have ${current}.`,
+        error: `Insufficient tokens. This action requires ${amount} token(s), but you have 0.`,
         success: false,
         required: amount,
-        available: current
+        available: 0
       }, { status: 200 });
     }
 
-    const newBalance = current - amount;
-    if (existing.length > 0) {
-      await base44.entities.UserCredits.update(existing[0].id, { tokens: newBalance });
-    } else {
-      await base44.entities.UserCredits.create({ user_email: email, tokens: newBalance });
+    let debited = false;
+    let newBalance = null;
+    for (const row of rows) {
+      const res = await base44.entities.UserCredits.updateMany(
+        { id: row.id, tokens: { $gte: amount } },
+        { $inc: { tokens: -amount } }
+      );
+      if ((res?.updated ?? 0) > 0) {
+        debited = true;
+        const after = await base44.entities.UserCredits.filter({ user_email: email });
+        newBalance = after.reduce((sum, r) => sum + (r.tokens ?? 0), 0);
+        break;
+      }
+    }
+
+    if (!debited) {
+      const available = rows.reduce((sum, r) => sum + (r.tokens ?? 0), 0);
+      return Response.json({
+        error: `Insufficient tokens. This action requires ${amount} token(s), but you have ${available}.`,
+        success: false,
+        required: amount,
+        available
+      }, { status: 200 });
     }
 
     return Response.json({ success: true, tokens: newBalance, consumed: amount });
   } catch (error) {
-    console.error('consumeToken error:', error);
+    console.error('consumeToken error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
   }
-});
+}

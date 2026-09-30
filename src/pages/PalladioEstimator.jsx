@@ -618,6 +618,12 @@ INSTRUCTIONS:
         presentation_data: {
           ...result,
           grand_total: finalTotals.total,
+          // Explicit GST-labelled figures from the deterministic calculator, so
+          // the presentation export never fabricates margin or GST values.
+          subtotal_ex_gst: finalTotals.total - finalTotals.gstCost,
+          builders_margin: finalTotals.marginCost,
+          gst_amount: includeGst ? finalTotals.gstCost : 0,
+          total_estimated_investment: finalTotals.total,
           location_profile: `${city}, ${state}`,
           total_floor_area_sqm: `${floorArea || 0} sqm`,
           level_of_finish: finishLevel
