@@ -1,13 +1,18 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.18';
 
-// Input shape (platform legacy automation compat layer — do not change):
-//   { event: { type: 'create' }, data: <ProjectAsset record>, internal_secret: string }
+// Input shape (platform workflow engine — do not change):
+//   { event: { type, entity_name, entity_id }, data: <ProjectAsset record>,
+//     args: { internal_secret: string } }
+//   (direct invocations may pass internal_secret at the top level instead)
 // The internal secret authenticates the workflow engine; without it the
 // endpoint fails closed and no notifications are created.
 export default async function(req) {
   try {
     const payload = await req.json().catch(() => ({}));
-    const { event, data, internal_secret } = payload || {};
+    const { event, data } = payload || {};
+    // The workflow engine nests the step's arguments under `payload.args`;
+    // direct invocations may pass the secret at the top level.
+    const internal_secret = payload?.internal_secret ?? payload?.args?.internal_secret;
 
     // Fail-closed authentication against INTERNAL_AUTOMATION_SECRET.
     const expectedSecret = Deno.env.get('INTERNAL_AUTOMATION_SECRET');
@@ -16,17 +21,7 @@ export default async function(req) {
       return Response.json({ error: 'Notification delivery is not configured' }, { status: 401 });
     }
     if (!internal_secret || internal_secret.length !== expectedSecret.length) {
-      // TEMPORARY DIAGNOSTIC: report payload STRUCTURE (key names and types
-      // only — never values) so the workflow engine's invocation shape can be
-      // determined. Remove once the shape is confirmed.
-      const shape = (obj, depth = 0) => {
-        if (depth > 3 || obj === null || typeof obj !== 'object') return typeof obj;
-        if (Array.isArray(obj)) return obj.length ? [shape(obj[0], depth + 1)] : [];
-        const out = {};
-        for (const k of Object.keys(obj)) out[k] = shape(obj[k], depth + 1);
-        return out;
-      };
-      return Response.json({ error: 'Unauthorized', receivedShape: shape(payload) }, { status: 401 });
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     let match = 0;
     for (let i = 0; i < expectedSecret.length; i++) {
