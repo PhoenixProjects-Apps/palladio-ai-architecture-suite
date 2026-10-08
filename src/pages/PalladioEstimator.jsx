@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import SaveToProject from '@/components/SaveToProject';
 import ChooseProject from '@/components/ChooseProject';
 import { SITE_DIFFICULTY_RATES, CITY_OPTIONS, REGIONAL_COST_RATES, FINISH_MULTIPLIERS, COUNCIL_FEE_BASE, REGIONAL_FEE_MULTIPLIER, STATES, STOREYS_OPTIONS, PROJECT_TYPES, ROOF_MATERIALS, EXTERNAL_WALL_MATERIALS, FLOOR_FINISHES, FINISH_LEVELS_OPTIONS } from '@/lib/estimatorData';
-import { calculateDerivedQuantities, calculateSilentCosts, calculateRoofSurfaceArea, normaliseEstimateResult, calculateFinalTotals } from '@/lib/estimator/calculateEstimate';
+import { calculateDerivedQuantities, calculateSilentCosts, normaliseEstimateResult, calculateFinalTotals } from '@/lib/estimator/calculateEstimate';
 import { EXTRACTION_FIELD_KEYS, PRISTINE_DEFAULTS, buildExtractionPrompt, buildExtractionResponseSchema, normaliseExtractionResponse, computeAppliedQuantity, sumDemolitionArea, shouldApplyExtractedValue, extractJson } from '@/lib/estimator/extraction';
 import AmbiguousQuantityChip from '@/components/estimator/AmbiguousQuantityChip';
 import ExtractionReferenceRows from '@/components/estimator/ExtractionReferenceRows';
@@ -113,6 +113,7 @@ export default function PalladioEstimator() {
   const [roofComplexity, setRoofComplexity] = useState('Standard hip roof');
   const [roofWastePercent, setRoofWastePercent] = useState('');
   const [roofAreaOverride, setRoofAreaOverride] = useState('');
+  const [demolitionArea, setDemolitionArea] = useState('');
   const [externalWallArea, setExternalWallArea] = useState('');
   const [patioArea, setPatioArea] = useState('');
   const [porchArea, setPorchArea] = useState('');
@@ -151,7 +152,7 @@ export default function PalladioEstimator() {
       state, city, storeys, difficulty,
       floorArea, wetArea, ceilingArea, externalWallArea, patioArea, porchArea, garageArea,
       roofFootprintArea, roofPitchDegrees, roofComplexity, roofWastePercent, roofAreaOverride,
-      externalWallLength, internalWallLength, ceilingHeight,
+      externalWallLength, internalWallLength, ceilingHeight, demolitionArea,
       roofMaterial, externalWallMaterial, floorFinish, finishLevel,
       extractionMetadata,
       extractionWarnings,
@@ -191,6 +192,7 @@ export default function PalladioEstimator() {
           if (data.externalWallLength !== undefined) setExternalWallLength(data.externalWallLength);
           if (data.internalWallLength !== undefined) setInternalWallLength(data.internalWallLength);
           if (data.ceilingHeight !== undefined) setCeilingHeight(data.ceilingHeight);
+          if (data.demolitionArea !== undefined) setDemolitionArea(data.demolitionArea);
           if (data.roofMaterial) setRoofMaterial(data.roofMaterial);
           if (data.externalWallMaterial) setExternalWallMaterial(data.externalWallMaterial);
           if (data.floorFinish) setFloorFinish(data.floorFinish);
@@ -221,8 +223,12 @@ export default function PalladioEstimator() {
     if (main) main.scrollTop = 0;
   }, []);
 
-  // Auto-calculate derived quantities
-  const { slabVolume, mainFloorCoverings } = React.useMemo(() => calculateDerivedQuantities({ floorArea, wetArea, garageArea, externalWallLength, ceilingHeight }), [floorArea, wetArea, garageArea, externalWallLength, ceilingHeight]);
+  // Auto-calculate derived quantities. The roof area comes ONLY from the
+  // footprint/cos(pitch) formula (or manual override) - never from floor area.
+  const { slabVolume, mainFloorCoverings, roofArea } = React.useMemo(
+    () => calculateDerivedQuantities({ floorArea, wetArea, garageArea, externalWallLength, ceilingHeight, roofFootprintArea, roofPitchDegrees, roofComplexity, roofWastePercent, roofAreaOverride }),
+    [floorArea, wetArea, garageArea, externalWallLength, ceilingHeight, roofFootprintArea, roofPitchDegrees, roofComplexity, roofWastePercent, roofAreaOverride]
+  );
 
   // Form setters for fields the extraction can populate.
   const fieldSetters = {
@@ -241,19 +247,9 @@ export default function PalladioEstimator() {
     ceilingHeight: setCeilingHeight
   };
 
-  // Demolished area feeding the Demolition & Spoil Removal line item.
-  const demolitionArea = React.useMemo(
-    () => (extractionFields ? sumDemolitionArea(extractionFields) : 0),
-    [extractionFields]
-  );
-
   const chipNote = (key) =>
     extractionFields?.[key]?.ambiguous ? (extractionFields[key].note || 'Could not confirm existing vs new from the plan') : '';
   
-  const roofArea = React.useMemo(() => {
-    return calculateRoofSurfaceArea({ roofFootprintArea, roofPitchDegrees, roofComplexity, roofWastePercent, roofAreaOverride });
-  }, [roofFootprintArea, roofPitchDegrees, roofComplexity, roofWastePercent, roofAreaOverride]);
-
   const finalTotals = React.useMemo(() => {
     if (!result) return null;
     return calculateFinalTotals({
@@ -350,6 +346,11 @@ export default function PalladioEstimator() {
         }
       });
       setAiAppliedFields((prev) => Array.from(new Set([...prev, ...appliedNow])));
+
+      // The demolished bucket feeds the editable Demolition Area field,
+      // which in turn drives the Demolition & Spoil Removal line item.
+      const extractedDemolition = sumDemolitionArea(normalised.fields);
+      if (extractedDemolition > 0) setDemolitionArea(String(extractedDemolition));
 
       if (applied > 0) {
         toast.success(`Populated ${applied} quantit${applied === 1 ? 'y' : 'ies'} from the plan${normalised.warnings.length ? ' — check the extraction notes' : ''}`);
@@ -1013,6 +1014,10 @@ INSTRUCTIONS:
                                     <div className="md:col-span-2">
                                         <div className="flex items-center gap-1.5 mb-1 flex-wrap"><label className="text-xs text-slate-400 block">Garage (m²)</label><AmbiguousQuantityChip note={chipNote('garageArea')} /></div>
                                         <Input type="number" value={garageArea} onChange={(e) => setGarageArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <div className="flex items-center gap-1.5 mb-1 flex-wrap"><label className="text-xs text-slate-400 block">Demolition Area (m²)</label><AmbiguousQuantityChip note={extractionFields && Object.values(extractionFields).some((f) => f?.demolished > 0) ? 'Populated from demolished areas harvested from the plan' : ''} /></div>
+                                        <Input type="number" value={demolitionArea} onChange={(e) => setDemolitionArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
                                 </div>
                             </div>

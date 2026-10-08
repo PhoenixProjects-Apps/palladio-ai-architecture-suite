@@ -21,7 +21,7 @@ export function calculateRoofSurfaceArea({ roofFootprintArea, roofPitchDegrees, 
   return parseFloat((surfaceArea * (1 + waste)).toFixed(1));
 }
 
-export function calculateDerivedQuantities({ floorArea, wetArea, garageArea, externalWallLength, ceilingHeight }) {
+export function calculateDerivedQuantities({ floorArea, wetArea, garageArea, externalWallLength, ceilingHeight, roofFootprintArea, roofPitchDegrees, roofComplexity, roofWastePercent, roofAreaOverride }) {
   const fa = parseFloat(floorArea) || 0;
   const wa = parseFloat(wetArea) || 0;
   const ga = parseFloat(garageArea) || 0;
@@ -35,13 +35,22 @@ export function calculateDerivedQuantities({ floorArea, wetArea, garageArea, ext
 
   if (fa > 0) {
     slabVolume = (fa * 0.1).toFixed(1);
-    const rawRoof = (fa * 0.6) + fa;
-    roofArea = String(Math.ceil(rawRoof / 5) * 5);
-    
+
     const coverings = fa - wa - ga;
     if (coverings > 0) {
       mainFloorCoverings = coverings.toFixed(1);
     }
+  }
+
+  // Roof area ONLY from the real footprint/cos(pitch) formula (or the user's
+  // manual override). Never derived from floor area. Empty when the footprint
+  // is 0 or unconfirmed.
+  const footprint = parseFloat(roofFootprintArea) || 0;
+  const override = parseFloat(roofAreaOverride) || 0;
+  if (override > 0) {
+    roofArea = String(override);
+  } else if (footprint > 0) {
+    roofArea = String(calculateRoofSurfaceArea({ roofFootprintArea, roofPitchDegrees, roofComplexity, roofWastePercent }));
   }
 
   if (ewl > 0 && ch > 0) {
