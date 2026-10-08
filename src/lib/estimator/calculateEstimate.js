@@ -104,6 +104,12 @@ export function getDeterministicQuantityForLineItem(item, quantities = {}) {
 
   const has = (v) => toNumber(v, 0) > 0;
 
+  // Demolition & spoil removal uses the AI-harvested demolished area.
+  // Checked first so "roof removal" style items never match the roof lines below.
+  if (/demolit|spoil|strip out|removal|disposal/.test(text) && has(quantities.demolitionArea)) {
+    return { quantity: toNumber(quantities.demolitionArea), unit: 'm²', source: 'demolitionArea' };
+  }
+
   // Roof sheeting/tiles/roof covering should use the roof allowance area where available.
   if (/roof|colorbond|metal deck|roof sheet|roof tile|terracotta|concrete tile/.test(text)) {
     if (has(quantities.roofAllowanceArea)) return { quantity: toNumber(quantities.roofAllowanceArea), unit: 'm²', source: 'roofAllowanceArea' };

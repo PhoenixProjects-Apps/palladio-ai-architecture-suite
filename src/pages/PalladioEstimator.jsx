@@ -15,8 +15,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import SaveToProject from '@/components/SaveToProject';
 import ChooseProject from '@/components/ChooseProject';
-import { SITE_DIFFICULTY_RATES, CITY_OPTIONS, REGIONAL_COST_RATES, FINISH_MULTIPLIERS, COUNCIL_FEE_BASE, REGIONAL_FEE_MULTIPLIER, STATES, STOREYS_OPTIONS, ROOF_MATERIALS, EXTERNAL_WALL_MATERIALS, FLOOR_FINISHES, FINISH_LEVELS_OPTIONS } from '@/lib/estimatorData';
+import { SITE_DIFFICULTY_RATES, CITY_OPTIONS, REGIONAL_COST_RATES, FINISH_MULTIPLIERS, COUNCIL_FEE_BASE, REGIONAL_FEE_MULTIPLIER, STATES, STOREYS_OPTIONS, PROJECT_TYPES, ROOF_MATERIALS, EXTERNAL_WALL_MATERIALS, FLOOR_FINISHES, FINISH_LEVELS_OPTIONS } from '@/lib/estimatorData';
 import { calculateDerivedQuantities, calculateSilentCosts, calculateRoofSurfaceArea, normaliseEstimateResult, calculateFinalTotals } from '@/lib/estimator/calculateEstimate';
+import { EXTRACTION_FIELD_KEYS, PRISTINE_DEFAULTS, buildExtractionPrompt, buildExtractionResponseSchema, normaliseExtractionResponse, computeAppliedQuantity, sumDemolitionArea, shouldApplyExtractedValue, extractJson } from '@/lib/estimator/extraction';
+import AmbiguousQuantityChip from '@/components/estimator/AmbiguousQuantityChip';
+import ExtractionReferenceRows from '@/components/estimator/ExtractionReferenceRows';
 import useWorkspaceMode from '@/hooks/useWorkspaceMode';
 import WorkspaceCompanionNotice from '@/components/workspace/WorkspaceCompanionNotice';
 
@@ -77,55 +80,7 @@ const AssumptionsList = React.memo(({ assumptions }) => {
   );
 });
 
-function extractJson(text) {
-  if (!text) return null;
-  let s = String(text).trim().replace(/```json/gi, '').replace(/```/g, '').trim();
-  try { return JSON.parse(s); } catch (_) {}
-  const start = s.indexOf('{');
-  const end = s.lastIndexOf('}');
-  if (start !== -1 && end !== -1 && end > start) {
-    try { return JSON.parse(s.slice(start, end + 1)); } catch (_) {}
-  }
-  return null;
-}
 
-const EXTRACTION_FIELD_KEYS = [
-  'floorArea', 'groundFloorArea', 'upperFloorArea', 'wetArea', 'ceilingArea',
-  'roofFootprintArea', 'roofPitchDegrees', 'roofAreaOverride', 'externalWallLength',
-  'internalWallLength', 'externalWallArea', 'slabArea', 'slabVolume', 'garageArea',
-  'patioArea', 'porchArea', 'ceilingHeight'
-];
-
-function getExtractedValue(extraction, key) {
-  const field = extraction?.fields?.[key];
-  if (field && typeof field === 'object') return field.value ?? 0;
-  return extraction?.[key] ?? 0;
-}
-
-function getExtractedMeta(extraction, key) {
-  const field = extraction?.fields?.[key];
-  if (field && typeof field === 'object') {
-    return {
-      confidence: field.confidence || 'none',
-      source: field.source || 'Not shown',
-      unit: field.unit || ''
-    };
-  }
-  return { confidence: 'legacy', source: 'Legacy flat extraction', unit: '' };
-}
-
-function shouldApplyExtractedValue(currentValue, extractedValue, meta) {
-  const current = Number.parseFloat(currentValue);
-  const extracted = Number.parseFloat(extractedValue);
-
-  if (!Number.isFinite(extracted)) return false;
-  if (extracted <= 0) return false;
-  if (meta?.confidence === 'none') return false;
-
-  if (Number.isFinite(current) && current > 0) return false;
-
-  return true;
-}
 
 
 
@@ -183,6 +138,10 @@ export default function PalladioEstimator() {
   const [showFullEstimate, setShowFullEstimate] = useState(false);
   const [extractionMetadata, setExtractionMetadata] = useState({});
   const [extractionWarnings, setExtractionWarnings] = useState([]);
+  const [projectType, setProjectType] = useState('New Build');
+  const [extractionFields, setExtractionFields] = useState(null);
+  const [aiAppliedFields, setAiAppliedFields] = useState([]);
+  const [hasExtracted, setHasExtracted] = useState(false);
   const [isLoadingConfig, setIsLoadingConfig] = useState(false);
   const fileInputRef = useRef(null);
   const { isCompactWorkspace } = useWorkspaceMode();
@@ -195,7 +154,11 @@ export default function PalladioEstimator() {
       externalWallLength, internalWallLength, ceilingHeight,
       roofMaterial, externalWallMaterial, floorFinish, finishLevel,
       extractionMetadata,
-      extractionWarnings
+      extractionWarnings,
+      projectType,
+      extractionFields,
+      aiAppliedFields,
+      hasExtracted
     }, null, 2);
   };
 
@@ -234,6 +197,10 @@ export default function PalladioEstimator() {
           if (data.finishLevel) setFinishLevel(data.finishLevel);
           if (data.extractionMetadata) setExtractionMetadata(data.extractionMetadata);
           if (Array.isArray(data.extractionWarnings)) setExtractionWarnings(data.extractionWarnings);
+          if (data.projectType) setProjectType(data.projectType);
+          if (data.extractionFields) setExtractionFields(data.extractionFields);
+          if (Array.isArray(data.aiAppliedFields)) setAiAppliedFields(data.aiAppliedFields);
+          if (data.hasExtracted) setHasExtracted(true);
           toast.success("Loaded configuration from project");
         } else {
           throw new Error("Failed to fetch asset file");
@@ -256,6 +223,32 @@ export default function PalladioEstimator() {
 
   // Auto-calculate derived quantities
   const { slabVolume, mainFloorCoverings } = React.useMemo(() => calculateDerivedQuantities({ floorArea, wetArea, garageArea, externalWallLength, ceilingHeight }), [floorArea, wetArea, garageArea, externalWallLength, ceilingHeight]);
+
+  // Form setters for fields the extraction can populate.
+  const fieldSetters = {
+    floorArea: setFloorArea,
+    wetArea: setWetArea,
+    ceilingArea: setCeilingArea,
+    roofFootprintArea: setRoofFootprintArea,
+    roofPitchDegrees: setRoofPitchDegrees,
+    roofAreaOverride: setRoofAreaOverride,
+    externalWallArea: setExternalWallArea,
+    patioArea: setPatioArea,
+    porchArea: setPorchArea,
+    garageArea: setGarageArea,
+    externalWallLength: setExternalWallLength,
+    internalWallLength: setInternalWallLength,
+    ceilingHeight: setCeilingHeight
+  };
+
+  // Demolished area feeding the Demolition & Spoil Removal line item.
+  const demolitionArea = React.useMemo(
+    () => (extractionFields ? sumDemolitionArea(extractionFields) : 0),
+    [extractionFields]
+  );
+
+  const chipNote = (key) =>
+    extractionFields?.[key]?.ambiguous ? (extractionFields[key].note || 'Could not confirm existing vs new from the plan') : '';
   
   const roofArea = React.useMemo(() => {
     return calculateRoofSurfaceArea({ roofFootprintArea, roofPitchDegrees, roofComplexity, roofWastePercent, roofAreaOverride });
@@ -284,6 +277,18 @@ export default function PalladioEstimator() {
     }
   }, [externalWallLength, ceilingHeight]);
 
+  // When the project type changes after an extraction, re-derive the effective
+  // (new-work vs all-work) values for the fields the AI populated.
+  useEffect(() => {
+    if (!hasExtracted || !extractionFields) return;
+    aiAppliedFields.forEach((key) => {
+      const entry = extractionFields[key];
+      const setter = fieldSetters[key];
+      if (!entry || !setter) return;
+      setter(String(computeAppliedQuantity(entry, projectType)));
+    });
+  }, [projectType]);
+
   const handleAutoExtract = async () => {
     if (!fileUrl) return;
     setIsExtracting(true);
@@ -291,121 +296,69 @@ export default function PalladioEstimator() {
       const tokenRes = await base44.functions.invoke('consumeToken', {});
       if (tokenRes.data?.error) {
         toast.error("You don't have enough AI tokens. Please upgrade your plan.");
-        setIsExtracting(false);
         return;
       }
 
-      const prompt = `You are extracting explicit construction quantity inputs from architectural drawings for a deterministic estimating engine.
-
-Rules:
-1. Extract only values that are explicitly stated, dimensioned, scheduled, or directly calculable from clearly dimensioned plan geometry.
-2. Do not guess, infer from typical building ratios, or invent missing values.
-3. If a value is not shown or cannot be confidently determined, return 0.
-4. For every extracted field, include confidence and source notes.
-5. If a value is calculated from visible dimensions, say so in the source note.
-6. Never derive roof area from total floor area. Roof quantity must come from roof footprint/roof plan dimensions, stated roof area, or manual user input.
-7. Prefer explicit drawing schedules and area tables over visual approximation.
-8. Use square metres for areas, lineal metres for lengths, cubic metres for volumes, and millimetres for ceiling height.
-
-Allowed confidence values:
-high = explicitly stated or scheduled
-medium = directly calculated from visible dimensions
-low = visible but uncertain / requires manual check
-none = not shown, value must be 0
-
-Return this JSON shape exactly:
-{
-  "fields": {
-    "floorArea": { "value": 0, "unit": "m²", "confidence": "none", "source": "Not shown" },
-    "groundFloorArea": { "value": 0, "unit": "m²", "confidence": "none", "source": "Not shown" },
-    "upperFloorArea": { "value": 0, "unit": "m²", "confidence": "none", "source": "Not shown" },
-    "wetArea": { "value": 0, "unit": "m²", "confidence": "none", "source": "Not shown" },
-    "ceilingArea": { "value": 0, "unit": "m²", "confidence": "none", "source": "Not shown" },
-    "roofFootprintArea": { "value": 0, "unit": "m²", "confidence": "none", "source": "Not shown" },
-    "roofPitchDegrees": { "value": 0, "unit": "degrees", "confidence": "none", "source": "Not shown" },
-    "roofAreaOverride": { "value": 0, "unit": "m²", "confidence": "none", "source": "Not shown" },
-    "externalWallLength": { "value": 0, "unit": "lm", "confidence": "none", "source": "Not shown" },
-    "internalWallLength": { "value": 0, "unit": "lm", "confidence": "none", "source": "Not shown" },
-    "externalWallArea": { "value": 0, "unit": "m²", "confidence": "none", "source": "Not shown" },
-    "slabArea": { "value": 0, "unit": "m²", "confidence": "none", "source": "Not shown" },
-    "slabVolume": { "value": 0, "unit": "m³", "confidence": "none", "source": "Not shown" },
-    "garageArea": { "value": 0, "unit": "m²", "confidence": "none", "source": "Not shown" },
-    "patioArea": { "value": 0, "unit": "m²", "confidence": "none", "source": "Not shown" },
-    "porchArea": { "value": 0, "unit": "m²", "confidence": "none", "source": "Not shown" },
-    "ceilingHeight": { "value": 0, "unit": "mm", "confidence": "none", "source": "Not shown" }
-  },
-  "warnings": [
-    "List missing or low-confidence values that need manual review"
-  ]
-}`;
-
-      const fieldSchema = {
-        type: "object",
-        properties: {
-          value: { type: "number" },
-          unit: { type: "string" },
-          confidence: { type: "string", enum: ["high", "medium", "low", "none"] },
-          source: { type: "string" }
-        },
-        required: ["value", "unit", "confidence", "source"]
-      };
-
-      const responseSchema = {
-        type: "object",
-        properties: {
-          fields: {
-            type: "object",
-            properties: Object.fromEntries(EXTRACTION_FIELD_KEYS.map((key) => [key, fieldSchema]))
-          },
-          warnings: { type: "array", items: { type: "string" } }
-        },
-        required: ["fields", "warnings"]
-      };
-
-      const jsonPrompt = prompt + `\n\nCRITICAL: Return ONLY valid JSON matching this schema: ${JSON.stringify(responseSchema)}`;
+      const responseSchema = buildExtractionResponseSchema();
+      const jsonPrompt = `${buildExtractionPrompt()}\n\nCRITICAL: Return ONLY valid JSON matching this schema: ${JSON.stringify(responseSchema)}`;
       const resData = await base44.functions.invoke('superagentInvoke', {
         input: jsonPrompt,
-        fileUrls: [fileUrl]
+        fileUrls: [fileUrl],
+        responseJsonSchema: responseSchema
       });
       if (resData.data?.error) {
         throw new Error(resData.data.error);
       }
-      const rawContent = resData.data?.output || "";
-      const res = extractJson(rawContent);
+      const res = extractJson(resData.data?.output || '');
+      if (!res) {
+        // Keep any previously captured values; surface the failure clearly.
+        console.error('Auto-extract: could not parse the AI extraction response');
+        toast.error('Could not read quantities from the AI response. Re-run auto-quantities or enter them manually; existing values are kept.');
+        return;
+      }
 
-      if (res) {
-        const metadata = Object.fromEntries(EXTRACTION_FIELD_KEYS.map((key) => [key, getExtractedMeta(res, key)]));
-        setExtractionMetadata(metadata);
-        setExtractionWarnings(Array.isArray(res.warnings) ? res.warnings : []);
+      const normalised = normaliseExtractionResponse(res);
+      setExtractionFields(normalised.fields);
+      setExtractionWarnings(normalised.warnings);
+      setHasExtracted(true);
+      setExtractionMetadata(Object.fromEntries(EXTRACTION_FIELD_KEYS.map((key) => {
+        const f = normalised.fields[key];
+        return [key, f ? { confidence: f.confidence, source: f.source, unit: f.unit } : { confidence: 'none', source: 'Not shown', unit: '' }];
+      })));
 
-        const applyField = (key, currentValue, setter) => {
-          const extractedValue = getExtractedValue(res, key);
-          const meta = metadata[key];
-          if (shouldApplyExtractedValue(currentValue, extractedValue, meta)) {
-            setter(String(extractedValue));
-          }
-        };
+      const currentValues = {
+        floorArea, wetArea, ceilingArea, roofFootprintArea, roofPitchDegrees,
+        roofAreaOverride, externalWallArea, patioArea, porchArea, garageArea,
+        externalWallLength, internalWallLength, ceilingHeight
+      };
 
-        applyField('floorArea', floorArea, setFloorArea);
-        applyField('roofFootprintArea', roofFootprintArea, setRoofFootprintArea);
-        applyField('roofPitchDegrees', roofPitchDegrees, setRoofPitchDegrees);
-        applyField('roofAreaOverride', roofAreaOverride, setRoofAreaOverride);
-        applyField('wetArea', wetArea, setWetArea);
-        applyField('ceilingArea', ceilingArea, setCeilingArea);
-        applyField('patioArea', patioArea, setPatioArea);
-        applyField('porchArea', porchArea, setPorchArea);
-        applyField('garageArea', garageArea, setGarageArea);
-        applyField('externalWallLength', externalWallLength, setExternalWallLength);
-        applyField('internalWallLength', internalWallLength, setInternalWallLength);
-        applyField('externalWallArea', externalWallArea, setExternalWallArea);
-        applyField('ceilingHeight', ceilingHeight, setCeilingHeight);
-        toast.success("Quantities auto-extracted from plan!");
+      let applied = 0;
+      const appliedNow = [];
+      EXTRACTION_FIELD_KEYS.forEach((key) => {
+        const entry = normalised.fields[key];
+        const setter = fieldSetters[key];
+        if (!entry || !setter) return;
+        const effective = computeAppliedQuantity(entry, projectType);
+        const current = currentValues[key];
+        // Re-runs may overwrite fields an earlier extraction set (or pristine
+        // defaults like pitch 22.5), but never values the user typed.
+        const allowOverwrite = aiAppliedFields.includes(key) || String(current ?? '') === String(PRISTINE_DEFAULTS[key] ?? '');
+        if (shouldApplyExtractedValue(current, effective, entry, { allowOverwrite })) {
+          setter(String(effective));
+          applied += 1;
+          appliedNow.push(key);
+        }
+      });
+      setAiAppliedFields((prev) => Array.from(new Set([...prev, ...appliedNow])));
+
+      if (applied > 0) {
+        toast.success(`Populated ${applied} quantit${applied === 1 ? 'y' : 'ies'} from the plan${normalised.warnings.length ? ' — check the extraction notes' : ''}`);
       } else {
-        toast.error("Quantities could not be determined. Check the file or try again.");
+        toast.error('No quantities could be confidently read from the plan. Enter them manually or re-run auto-quantities.');
       }
     } catch (err) {
-      console.error(err);
-      toast.error("Failed to extract quantities: " + (err.message || 'Error'));
+      console.error('Auto-extract failed:', err);
+      toast.error('Failed to extract quantities: ' + (err.message || 'Error') + '. Previously captured values are kept.');
     } finally {
       setIsExtracting(false);
     }
@@ -460,6 +413,7 @@ Calculate the estimated material costs using the deterministic quantities suppli
 Site details:
 - State: ${state}, City: ${city}
 - Storeys: ${storeys}
+- Project Type: ${projectType}${projectType === 'New Build' ? '' : ' (all supplied quantities are NEW work only; existing retained structures are excluded from this estimate)'}
 - Site Difficulty: ${difficulty} (Apply a ${markup}% markup to the subtotal as 'site_difficulty_markup_cost')
 - Finish Level: ${finishLevel} (finish-level pricing calibration is applied by the app after your response)
 
@@ -477,6 +431,7 @@ App-Supplied Deterministic Quantities:
 - Ceiling Height: ${ceilingHeight || 'not provided'} mm
 - Slab Volume (auto-calc): ${slabVolume || 'not provided'} m³
 - Main Floor Coverings (auto-calc): ${mainFloorCoverings || 'not provided'} m²
+- Total Demolished Area (auto-calc): ${demolitionArea > 0 ? demolitionArea : 'not provided'} m²
 
 Selected Materials:
 - Roof: ${roofMaterial || 'not specified'}
@@ -496,7 +451,8 @@ INSTRUCTIONS:
 4. Calibrate unit costs to align with local market conditions for ${city}, ${state}; do not change supplied quantities to hit a target total.
 5. Do not include scaffolding as a line item. Scaffolding is calculated separately by the app when storeys are 2 or more.
 6. Provide best-match item categories, item names, units, quantities and unit costs only. Do not rely on your own subtotal/grand total for final arithmetic.
-7. Provide a list of assumptions made during the takeoff, including any missing quantities requiring manual measurement.`;
+7. Provide a list of assumptions made during the takeoff, including any missing quantities requiring manual measurement.
+8. If Total Demolished Area is provided and greater than 0, include a single "Demolition & Spoil Removal" line item with quantity equal to it (m²). Never include retained existing structures in any line item.`;
 
       const responseSchema = {
         type: "object",
@@ -553,7 +509,8 @@ INSTRUCTIONS:
           internalWallLength,
           ceilingHeight,
           slabVolume,
-          mainFloorCoverings
+          mainFloorCoverings,
+          demolitionArea
         }
       });
 
@@ -756,7 +713,7 @@ INSTRUCTIONS:
                   aria-busy={isExtracting}
                   variant="secondary"
                   className="w-full mt-4 border border-slate-700 text-cyan-400 hover:text-cyan-300 hover:bg-slate-800 bg-slate-800/50 h-11 rounded-xl">
-                  {isExtracting ? <><Loader2 className="animate-spin mr-2" size={18} /> Extracting Quantities...</> : <><Sparkles className="mr-2" size={18} /> Auto-Extract Quantities</>}
+                  {isExtracting ? <><Loader2 className="animate-spin mr-2" size={18} /> Extracting Quantities...</> : <><Sparkles className="mr-2" size={18} /> {hasExtracted ? 'Re-run Auto-Quantities' : 'Auto-Extract Quantities'}</>}
                 </Button>
               )}
             </CardContent>
@@ -952,7 +909,7 @@ INSTRUCTIONS:
                                   aria-busy={isExtracting}
                                   variant="secondary"
                                   className="w-full mt-4 mb-2 border border-slate-700 text-cyan-400 hover:text-cyan-300 hover:bg-slate-800 bg-slate-800/50 h-11">
-                                  {isExtracting ? <><Loader2 className="animate-spin mr-2" size={18} /> Extracting Quantities...</> : <><Sparkles className="mr-2" size={18} /> Auto-Extract Quantities</>}
+                                  {isExtracting ? <><Loader2 className="animate-spin mr-2" size={18} /> Extracting Quantities...</> : <><Sparkles className="mr-2" size={18} /> {hasExtracted ? 'Re-run Auto-Quantities' : 'Auto-Extract Quantities'}</>}
                                 </Button>
                             )}
                         </CardContent>
@@ -964,25 +921,46 @@ INSTRUCTIONS:
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div>
+                                <label className="text-xs text-slate-400 mb-1 block">Project Type</label>
+                                <Select value={projectType} onValueChange={setProjectType}>
+                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto"><SelectValue /></SelectTrigger>
+                                    <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                                        {PROJECT_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                                {projectType !== 'New Build' && (
+                                    <p className="text-xs text-slate-500 mt-1">Only NEW work feeds the estimate; existing retained areas are excluded.</p>
+                                )}
+                            </div>
+                            {extractionWarnings.length > 0 && (
+                                <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                                    <p className="text-xs font-semibold text-amber-400 mb-1">Extraction notes</p>
+                                    <ul className="list-disc pl-4 space-y-1">
+                                        {extractionWarnings.map((w, i) => <li key={i} className="text-xs text-amber-300/90">{w}</li>)}
+                                    </ul>
+                                </div>
+                            )}
+                            <ExtractionReferenceRows fields={extractionFields} projectType={projectType} />
+                            <div>
                                 <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Areas</p>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div>
-                                        <label className="text-xs text-slate-400 mb-1 block">Floor (m²)</label>
+                                        <div className="flex items-center gap-1.5 mb-1 flex-wrap"><label className="text-xs text-slate-400 block">Floor (m²)</label><AmbiguousQuantityChip note={chipNote('floorArea')} /></div>
                                         <Input type="number" value={floorArea} onChange={(e) => setFloorArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
                                     <div>
-                                        <label className="text-xs text-slate-400 mb-1 block">Wet (m²)</label>
+                                        <div className="flex items-center gap-1.5 mb-1 flex-wrap"><label className="text-xs text-slate-400 block">Wet (m²)</label><AmbiguousQuantityChip note={chipNote('wetArea')} /></div>
                                         <Input type="number" value={wetArea} onChange={(e) => setWetArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
                                     <div>
-                                        <label className="text-xs text-slate-400 mb-1 block">Ceiling (m²)</label>
+                                        <div className="flex items-center gap-1.5 mb-1 flex-wrap"><label className="text-xs text-slate-400 block">Ceiling (m²)</label><AmbiguousQuantityChip note={chipNote('ceilingArea')} /></div>
                                         <Input type="number" value={ceilingArea} onChange={(e) => setCeilingArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
                                     <div className="col-span-1 md:col-span-2 space-y-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
                                         <p className="text-xs font-semibold text-slate-300">Roof Area Calculation</p>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                             <div>
-                                                <label className="text-xs text-slate-400 mb-1 block">Roof Footprint (m²)</label>
+                                                <div className="flex items-center gap-1.5 mb-1 flex-wrap"><label className="text-xs text-slate-400 block">Roof Footprint (m²)</label><AmbiguousQuantityChip note={chipNote('roofFootprintArea')} /></div>
                                                 <Input type="number" value={roofFootprintArea} onChange={(e) => setRoofFootprintArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-[44px]" />
                                             </div>
                                             <div>
@@ -1015,22 +993,25 @@ INSTRUCTIONS:
                                                 <label className="text-xs text-slate-400 mb-1 block">Manual Override (m²)</label>
                                                 <Input type="number" value={roofAreaOverride} onChange={(e) => setRoofAreaOverride(e.target.value)} placeholder="Override calculated" className="bg-slate-800 border-slate-700 text-white min-h-[44px]" />
                                             </div>
-                                        </div>
-                                    </div>
+                                            </div>
+                                            {extractionFields?.roofFootprintArea?.existingRetained > 0 && (
+                                            <p className="text-xs text-slate-400">Existing roof retained: {extractionFields.roofFootprintArea.existingRetained} m² (excluded)</p>
+                                            )}
+                                            </div>
                                     <div>
-                                        <label className="text-xs text-slate-400 mb-1 block">External Wall Area (m²)</label>
+                                        <div className="flex items-center gap-1.5 mb-1 flex-wrap"><label className="text-xs text-slate-400 block">External Wall Area (m²)</label><AmbiguousQuantityChip note={chipNote('externalWallArea')} /></div>
                                         <Input type="number" value={externalWallArea} onChange={(e) => setExternalWallArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
                                     <div>
-                                        <label className="text-xs text-slate-400 mb-1 block">Patio (m²)</label>
+                                        <div className="flex items-center gap-1.5 mb-1 flex-wrap"><label className="text-xs text-slate-400 block">Patio (m²)</label><AmbiguousQuantityChip note={chipNote('patioArea')} /></div>
                                         <Input type="number" value={patioArea} onChange={(e) => setPatioArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
                                     <div className="md:col-span-2">
-                                        <label className="text-xs text-slate-400 mb-1 block">Porch (m²)</label>
+                                        <div className="flex items-center gap-1.5 mb-1 flex-wrap"><label className="text-xs text-slate-400 block">Porch (m²)</label><AmbiguousQuantityChip note={chipNote('porchArea')} /></div>
                                         <Input type="number" value={porchArea} onChange={(e) => setPorchArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
                                     <div className="md:col-span-2">
-                                        <label className="text-xs text-slate-400 mb-1 block">Garage (m²)</label>
+                                        <div className="flex items-center gap-1.5 mb-1 flex-wrap"><label className="text-xs text-slate-400 block">Garage (m²)</label><AmbiguousQuantityChip note={chipNote('garageArea')} /></div>
                                         <Input type="number" value={garageArea} onChange={(e) => setGarageArea(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
                                 </div>
@@ -1039,11 +1020,11 @@ INSTRUCTIONS:
                                 <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Lengths</p>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div>
-                                        <label className="text-xs text-slate-400 mb-1 block">External Wall Length (m)</label>
+                                        <div className="flex items-center gap-1.5 mb-1 flex-wrap"><label className="text-xs text-slate-400 block">External Wall Length (m)</label><AmbiguousQuantityChip note={chipNote('externalWallLength')} /></div>
                                         <Input type="number" value={externalWallLength} onChange={(e) => setExternalWallLength(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
                                     <div>
-                                        <label className="text-xs text-slate-400 mb-1 block">Internal Wall Length (m)</label>
+                                        <div className="flex items-center gap-1.5 mb-1 flex-wrap"><label className="text-xs text-slate-400 block">Internal Wall Length (m)</label><AmbiguousQuantityChip note={chipNote('internalWallLength')} /></div>
                                         <Input type="number" value={internalWallLength} onChange={(e) => setInternalWallLength(e.target.value)} placeholder="0" className="bg-slate-800 border-slate-700 text-white min-h-11 h-auto" />
                                     </div>
                                     <div className="md:col-span-2">

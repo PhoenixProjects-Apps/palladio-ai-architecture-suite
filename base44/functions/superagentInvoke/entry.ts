@@ -19,6 +19,8 @@ Deno.serve(async (req) => {
     const sessionId = body?.sessionId || "";
     const projectId = body?.projectId || null;
     const fileUrls = Array.isArray(body?.fileUrls) ? body.fileUrls : [];
+    // Optional structured-output guarantee for callers that need valid JSON.
+    const responseJsonSchema = body?.responseJsonSchema || null;
     
     if (!input) {
       return Response.json({ error: "Missing input" }, { status: 400 });
@@ -28,7 +30,8 @@ Deno.serve(async (req) => {
     const llmRes = await base44.integrations.Core.InvokeLLM({
       prompt: input,
       file_urls: fileUrls.length > 0 ? fileUrls : undefined,
-      model: "automatic"
+      model: "automatic",
+      ...(responseJsonSchema ? { response_json_schema: responseJsonSchema } : {})
     });
 
     let newSessionId = sessionId;

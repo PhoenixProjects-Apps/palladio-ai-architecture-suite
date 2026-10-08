@@ -18,6 +18,7 @@ export const CITY_OPTIONS = Object.freeze({
 
 export const STATES = Object.freeze(['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT']);
 export const STOREYS_OPTIONS = Object.freeze(['1', '2', '3', '4+']);
+export const PROJECT_TYPES = Object.freeze(['New Build', 'Extension', 'Renovation']);
 export const ROOF_MATERIALS = Object.freeze(['Colorbond Steel', 'Concrete Tile', 'Terracotta Tile', 'Slate', 'Metal Deck', 'Flat Membrane']);
 export const EXTERNAL_WALL_MATERIALS = Object.freeze(['Brick Veneer', 'Double Brick', 'Weatherboard', 'Hebel (AAC)', 'Rendered Foam', 'Concrete Block', 'Cladding']);
 export const FLOOR_FINISHES = Object.freeze(['Tiles', 'Timber', 'Carpet', 'Polished Concrete', 'Hybrid Vinyl', 'Stone', 'Laminate']);
